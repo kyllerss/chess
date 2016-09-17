@@ -12,3 +12,4 @@ main = do
     putStrLn ("Pawn -> " ++ display Pawn)
     putStrLn ("Rook -> " ++ display Rook)
     putStrLn ("Knight -> " ++ display Knight)
+    putStrLn ("Something -> " ++ display Knight)
