@@ -5,6 +5,7 @@
     display: flex; /* inline-block elements respect whitespace EOL characters */
     flex-wrap: wrap;
     font-family: 'Arial Unicode MS, Tahoma';
+    margin: 100px auto;
 }
 
 .c-space {
