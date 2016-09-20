@@ -23,18 +23,8 @@
     background-color: white;
 }
 
-.c-space.white-pawn:after {padding-left: 5px; content: '\2659';}
-.c-space.white-rook:after {padding-left: 5px; content: '\2656';}
-.c-space.white-knight:after {padding-left: 5px; content: '\2658';}
-.c-space.white-bishop:after {padding-left: 5px; content: '\2657';}
-.c-space.white-queen:after {padding-left: 5px; content: '\2655';}
-.c-space.white-king:after {padding-left: 5px; content: '\2654';}
-
-.c-space.black-pawn:after {padding-left: 5px; content: '\265F';}
-.c-space.black-rook:after {padding-left: 5px; content: '\265C';}
-.c-space.black-knight:after {padding-left: 5px; content: '\265E';}
-.c-space.black-bishop:after {padding-left: 5px; content: '\265D';}
-.c-space.black-queen:after {padding-left: 5px; content: '\265B';}
-.c-space.black-king:after {padding-left: 5px; content: '\265A';}
-
-
+.c-space .c-piece {
+    height: 60px;
+    width: 60px;
+    text-align: center;
+}
