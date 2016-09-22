@@ -1,153 +1,191 @@
 var Board = React.createClass({
 
-    render: function() {
+    _fetchGrid: function() {
 
         var spaces = [
 
             // Row 1
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Rook",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Knight",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Bishop",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Queen",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "King",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Bishop",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Knight",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Rook",
-                                        pieceColor: "Black"}),
+            [
+            {color: "White",
+             pieceType: "Rook",
+             pieceColor: "Black"},
+            {color: "Black",
+             pieceType: "Knight",
+             pieceColor: "Black"},
+            {color: "White",
+             pieceType: "Bishop",
+             pieceColor: "Black"},
+            {color: "Black",
+             pieceType: "Queen",
+             pieceColor: "Black"},
+            {color: "White",
+             pieceType: "King",
+             pieceColor: "Black"},
+            {color: "Black",
+             pieceType: "Bishop",
+             pieceColor: "Black"},
+            {color: "White",
+             pieceType: "Knight",
+             pieceColor: "Black"},
+            {color: "Black",
+             pieceType: "Rook",
+             pieceColor: "Black"}
+            ],
 
             // Row 2
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Pawn",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Pawn",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Pawn",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Pawn",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Pawn",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Pawn",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Pawn",
-                                        pieceColor: "Black"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Pawn",
-                                        pieceColor: "Black"}),
+            [
+            {color: "Black",
+             pieceType: "Pawn",
+             pieceColor: "Black"},
+            {color: "White",
+             pieceType: "Pawn",
+             pieceColor: "Black"},
+            {color: "Black",
+             pieceType: "Pawn",
+             pieceColor: "Black"},
+            {color: "White",
+             pieceType: "Pawn",
+             pieceColor: "Black"},
+            {color: "Black",
+             pieceType: "Pawn",
+             pieceColor: "Black"},
+            {color: "White",
+             pieceType: "Pawn",
+             pieceColor: "Black"},
+            {color: "Black",
+             pieceType: "Pawn",
+             pieceColor: "Black"},
+            {color: "White",
+             pieceType: "Pawn",
+             pieceColor: "Black"}
+            ],
 
             // Row 3
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
+            [
+            {color: "White"},
+            {color: "Black"},
+            {color: "White"},
+            {color: "Black"},
+            {color: "White"},
+            {color: "Black"},
+            {color: "White"},
+            {color: "Black"}
+            ],
 
             // Row 4
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
+            [
+            {color: "Black"},
+            {color: "White"},
+            {color: "Black"},
+            {color: "White"},
+            {color: "Black"},
+            {color: "White"},
+            {color: "Black"},
+            {color: "White"}
+            ],
 
             // Row 5
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
+            [
+            {color: "White"},
+            {color: "Black"},
+            {color: "White"},
+            {color: "Black"},
+            {color: "White"},
+            {color: "Black"},
+            {color: "White"},
+            {color: "Black"}
+            ],
 
             // Row 6
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
-            React.createElement(Space, {color: "Black"}),
-            React.createElement(Space, {color: "White"}),
+            [
+            {color: "Black"},
+            {color: "White"},
+            {color: "Black"},
+            {color: "White"},
+            {color: "Black"},
+            {color: "White"},
+            {color: "Black"},
+            {color: "White"}
+            ],
 
             // Row 7
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Pawn",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Pawn",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Pawn",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Pawn",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Pawn",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Pawn",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Pawn",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Pawn",
-                                        pieceColor: "White"}),
+            [
+            {color: "White",
+             pieceType: "Pawn",
+             pieceColor: "White"},
+            {color: "Black",
+             pieceType: "Pawn",
+             pieceColor: "White"},
+            {color: "White",
+             pieceType: "Pawn",
+             pieceColor: "White"},
+            {color: "Black",
+             pieceType: "Pawn",
+             pieceColor: "White"},
+            {color: "White",
+             pieceType: "Pawn",
+             pieceColor: "White"},
+            {color: "Black",
+             pieceType: "Pawn",
+             pieceColor: "White"},
+            {color: "White",
+             pieceType: "Pawn",
+             pieceColor: "White"},
+            {color: "Black",
+             pieceType: "Pawn",
+             pieceColor: "White"}
+            ],
 
             // Row 8
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Rook",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Knight",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Bishop",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "King",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Queen",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Bishop",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "Black",
-                                        pieceType: "Knight",
-                                        pieceColor: "White"}),
-            React.createElement(Space, {color: "White",
-                                        pieceType: "Rook",
-                                        pieceColor: "White"}),
+            [
+            {color: "Black",
+             pieceType: "Rook",
+             pieceColor: "White"},
+            {color: "White",
+             pieceType: "Knight",
+             pieceColor: "White"},
+            {color: "Black",
+             pieceType: "Bishop",
+             pieceColor: "White"},
+            {color: "White",
+             pieceType: "King",
+             pieceColor: "White"},
+            {color: "Black",
+             pieceType: "Queen",
+             pieceColor: "White"},
+            {color: "White",
+             pieceType: "Bishop",
+             pieceColor: "White"},
+            {color: "Black",
+             pieceType: "Knight",
+             pieceColor: "White"},
+            {color: "White",
+             pieceType: "Rook",
+             pieceColor: "White"}
+            ]
         ];
+
+        return spaces;
+    },
+
+    render: function() {
+
+
+        var grid = this._fetchGrid();
+
+        var spaces = [];
+        for (var i = 0; i < grid.length; i++) {
+
+            var row = grid[i];
+            for (var j = 0; j < row.length; j++) {
+
+                var props = row[j];
+                var key = "space-" + i + "-" + j;
+                props.key = key;
+
+                spaces.push(React.createElement(Space, props));
+            }
+        }
 
         return React.DOM.div({className: "c-board"}, spaces);
     } 
@@ -181,6 +219,10 @@ var Space = React.createClass({
 });
 
 var Piece = React.createClass({
+
+    _startDrag: function(event) {
+        console.log(event);
+    },
 
     render: function() {
 
@@ -216,6 +258,11 @@ var Piece = React.createClass({
             piece = "";
         }
 
-        return React.createElement("div", {className: "c-piece", dangerouslySetInnerHTML: {__html: piece}});
+        var properties = {className: "c-piece",
+                          dangerouslySetInnerHTML: {__html: piece},
+                          draggable: "true",
+                          onDragStart: this._startDrag};
+
+        return React.createElement("div", properties);
     }
 });
