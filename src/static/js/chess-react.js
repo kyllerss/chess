@@ -1,175 +1,10 @@
 var Board = React.createClass({
 
     _fetchGrid: function() {
-
-        var spaces = [
-
-            // Row 1
-            [
-            {color: "White",
-             pieceType: "Rook",
-             pieceColor: "Black"},
-            {color: "Black",
-             pieceType: "Knight",
-             pieceColor: "Black"},
-            {color: "White",
-             pieceType: "Bishop",
-             pieceColor: "Black"},
-            {color: "Black",
-             pieceType: "Queen",
-             pieceColor: "Black"},
-            {color: "White",
-             pieceType: "King",
-             pieceColor: "Black"},
-            {color: "Black",
-             pieceType: "Bishop",
-             pieceColor: "Black"},
-            {color: "White",
-             pieceType: "Knight",
-             pieceColor: "Black"},
-            {color: "Black",
-             pieceType: "Rook",
-             pieceColor: "Black"}
-            ],
-
-            // Row 2
-            [
-            {color: "Black",
-             pieceType: "Pawn",
-             pieceColor: "Black"},
-            {color: "White",
-             pieceType: "Pawn",
-             pieceColor: "Black"},
-            {color: "Black",
-             pieceType: "Pawn",
-             pieceColor: "Black"},
-            {color: "White",
-             pieceType: "Pawn",
-             pieceColor: "Black"},
-            {color: "Black",
-             pieceType: "Pawn",
-             pieceColor: "Black"},
-            {color: "White",
-             pieceType: "Pawn",
-             pieceColor: "Black"},
-            {color: "Black",
-             pieceType: "Pawn",
-             pieceColor: "Black"},
-            {color: "White",
-             pieceType: "Pawn",
-             pieceColor: "Black"}
-            ],
-
-            // Row 3
-            [
-            {color: "White"},
-            {color: "Black"},
-            {color: "White"},
-            {color: "Black"},
-            {color: "White"},
-            {color: "Black"},
-            {color: "White"},
-            {color: "Black"}
-            ],
-
-            // Row 4
-            [
-            {color: "Black"},
-            {color: "White"},
-            {color: "Black"},
-            {color: "White"},
-            {color: "Black"},
-            {color: "White"},
-            {color: "Black"},
-            {color: "White"}
-            ],
-
-            // Row 5
-            [
-            {color: "White"},
-            {color: "Black"},
-            {color: "White"},
-            {color: "Black"},
-            {color: "White"},
-            {color: "Black"},
-            {color: "White"},
-            {color: "Black"}
-            ],
-
-            // Row 6
-            [
-            {color: "Black"},
-            {color: "White"},
-            {color: "Black"},
-            {color: "White"},
-            {color: "Black"},
-            {color: "White"},
-            {color: "Black"},
-            {color: "White"}
-            ],
-
-            // Row 7
-            [
-            {color: "White",
-             pieceType: "Pawn",
-             pieceColor: "White"},
-            {color: "Black",
-             pieceType: "Pawn",
-             pieceColor: "White"},
-            {color: "White",
-             pieceType: "Pawn",
-             pieceColor: "White"},
-            {color: "Black",
-             pieceType: "Pawn",
-             pieceColor: "White"},
-            {color: "White",
-             pieceType: "Pawn",
-             pieceColor: "White"},
-            {color: "Black",
-             pieceType: "Pawn",
-             pieceColor: "White"},
-            {color: "White",
-             pieceType: "Pawn",
-             pieceColor: "White"},
-            {color: "Black",
-             pieceType: "Pawn",
-             pieceColor: "White"}
-            ],
-
-            // Row 8
-            [
-            {color: "Black",
-             pieceType: "Rook",
-             pieceColor: "White"},
-            {color: "White",
-             pieceType: "Knight",
-             pieceColor: "White"},
-            {color: "Black",
-             pieceType: "Bishop",
-             pieceColor: "White"},
-            {color: "White",
-             pieceType: "King",
-             pieceColor: "White"},
-            {color: "Black",
-             pieceType: "Queen",
-             pieceColor: "White"},
-            {color: "White",
-             pieceType: "Bishop",
-             pieceColor: "White"},
-            {color: "Black",
-             pieceType: "Knight",
-             pieceColor: "White"},
-            {color: "White",
-             pieceType: "Rook",
-             pieceColor: "White"}
-            ]
-        ];
-
-        return spaces;
+        return ChessModel.fetchBoard();
     },
 
     render: function() {
-
 
         var grid = this._fetchGrid();
 
@@ -181,7 +16,9 @@ var Board = React.createClass({
 
                 var props = row[j];
                 var key = "space-" + i + "-" + j;
-                props.key = key;
+                props['key'] = key;
+                props['row'] = i;
+                props['column'] = j;
 
                 spaces.push(React.createElement(Space, props));
             }
@@ -196,13 +33,17 @@ var Space = React.createClass({
     propTypes: {
         pieceType: React.PropTypes.string, // convert to an object param
         pieceColor: React.PropTypes.string,
-        color: React.PropTypes.string.isRequired
+        color: React.PropTypes.string.isRequired,
+        row: React.PropTypes.number.isRequired,
+        column: React.PropTypes.number.isRequired
     },
 
     render: function() {
 
         var pType = this.props.pieceType;
         var pColor = this.props.pieceColor;
+        var row = this.props.row;
+        var column = this.props.column;
 
         var pProps = null;
         if (pType != null && pColor != null) {
@@ -214,7 +55,10 @@ var Space = React.createClass({
         var sColor = this.props.color === "White" ? "white" : "black";
         var className = "c-space " + sColor;
 
-        return React.DOM.div({className: className}, piece);
+        var props = {className: className,
+                     'data-row': row,
+                     'data-column': column};
+        return React.DOM.div(props, piece);
     }
 });
 
