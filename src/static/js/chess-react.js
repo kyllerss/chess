@@ -33,21 +33,48 @@ var Space = React.createClass({
     propTypes: {
         pieceType: React.PropTypes.string, // convert to an object param
         pieceColor: React.PropTypes.string,
+        pieceId: React.PropTypes.string,
         color: React.PropTypes.string.isRequired,
         row: React.PropTypes.number.isRequired,
         column: React.PropTypes.number.isRequired
+    },
+
+    _onDragOver: function(event) {
+        // determine if one can drag over this space
+        //console.log("onDragOver: " + event);
+        event.preventDefault();
+
+        var pId = event.target.attributes['data-pid'];
+        var row = this.props.row;
+        var column = this.props.column;
+        var validMove = ChessModel.isValidMove(pId, row, column);
+
+        console.log("onDragOver: " + validMove);
+    },
+
+    _onDrop: function(event) {
+        //console.log("onDrop: " + event);
+        event.preventDefault();
+
+        var pId = event.target.attributes['data-pid'];
+        var row = this.props.row;
+        var column = this.props.column;
+        var validMove = ChessModel.isValidMove(pId, row, column);
+
+        console.log("onDrop: " + validMove);
     },
 
     render: function() {
 
         var pType = this.props.pieceType;
         var pColor = this.props.pieceColor;
+        var pId = this.props.pieceId;
         var row = this.props.row;
         var column = this.props.column;
 
         var pProps = null;
         if (pType != null && pColor != null) {
-            pProps = {pieceType: pType, pieceColor: pColor};
+            pProps = {pieceType: pType, pieceColor: pColor, pieceId: pId};
         }
 
         var piece = React.createElement(Piece, pProps);
@@ -57,7 +84,9 @@ var Space = React.createClass({
 
         var props = {className: className,
                      'data-row': row,
-                     'data-column': column};
+                     'data-column': column,
+                     onDragOver: this._onDragOver,
+                     onDrop: this._onDrop};
         return React.DOM.div(props, piece);
     }
 });
@@ -65,13 +94,14 @@ var Space = React.createClass({
 var Piece = React.createClass({
 
     _startDrag: function(event) {
-        console.log(event);
+        console.log("onDragStart: " + event);
     },
 
     render: function() {
 
         var pType = this.props.pieceType;
         var pColor = this.props.pieceColor;
+        var pId = this.props.pieceId;
 
         var piece;
         if (pType === "Pawn" && pColor === "White") {
@@ -107,6 +137,11 @@ var Piece = React.createClass({
                           draggable: "true",
                           onDragStart: this._startDrag};
 
-        return React.createElement("div", properties);
+        if (pId != null) {
+            properties['data-pid'] = pId;
+            console.log("Piece id: " + pId);
+        }
+
+        return React.DOM.div(properties, null);
     }
 });

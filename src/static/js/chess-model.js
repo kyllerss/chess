@@ -2,8 +2,37 @@ var ChessModel = (function () {
 
     var _rawState = {};
     var _board = {};
+    var _validMoves = {};
     var _pieceMapping = {p: "Pawn", r: "Rook", n: "Knight", b: "Bishop", q: "Queen", k: "King"};
     var _colorMapping = {w: "White", b: "Black"};
+
+    function _addValidMove(pId, move) {
+
+        /*
+             {1: {1: [1,2,3],
+                 {2: [4,3]},
+              2: {1: [3,3],
+                  3: [3]}}
+
+         */
+
+        var row = move[0];
+        var col = move[1];
+
+        var rowMap = _validMoves[row];
+        if (rowMap == null) {
+            rowMap = {};
+            _validMoves[row] = rowMap;
+        }
+
+        var pIds = rowMap[col];
+        if (pIds == null) {
+            pIds = [];
+            rowMap[col] = pIds;
+        }
+
+        pIds.push(pId);
+    };
 
     function _calculateColor(color) {
         return _colorMapping[color];
@@ -90,7 +119,8 @@ var ChessModel = (function () {
         }
 
         // place pieces
-        for (var pId in this._rawState.pieces) {
+        var pId, row, col;
+        for (pId in this._rawState.pieces) {
 
             var rawPiece = this._rawState.pieces[pId];
 
@@ -100,9 +130,19 @@ var ChessModel = (function () {
             var spaceState = this._board[rowCoord][colCoord];
             spaceState.pieceType = _calculatePieceType(rawPiece.t);
             spaceState.pieceColor = _calculateColor(rawPiece.c);
+            spaceState.pieceId = pId;
         }
 
-        return this._board;
+        // decompose valid moves
+        this._validMoves = {};
+        for (pId in this._rawState.moves) {
+
+            var moves = this._rawState.moves[pId];
+            for (var move in moves) {
+
+                _addValidMove(pId, move);
+            }
+        }
     };
 
     function _fetchBoard() {
@@ -117,6 +157,13 @@ var ChessModel = (function () {
         return this._board[row][col];
     };
 
+    function _isValidMove(pId, row, col) {
+
+        return this._validMoves[row] != null
+            && this._validMoves[row][col] != null
+            && this._validMoves[row][col].indexOf(pId) != -1;
+    }
+
     function _registerListener(eventType, callback) {
         nerve.on(eventType, callback);
     };
@@ -125,7 +172,8 @@ var ChessModel = (function () {
         register: _registerListener,
         initBoard: _initState,
         fetchBoard: _fetchBoard,
-        fetchSpace: _fetchSpace
+        fetchSpace: _fetchSpace,
+        isValidMove: _isValidMove
     };
 })();
 
