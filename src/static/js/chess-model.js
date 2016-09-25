@@ -44,7 +44,7 @@ var ChessModel = (function () {
 
     function _initState() {
 
-        this._rawState = {
+        _rawState = {
 
             // board layout
             board : [['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
@@ -101,10 +101,10 @@ var ChessModel = (function () {
         };
 
         // layout initial board
-        this._board = [];
-        for (var rowId = 0; rowId < this._rawState.board.length; rowId++) {
+        _board = [];
+        for (var rowId = 0; rowId < _rawState.board.length; rowId++) {
 
-            var rawRow = this._rawState.board[rowId];
+            var rawRow = _rawState.board[rowId];
 
             var rowState = [];
             for (var colId = 0; colId < rawRow.length; colId++) {
@@ -115,38 +115,39 @@ var ChessModel = (function () {
                 rowState.push(space);
             }
 
-            this._board.push(rowState);
+            _board.push(rowState);
         }
 
         // place pieces
         var pId, row, col;
-        for (pId in this._rawState.pieces) {
+        for (pId in _rawState.pieces) {
 
-            var rawPiece = this._rawState.pieces[pId];
+            var rawPiece = _rawState.pieces[pId];
 
             var rowCoord = rawPiece.xy[0];
             var colCoord = rawPiece.xy[1];
 
-            var spaceState = this._board[rowCoord][colCoord];
+            var spaceState = _board[rowCoord][colCoord];
             spaceState.pieceType = _calculatePieceType(rawPiece.t);
             spaceState.pieceColor = _calculateColor(rawPiece.c);
             spaceState.pieceId = pId;
         }
 
         // decompose valid moves
-        this._validMoves = {};
-        for (pId in this._rawState.moves) {
+        _validMoves = {};
+        for (pId in _rawState.moves) {
 
-            var moves = this._rawState.moves[pId];
-            for (var move in moves) {
+            var moves = _rawState.moves[pId];
+            for (var i = 0; i < moves.length; i++) {
 
+                var move = moves[i];
                 _addValidMove(pId, move);
             }
         }
     };
 
     function _fetchBoard() {
-        return this._board;
+        return _board;
     };
 
     function _fetchSpace(coord) {
@@ -154,14 +155,14 @@ var ChessModel = (function () {
         var row = coord[0];
         var col = coord[1];
 
-        return this._board[row][col];
+        return _board[row][col];
     };
 
     function _isValidMove(pId, row, col) {
 
-        return this._validMoves[row] != null
-            && this._validMoves[row][col] != null
-            && this._validMoves[row][col].indexOf(pId) != -1;
+        return _validMoves[row] != null
+            && _validMoves[row][col] != null
+            && _validMoves[row][col].indexOf(pId) != -1;
     }
 
     function _registerListener(eventType, callback) {

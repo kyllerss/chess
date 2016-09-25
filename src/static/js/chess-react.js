@@ -56,7 +56,7 @@ var Space = React.createClass({
         //console.log("onDrop: " + event);
         event.preventDefault();
 
-        var pId = event.target.attributes['data-pid'];
+        var pId = event.dataTransfer.getData("pId");
         var row = this.props.row;
         var column = this.props.column;
         var validMove = ChessModel.isValidMove(pId, row, column);
@@ -95,6 +95,7 @@ var Piece = React.createClass({
 
     _startDrag: function(event) {
         console.log("onDragStart: " + event);
+        event.dataTransfer.setData("pId", this.props.pieceId);
     },
 
     render: function() {
