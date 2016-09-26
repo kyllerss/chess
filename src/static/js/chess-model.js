@@ -165,12 +165,12 @@ var ChessModel = (function () {
             && _validMoves[row][col].indexOf(pId) != -1;
     }
 
-    function _registerListener(eventType, callback) {
-        nerve.on(eventType, callback);
+    function _registerBoardListener(callback) {
+        nerve.on('board-update', callback);
     };
 
     return {
-        register: _registerListener,
+        registerBoardListener: _registerBoardListener,
         initBoard: _initState,
         fetchBoard: _fetchBoard,
         fetchSpace: _fetchSpace,

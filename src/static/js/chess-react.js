@@ -67,33 +67,37 @@ var Space = React.createClass({
         event.preventDefault();
 
         var validMove = this._isValidMoveTarget(event);
+        var pId = event.dataTransfer.getData("pId");
+        console.log("onDrop: " + validMove + " - " + pId + " -> [" + this.props.row + "," + this.props.column + "]");
 
-        console.log("onDrop: " + validMove);
+        ChessController.move(pId, [this.props.row, this.props.column]);
     },
 
-    _onDragEnter: function(event) {
+    _mark: function(state) {
 
-        console.log("onDragEnter: " + this.props.row + "," + this.props.column);
-
-        var validMove = this._isValidMoveTarget(event);
+        var pId = state.pId;
+        var validMove = ChessModel.isValidMove(pId, this.props.row, this.props.column);
         if (validMove) {
             this.setState({highlightedMoveTarget: true});
+        } else {
+            this.setState({highlightedMoveTarget: false});
         }
+
+        console.log("_mark: " + validMove + " - " + pId + " -> [" + this.props.row + "," + this.props.column + "]");
     },
 
-    _onDragLeave: function(event) {
-
-        console.log("onDragLeave: " + this.props.row + "," + this.props.column);
-
-        var currentHighlightedState = this.state.highlightedMoveTarget;
-        if (!currentHighlightedState) {
-            return;
-        }
-
+    _clearMark: function(state) {
         this.setState({highlightedMoveTarget: false});
+        console.log("_clearMark: " + pId + " -> [" + this.props.row + "," + this.props.column + "]");
     },
 
+    // acts as constructor (http://stackoverflow.com/questions/33526493/react-createclass-vs-extends-component)
     getInitialState: function() {
+
+        console.log("getInitialState  -> [" + this.props.row + "," + this.props.column + "]");
+        ChessController.registerMarkListeners(this._mark, this._clearMark);
+        ChessModel.registerBoardListener(this._boardUpdate);
+
         return {highlightedMoveTarget: false};
     },
 
@@ -121,8 +125,6 @@ var Space = React.createClass({
                      'data-row': row,
                      'data-column': column,
                      onDragOver: this._onDragOver,
-                     onDragEnter: this._onDragEnter,
-                     onDragLeave: this._onDragLeave,
                      onDrop: this._onDrop};
         return React.DOM.div(props, piece);
     }
@@ -133,6 +135,8 @@ var Piece = React.createClass({
     _startDrag: function(event) {
         console.log("onDragStart: " + this.props.pieceId);
         event.dataTransfer.setData("pId", this.props.pieceId);
+
+        ChessController.mark(this.props.pieceId);
     },
 
     render: function() {
