@@ -39,29 +39,62 @@ var Space = React.createClass({
         column: React.PropTypes.number.isRequired
     },
 
-    _onDragOver: function(event) {
-        // determine if one can drag over this space
-        //console.log("onDragOver: " + event);
-        event.preventDefault();
+    _isValidMoveTarget: function(event) {
 
-        var pId = event.target.attributes['data-pid'];
+        var pId = event.dataTransfer.getData("pId");
+        if (pId == '') {
+            return false;
+        }
+
         var row = this.props.row;
         var column = this.props.column;
         var validMove = ChessModel.isValidMove(pId, row, column);
 
-        console.log("onDragOver: " + validMove);
+        return validMove;
+    },
+
+    _onDragOver: function(event) {
+
+        if (event.preventDefault) {
+            event.preventDefault();
+        }
+
+        return false;
     },
 
     _onDrop: function(event) {
-        //console.log("onDrop: " + event);
+
         event.preventDefault();
 
-        var pId = event.dataTransfer.getData("pId");
-        var row = this.props.row;
-        var column = this.props.column;
-        var validMove = ChessModel.isValidMove(pId, row, column);
+        var validMove = this._isValidMoveTarget(event);
 
         console.log("onDrop: " + validMove);
+    },
+
+    _onDragEnter: function(event) {
+
+        console.log("onDragEnter: " + this.props.row + "," + this.props.column);
+
+        var validMove = this._isValidMoveTarget(event);
+        if (validMove) {
+            this.setState({highlightedMoveTarget: true});
+        }
+    },
+
+    _onDragLeave: function(event) {
+
+        console.log("onDragLeave: " + this.props.row + "," + this.props.column);
+
+        var currentHighlightedState = this.state.highlightedMoveTarget;
+        if (!currentHighlightedState) {
+            return;
+        }
+
+        this.setState({highlightedMoveTarget: false});
+    },
+
+    getInitialState: function() {
+        return {highlightedMoveTarget: false};
     },
 
     render: function() {
@@ -72,20 +105,24 @@ var Space = React.createClass({
         var row = this.props.row;
         var column = this.props.column;
 
-        var pProps = null;
-        if (pType != null && pColor != null) {
-            pProps = {pieceType: pType, pieceColor: pColor, pieceId: pId};
+        var piece = null;
+        if (pId != null) {
+            var pProps = {pieceType: pType,
+                          pieceColor: pColor,
+                          pieceId: pId};
+            piece = React.createElement(Piece, pProps);
         }
 
-        var piece = React.createElement(Piece, pProps);
-
         var sColor = this.props.color === "White" ? "white" : "black";
-        var className = "c-space " + sColor;
+        var highlighted = this.state.highlightedMoveTarget ? "highlighted-move-target" : "";
+        var className = "c-space " + sColor + " " + highlighted;
 
         var props = {className: className,
                      'data-row': row,
                      'data-column': column,
                      onDragOver: this._onDragOver,
+                     onDragEnter: this._onDragEnter,
+                     onDragLeave: this._onDragLeave,
                      onDrop: this._onDrop};
         return React.DOM.div(props, piece);
     }
@@ -94,7 +131,7 @@ var Space = React.createClass({
 var Piece = React.createClass({
 
     _startDrag: function(event) {
-        console.log("onDragStart: " + event);
+        console.log("onDragStart: " + this.props.pieceId);
         event.dataTransfer.setData("pId", this.props.pieceId);
     },
 

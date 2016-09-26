@@ -27,4 +27,9 @@
     height: 60px;
     width: 60px;
     text-align: center;
+    cursor: move;
+}
+
+.c-space.highlighted-move-target {
+    background-color: blue !important;
 }
