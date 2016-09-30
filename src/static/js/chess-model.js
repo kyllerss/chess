@@ -3,6 +3,7 @@ var ChessModel = function () {
     var _rawState = {};
     var _board = {};
     var _validMoves = {};
+    var _moveablePieces = {};
     var _pieceMapping = {p: "Pawn", r: "Rook", n: "Knight", b: "Bishop", q: "Queen", k: "King"};
     var _colorMapping = {w: "White", b: "Black"};
 
@@ -134,14 +135,24 @@ var ChessModel = function () {
         }
 
         // decompose valid moves
+        var moves;
         _validMoves = {};
         for (pId in _rawState.moves) {
 
-            var moves = _rawState.moves[pId];
+            moves = _rawState.moves[pId];
             for (var i = 0; i < moves.length; i++) {
 
                 var move = moves[i];
                 _addValidMove(pId, move);
+            }
+        }
+
+        _moveablePieces = {};
+        for (pId in _rawState.moves) {
+
+            moves = _rawState.moves[pId];
+            if (moves && moves.length > 0) {
+                _moveablePieces[pId] = true;
             }
         }
     };
@@ -165,6 +176,10 @@ var ChessModel = function () {
             && _validMoves[row][col].indexOf(pId) != -1;
     }
 
+    function _isMoveablePiece(pId) {
+        return _moveablePieces[pId] == true;
+    }
+
     function _registerBoardListener(boardCallback) {
 
         var that = this;
@@ -180,7 +195,8 @@ var ChessModel = function () {
         initBoard: _initState,
         fetchBoard: _fetchBoard,
         fetchSpace: _fetchSpace,
-        isValidMove: _isValidMove
+        isValidMove: _isValidMove,
+        isMoveablePiece: _isMoveablePiece
     };
 }();
 

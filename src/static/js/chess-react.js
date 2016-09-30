@@ -87,7 +87,7 @@ var Space = React.createClass({
     },
 
     _clearMark: function(state) {
-        this.setState({highlightedMoveTarget: false});
+        this.setState({highlightedMoveTarget: null});
         console.log("_clearMark: " + pId + " -> [" + this.props.row + "," + this.props.column + "]");
     },
 
@@ -99,7 +99,7 @@ var Space = React.createClass({
         ChessController.registerMarkListeners(this._mark, this._clearMark);
         //ChessModel.registerBoardListener(_boardUpdate);
 
-        return {highlightedMoveTarget: false};
+        return {highlightedMoveTarget: null};
     },
 
     render: function() {
@@ -120,7 +120,8 @@ var Space = React.createClass({
 
         var sColor = this.props.color === "White" ? "white" : "black";
         var highlighted = this.state.highlightedMoveTarget ? "highlighted-move-target" : "";
-        var className = "c-space " + sColor + " " + highlighted;
+        var nonHighlighted = this.state.highlightedMoveTarget == false ? "non-highlighted-move-target" : "";
+        var className = "c-space " + sColor + " " + highlighted + " " + nonHighlighted;
 
         var props = {className: className,
                      'data-row': row,
@@ -175,9 +176,10 @@ var Piece = React.createClass({
             piece = "";
         }
 
+        var draggable = ChessModel.isMoveablePiece(pId);
         var properties = {className: "c-piece",
                           dangerouslySetInnerHTML: {__html: piece},
-                          draggable: "true",
+                          draggable: draggable,
                           onDragStart: this._startDrag};
 
         if (pId != null) {

@@ -27,6 +27,9 @@
     height: 60px;
     width: 60px;
     text-align: center;
+}
+
+.c-space .c-piece[draggable="true"] {
     cursor: move;
 }
 
@@ -37,3 +40,11 @@
     width: 58px;
     height:58px;
 }
+
+.c-space.non-highlighted-move-target {
+    opacity: 0.3;
+    border: 1px solid black;
+    width: 58px;
+    height:58px;
+}
+
