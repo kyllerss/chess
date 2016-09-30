@@ -1,4 +1,4 @@
-var ChessModel = (function () {
+var ChessModel = function () {
 
     var _rawState = {};
     var _board = {};
@@ -165,8 +165,14 @@ var ChessModel = (function () {
             && _validMoves[row][col].indexOf(pId) != -1;
     }
 
-    function _registerBoardListener(callback) {
-        nerve.on('board-update', callback);
+    function _registerBoardListener(boardCallback) {
+
+        var that = this;
+        nerve.on({
+            channel: 'board-update',
+            callback: boardCallback,
+            scope: {that}
+        });
     };
 
     return {
@@ -176,5 +182,5 @@ var ChessModel = (function () {
         fetchSpace: _fetchSpace,
         isValidMove: _isValidMove
     };
-})();
+}();
 

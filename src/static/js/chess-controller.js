@@ -10,18 +10,35 @@ var ChessController = function() {
     function _mark(pId) {
 
         _markState = {pId: pId};
-        nerve.send('mark', _markState);
+        nerve.send({
+            channel: 'mark',
+            context: _markState
+        });
     };
 
     function _clearMark() {
+
         _markState = {};
-        nerve.send('mark-clear', _markState);
+        nerve.send({
+            channel: 'mark-clear',
+            context: _markState
+        });
     };
 
     function _registerMarkListeners(markCallback, clearMarkCallback) {
 
-        nerve.on('mark', markCallback);
-        nerve.on('mark-clear', clearMarkCallback);
+        var that = this;
+        nerve.on({
+            channel: 'mark',
+            callback: markCallback,
+            scope: {that}
+        });
+
+        nerve.on({
+            channel: 'mark-clear',
+            callback: clearMarkCallback,
+            scope: {that}
+        });
     };
 
     return {

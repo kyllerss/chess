@@ -32,4 +32,8 @@
 
 .c-space.highlighted-move-target {
     background-color: blue !important;
+    opacity: 0.5;
+    border: 1px solid black;
+    width: 58px;
+    height:58px;
 }

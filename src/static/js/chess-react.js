@@ -68,7 +68,7 @@ var Space = React.createClass({
 
         var validMove = this._isValidMoveTarget(event);
         var pId = event.dataTransfer.getData("pId");
-        console.log("onDrop: " + validMove + " - " + pId + " -> [" + this.props.row + "," + this.props.column + "]");
+        console.log("_onDrop: [" + this.props.row + "," + this.props.column + "] + " + pId + " = " + validMove);
 
         ChessController.move(pId, [this.props.row, this.props.column]);
     },
@@ -83,7 +83,7 @@ var Space = React.createClass({
             this.setState({highlightedMoveTarget: false});
         }
 
-        console.log("_mark: " + validMove + " - " + pId + " -> [" + this.props.row + "," + this.props.column + "]");
+        console.log("_mark: [" + this.props.row + "," + this.props.column + "] + " + pId + " = " + validMove);
     },
 
     _clearMark: function(state) {
@@ -95,8 +95,9 @@ var Space = React.createClass({
     getInitialState: function() {
 
         console.log("getInitialState  -> [" + this.props.row + "," + this.props.column + "]");
+
         ChessController.registerMarkListeners(this._mark, this._clearMark);
-        ChessModel.registerBoardListener(this._boardUpdate);
+        //ChessModel.registerBoardListener(_boardUpdate);
 
         return {highlightedMoveTarget: false};
     },
@@ -181,7 +182,7 @@ var Piece = React.createClass({
 
         if (pId != null) {
             properties['data-pid'] = pId;
-            console.log("Piece id: " + pId);
+            console.log("React piece id: " + pId);
         }
 
         return React.DOM.div(properties, null);
