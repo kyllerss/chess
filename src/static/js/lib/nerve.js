@@ -127,7 +127,7 @@ var nerve;
             return null;
         var i = 0, len = array.length;
         for (; i < len; i++) {
-            console.log(array[i]);
+            //console.log(array[i]);
             if (array[i].caller === callReference)
                 return array[i];
         }

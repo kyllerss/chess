@@ -10,23 +10,17 @@
         <script src="../js/chess-react.js"></script>
     </header>
     <body>
-        <div id="app1">
-        </div>
-        <div id="app2">
-        </div>
+        <div id="c-main-board"></div>
+
         <script>
 
          ChessModel.initBoard();
 
-         var h1Props = {id: "my-h1-id"};
-         ReactDOM.render(
-            React.DOM.h1(h1Props, "Hello there again!"),
-            document.getElementById("app1")
-         );
          ReactDOM.render(
              React.createElement(Board),
-             document.getElementById("app2")
+             document.getElementById("c-main-board")
          );
+
         </script>
     </body>
 </html>

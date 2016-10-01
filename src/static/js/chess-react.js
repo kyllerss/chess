@@ -1,12 +1,14 @@
 var Board = React.createClass({
 
-    _fetchGrid: function() {
-        return ChessModel.fetchBoard();
+    getInitialState: function() {
+
+        var grid = ChessModel.fetchBoard();
+        return {board: grid};
     },
 
     render: function() {
 
-        var grid = this._fetchGrid();
+        var grid = this.state.board;
 
         var spaces = [];
         for (var i = 0; i < grid.length; i++) {
@@ -25,7 +27,7 @@ var Board = React.createClass({
         }
 
         return React.DOM.div({className: "c-board"}, spaces);
-    } 
+    }
 });
 
 var Space = React.createClass({
@@ -68,7 +70,7 @@ var Space = React.createClass({
 
         var validMove = this._isValidMoveTarget(event);
         var pId = event.dataTransfer.getData("pId");
-        console.log("_onDrop: [" + this.props.row + "," + this.props.column + "] + " + pId + " = " + validMove);
+        //console.log("_onDrop: [" + this.props.row + "," + this.props.column + "] + " + pId + " = " + validMove);
 
         ChessController.move(pId, [this.props.row, this.props.column]);
     },
@@ -83,30 +85,49 @@ var Space = React.createClass({
             this.setState({highlightedMoveTarget: false});
         }
 
-        console.log("_mark: [" + this.props.row + "," + this.props.column + "] + " + pId + " = " + validMove);
+        //console.log("_mark: [" + this.props.row + "," + this.props.column + "] + " + pId + " = " + validMove);
     },
 
     _clearMark: function(state) {
         this.setState({highlightedMoveTarget: null});
-        console.log("_clearMark: " + pId + " -> [" + this.props.row + "," + this.props.column + "]");
+        //console.log("_clearMark: " + pId + " -> [" + this.props.row + "," + this.props.column + "]");
+    },
+
+    _boardUpdate: function(state) {
+
+        var space = ChessModel.fetchSpace([this.props.row, this.props.column]);
+        this.setState({
+            pieceType: space.pieceType,
+            pieceColor: space.pieceColor,
+            pieceId: space.pieceId
+        });
     },
 
     // acts as constructor (http://stackoverflow.com/questions/33526493/react-createclass-vs-extends-component)
     getInitialState: function() {
 
-        console.log("getInitialState  -> [" + this.props.row + "," + this.props.column + "]");
+        //console.log("getInitialState  -> [" + this.props.row + "," + this.props.column + "]");
 
         ChessController.registerMarkListeners(this._mark, this._clearMark);
-        //ChessModel.registerBoardListener(_boardUpdate);
-
-        return {highlightedMoveTarget: null};
-    },
-
-    render: function() {
+        ChessModel.registerBoardListener(this._boardUpdate);
 
         var pType = this.props.pieceType;
         var pColor = this.props.pieceColor;
         var pId = this.props.pieceId;
+
+        return {
+            highlightedMoveTarget: null,
+            pieceType: pType,
+            pieceColor: pColor,
+            pieceId: pId
+        };
+    },
+
+    render: function() {
+
+        var pType = this.state.pieceType;
+        var pColor = this.state.pieceColor;
+        var pId = this.state.pieceId;
         var row = this.props.row;
         var column = this.props.column;
 
@@ -135,7 +156,7 @@ var Space = React.createClass({
 var Piece = React.createClass({
 
     _startDrag: function(event) {
-        console.log("onDragStart: " + this.props.pieceId);
+        //console.log("onDragStart: " + this.props.pieceId);
         event.dataTransfer.setData("pId", this.props.pieceId);
 
         ChessController.mark(this.props.pieceId);
@@ -184,7 +205,7 @@ var Piece = React.createClass({
 
         if (pId != null) {
             properties['data-pid'] = pId;
-            console.log("React piece id: " + pId);
+            //console.log("React piece id: " + pId);
         }
 
         return React.DOM.div(properties, null);

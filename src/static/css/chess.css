@@ -38,13 +38,13 @@
     opacity: 0.5;
     border: 1px solid black;
     width: 58px;
-    height:58px;
+    height: 58px;
 }
 
 .c-space.non-highlighted-move-target {
     opacity: 0.3;
     border: 1px solid black;
     width: 58px;
-    height:58px;
+    height: 58px;
 }
 

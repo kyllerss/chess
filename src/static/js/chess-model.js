@@ -7,14 +7,43 @@ var ChessModel = function () {
     var _pieceMapping = {p: "Pawn", r: "Rook", n: "Knight", b: "Bishop", q: "Queen", k: "King"};
     var _colorMapping = {w: "White", b: "Black"};
 
+    function _move(pId, newCoord) {
+
+        console.log("pId [" + pId + "] has moved to [" + newCoord[0] + ", " + newCoord[1] + "].");
+
+        var rawPiece = _rawState.pieces[pId];
+        var oldRow = rawPiece.xy[0];
+        var oldCol = rawPiece.xy[1];
+        var oldCoord = [oldRow, oldCol];
+
+        var oldSpace = _fetchSpace(oldCoord);
+        var newSpace = _fetchSpace(newCoord);
+
+        // swap piece state
+        newSpace.pieceType = oldSpace.pieceType;
+        newSpace.pieceColor = oldSpace.pieceColor;
+        newSpace.pieceId = oldSpace.pieceId;
+
+        oldSpace.pieceType = null;
+        oldSpace.pieceColor = null;
+        oldSpace.pieceId = null;
+
+        var moveState = {pId: pId,
+                         newCoord: newCoord,
+                         oldCoord: oldCoord};
+        nerve.send({
+            channel: 'board-update',
+            context: moveState
+        });
+
+        // TODO: Fetch server state and refresh
+    };
+
     function _addValidMove(pId, move) {
 
         /*
-             {1: {1: [1,2,3],
-                 {2: [4,3]},
-              2: {1: [3,3],
-                  3: [3]}}
-
+             {1: {1: [1,2,3], 2: [4,3]},
+              2: {1: [3,3], 3: [3]}}
          */
 
         var row = move[0];
@@ -196,7 +225,8 @@ var ChessModel = function () {
         fetchBoard: _fetchBoard,
         fetchSpace: _fetchSpace,
         isValidMove: _isValidMove,
-        isMoveablePiece: _isMoveablePiece
+        isMoveablePiece: _isMoveablePiece,
+        move: _move
     };
 }();
 

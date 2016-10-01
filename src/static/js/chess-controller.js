@@ -5,6 +5,7 @@ var ChessController = function() {
     function _move(pieceId, newCoord) {
 
         _clearMark();
+        ChessModel.move(pieceId, newCoord);
     };
 
     function _mark(pId) {
