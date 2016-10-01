@@ -2,10 +2,17 @@ var ChessController = function() {
 
     var _markState = {};
 
-    function _move(pieceId, newCoord) {
+    function _move(pId, newCoord) {
+
+        var row = newCoord[0];
+        var col = newCoord[1];
+        var validMove = ChessModel.isValidMove(pId, row, col);
+
+        if (validMove) {
+            ChessModel.move(pId, newCoord);
+        }
 
         _clearMark();
-        ChessModel.move(pieceId, newCoord);
     };
 
     function _mark(pId) {
