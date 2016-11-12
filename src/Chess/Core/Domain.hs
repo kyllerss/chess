@@ -13,8 +13,8 @@ data Piece = Piece { color     :: Color
                    }
     deriving Show
 
-data Player = Human String
-              | Computer String
+data Player = Human Text
+              | Computer Text
     deriving Show
 
 data Coord = Coord Int Int
@@ -43,4 +43,9 @@ data GameState = GameState { board :: Board
     deriving Show
 
 initGame :: Int -> Int -> GameState
-initGame width height = undefined
+initGame width height = GameState {board = []
+                                  , moves = []
+                                  , players = []
+                                  , playerTurn = Human (pack "Kyle")
+                                  , token = pack "abc"
+                                  }
