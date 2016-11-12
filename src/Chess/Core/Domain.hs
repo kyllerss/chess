@@ -1,5 +1,7 @@
 module Chess.Core.Domain where
 
+import Data.Text
+
 data Color = Black | White
     deriving Show
 
@@ -15,24 +17,30 @@ data Player = Human String
               | Computer String
     deriving Show
 
-data Coordinate = Coordinate Int Int
+data Coord = Coord Int Int
     deriving Show
 
 data Space = Space { piece :: Maybe Piece
                    , color :: Color
-                   , coord :: Coordinate
+                   , coord :: Coord
                    }
-           | Void Coordinate
+             | Void Coord
     deriving Show
 
 type Board = [Space]
 
 data Move = Move { piece    :: Piece
-                 , position :: Coordinate
+                 , space    :: Space
                  }
     deriving Show
 
 data GameState = GameState { board :: Board
                            , moves :: [Move]
+                           , players :: [Player]
+                           , playerTurn :: Player
+                           , token :: Text
                            }
     deriving Show
+
+initGame :: Int -> Int -> GameState
+initGame width height = undefined

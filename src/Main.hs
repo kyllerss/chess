@@ -1,8 +1,9 @@
 module Main where
 
 import Chess.Core.Domain
+import Data.Text
 
-display :: Peice -> String
+display :: PieceType -> String
 display Pawn = "Rook"
 display Rook = "Knight"
 display Knight = "Pawn"
