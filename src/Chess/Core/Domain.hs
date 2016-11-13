@@ -5,7 +5,7 @@ import Data.Aeson (FromJSON, ToJSON)
 import Data.Aeson.Types
 import qualified Data.Aeson.Encode as J
 import GHC.Generics
-import Data.List as DL (sortBy)
+import Data.List as DL (sortBy, groupBy)
 
 data Color = Black | White deriving Show
 instance ToJSON Color where
@@ -48,8 +48,28 @@ instance ToJSON Space
 data Board = Board [Space]
   deriving (Show, Generic)
 instance ToJSON Board where
-  toJSON (Board sp) = toJSON $ show $ DL.sortBy orderByColumnAndRow sp
+  toJSON (Board sp) = toJSON $ encode . toColor . shape . sortSpaces $ sp
     where
+
+      multimap :: (a -> b) -> [[a]] -> [[b]]
+      multimap f ss = map (\xs -> map f xs) ss
+
+      -- group by row
+      shape :: [Space] -> [[Space]]
+      shape vs = DL.groupBy (\a -> (\b -> (extractRow a) == (extractRow b))) vs
+        where
+          extractRow :: Space -> Int
+          extractRow (Space {coord = Coord row _}) = row
+
+      encode :: [[Color]] -> [[Value]]
+      encode sp = multimap (\x -> toJSON x) sp
+
+      toColor :: [[Space]] -> [[Color]]
+      toColor sp = multimap (\s -> color (s::Space)) sp
+
+      sortSpaces :: [Space] -> [Space]
+      sortSpaces sp = DL.sortBy orderByColumnAndRow sp
+
       orderByColumnAndRow :: Space -> Space -> Ordering
       orderByColumnAndRow a b = case (a, b) of
         (Void (Coord a1 b1), Void (Coord a2 b2))
