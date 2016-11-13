@@ -11,19 +11,19 @@ data Color = Black | White
     deriving Show
 
 instance ToJSON Color where
-    toJSON Black = toJSON $ show "b"
-    toJSON White = toJSON $ show "w"
+    toJSON Black = toJSON "b"
+    toJSON White = toJSON "w"
 
 data PieceType = Pawn | Rook | Knight | Bishop | King | Queen
     deriving Show
 
 instance ToJSON PieceType where
-    toJSON Pawn = toJSON $ show "p"
-    toJSON Rook = toJSON $ show "r"
-    toJSON Knight = toJSON $ show "n"
-    toJSON Bishop = toJSON $ show "b"
-    toJSON King = toJSON $ show "k"
-    toJSON Queen = toJSON $ show "q"
+    toJSON Pawn = toJSON "p"
+    toJSON Rook = toJSON "r"
+    toJSON Knight = toJSON "n"
+    toJSON Bishop = toJSON "b"
+    toJSON King = toJSON "k"
+    toJSON Queen = toJSON "q"
 
 data Piece = Piece { color     :: Color
                    , pieceType :: PieceType
@@ -40,7 +40,7 @@ data Coord = Coord Int Int
     deriving (Show, Generic)
 
 instance ToJSON Coord where
-    toJSON (Coord x y) = toJSON $ show "[" ++ show x ++ "," ++ show y ++ "]"
+    toJSON (Coord x y) = toJSON $ "[" ++ show x ++ "," ++ show y ++ "]"
 
 data Space = Space { piece :: Maybe Piece
                    , color :: Color
