@@ -6,26 +6,20 @@ import Data.Aeson.Types
 import qualified Data.Aeson.Encode as J
 import GHC.Generics
 
-data Color = Black | White
+data Color = Black | White deriving Show
 instance ToJSON Color where
-  toJSON c = toJSON $ show c
-
-instance Show Color where
-    show Black = "b"
-    show White = "w"
+  toJSON Black = toJSON $ show "b"
+  toJSON White = toJSON $ show "w"
 
 data PieceType = Pawn | Rook | Knight | Bishop | King | Queen
-  deriving Generic
+  deriving Show
 instance ToJSON PieceType where
-  toJSON p = toJSON $ show p
-
-instance Show PieceType where
-    show Pawn = "p"
-    show Rook = "r"
-    show Knight = "n"
-    show Bishop = "b"
-    show King = "k"
-    show Queen = "q"
+  toJSON Pawn = toJSON $ show "p"
+  toJSON Rook = toJSON $ show "r"
+  toJSON Knight = toJSON $ show "n"
+  toJSON Bishop = toJSON $ show "b"
+  toJSON King = toJSON $ show "k"
+  toJSON Queen = toJSON $ show "q"
 
 data Piece = Piece { color     :: Color
                    , pieceType :: PieceType
@@ -38,12 +32,9 @@ data Player = Human T.Text
     deriving Show
 
 data Coord = Coord Int Int
-  deriving Generic
+  deriving (Show, Generic)
 instance ToJSON Coord where
-  toJSON c = toJSON $ show c
-
-instance Show Coord where
-  show (Coord x y) = "[" ++ show x ++ "," ++ show y ++ "]"
+  toJSON (Coord x y) = toJSON $ show "[" ++ show x ++ "," ++ show y ++ "]"
 
 data Space = Space { piece :: Maybe Piece
                    , color :: Color
@@ -54,11 +45,9 @@ data Space = Space { piece :: Maybe Piece
 instance ToJSON Space
 
 data Board = Board [Space]
-  deriving Generic
-instance ToJSON Board
-
-instance Show Board where
-  show b = show $ J.encode(b) 
+  deriving (Show, Generic)
+instance ToJSON Board --where
+--  toJSON b = --J.encode(b) 
 
 data Move = Move { piece :: Piece
                  , space :: Space
@@ -83,6 +72,7 @@ initBoard width height =
             [ (i, j)
             | i <- [1 .. width]
             , j <- [1 .. height] ]
+        -- ++ [Void (Coord 0 0)]
   where
     newSpace :: Int -> Int -> Color -> PieceType -> Space
     newSpace x y pc pt = Space { piece = Just Piece { color = White
