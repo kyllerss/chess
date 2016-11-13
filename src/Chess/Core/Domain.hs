@@ -5,6 +5,7 @@ import Data.Aeson (FromJSON, ToJSON)
 import Data.Aeson.Types
 import qualified Data.Aeson.Encode as J
 import GHC.Generics
+import Data.List as DL (sortBy)
 
 data Color = Black | White deriving Show
 instance ToJSON Color where
@@ -46,7 +47,32 @@ instance ToJSON Space
 
 data Board = Board [Space]
   deriving (Show, Generic)
-instance ToJSON Board --where
+instance ToJSON Board where
+  toJSON (Board sp) = toJSON $ show $ DL.sortBy orderByColumnAndRow sp
+    where
+      orderByColumnAndRow :: Space -> Space -> Ordering
+      orderByColumnAndRow a b = case (a, b) of
+        (Void (Coord a1 b1), Void (Coord a2 b2))
+          | a1 > a2 -> GT
+          | a2 > a1 -> LT
+          | a1 == a2 -> if (b1 > b2) then GT else LT
+          | otherwise -> EQ
+        (Void (Coord a1 b1), Space {coord = (Coord a2 b2)})
+          | a1 > a2 -> GT
+          | a2 > a1 -> LT
+          | a1 == a2 -> if (b1 > b2) then GT else LT
+          | otherwise -> EQ
+        (Space {coord = (Coord a1 b1)}, Void (Coord a2 b2))
+          | a1 > a2 -> GT
+          | a2 > a1 -> LT
+          | a1 == a2 -> if (b1 > b2) then GT else LT
+          | otherwise -> EQ
+        (Space {coord = (Coord a1 b1)}, Space {coord = (Coord a2 b2)})
+          | a1 > a2 -> GT
+          | a2 > a1 -> LT
+          | a1 == a2 -> if (b1 > b2) then GT else LT
+          | otherwise -> EQ
+
 --  toJSON b = --J.encode(b) 
 
 data Move = Move { piece :: Piece
