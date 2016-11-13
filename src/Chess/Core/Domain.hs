@@ -27,14 +27,21 @@ instance ToJSON PieceType where
 
 data Piece = Piece { color     :: Color
                    , pieceType :: PieceType
+                   , player    :: Player
                    }
     deriving (Show, Generic)
 
 instance ToJSON Piece
 
-data Player = Human T.Text
-            | Computer T.Text
+data Player = Human T.Text Int
+            | Computer T.Text Int
     deriving Show
+
+instance ToJSON Player where
+    toJSON (Human name id) =
+        object [ T.pack "name" .= name, T.pack "id" .= id ]
+    toJSON (Computer name id) =
+        object [ T.pack "name" .= name, T.pack "id" .= id ]
 
 data Coord = Coord Int Int
     deriving (Show, Generic)
@@ -115,8 +122,12 @@ data GameState = GameState { board      :: Board
                            , token      :: T.Text
                            }
 
-instance Show GameState where
-    show _ = "Hello!"
+instance ToJSON GameState where
+    toJSON GameState{board = b} =
+        object [ (T.pack "board") .= b, (T.pack "pieces") .= (renderPieces b) ]
+      where
+        renderPieces :: Board -> [Value]
+        renderPieces b = undefined
 
 {- Generate a new board.  -}
 initBoard :: Int -> Int -> Board
@@ -128,9 +139,12 @@ initBoard width height =
             , j <- [1 .. height] ]
   where
     -- ++ [Void (Coord 0 0)]
+    dummyPlayer = Human (T.pack "dummy1") 1
+
     newSpace :: Int -> Int -> Color -> PieceType -> Space
     newSpace x y pc pt = Space { piece = Just Piece { color = White
                                                     , pieceType = pt
+                                                    , player = dummyPlayer
                                                     }
                                , color = pc
                                , coord = Coord x y
@@ -143,9 +157,10 @@ initBoard width height =
 initGame :: Int -> Int -> GameState
 initGame width height = GameState { board = initBoard width height
                                   , moves = []
-                                  , players = [ Human (T.pack "Kyle")
-                                              , Computer (T.pack "Bot 1")
-                                              ]
-                                  , playerTurn = Human (T.pack "Kyle")
+                                  , players = [ human1, ai1 ]
+                                  , playerTurn = human1
                                   , token = T.pack "abc"
                                   }
+  where
+    human1 = Human (T.pack "Kyle") 1
+    ai1 = Computer (T.pack "Bot 1") 2
