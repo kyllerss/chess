@@ -1,31 +1,35 @@
 module Chess.Core.Domain where
 
-import qualified Data.Text as T
-import Data.Aeson (FromJSON, ToJSON)
-import Data.Aeson.Types
+import qualified Data.Text         as T
+import           Data.Aeson        ( FromJSON, ToJSON )
+import           Data.Aeson.Types
 import qualified Data.Aeson.Encode as J
-import GHC.Generics
-import Data.List as DL (sortBy, groupBy)
+import           GHC.Generics
+import           Data.List         as DL ( groupBy, sortBy )
 
-data Color = Black | White deriving Show
+data Color = Black | White
+    deriving Show
+
 instance ToJSON Color where
-  toJSON Black = toJSON $ show "b"
-  toJSON White = toJSON $ show "w"
+    toJSON Black = toJSON $ show "b"
+    toJSON White = toJSON $ show "w"
 
 data PieceType = Pawn | Rook | Knight | Bishop | King | Queen
-  deriving Show
+    deriving Show
+
 instance ToJSON PieceType where
-  toJSON Pawn = toJSON $ show "p"
-  toJSON Rook = toJSON $ show "r"
-  toJSON Knight = toJSON $ show "n"
-  toJSON Bishop = toJSON $ show "b"
-  toJSON King = toJSON $ show "k"
-  toJSON Queen = toJSON $ show "q"
+    toJSON Pawn = toJSON $ show "p"
+    toJSON Rook = toJSON $ show "r"
+    toJSON Knight = toJSON $ show "n"
+    toJSON Bishop = toJSON $ show "b"
+    toJSON King = toJSON $ show "k"
+    toJSON Queen = toJSON $ show "q"
 
 data Piece = Piece { color     :: Color
                    , pieceType :: PieceType
                    }
     deriving (Show, Generic)
+
 instance ToJSON Piece
 
 data Player = Human T.Text
@@ -33,9 +37,10 @@ data Player = Human T.Text
     deriving Show
 
 data Coord = Coord Int Int
-  deriving (Show, Generic)
+    deriving (Show, Generic)
+
 instance ToJSON Coord where
-  toJSON (Coord x y) = toJSON $ show "[" ++ show x ++ "," ++ show y ++ "]"
+    toJSON (Coord x y) = toJSON $ show "[" ++ show x ++ "," ++ show y ++ "]"
 
 data Space = Space { piece :: Maybe Piece
                    , color :: Color
@@ -43,58 +48,61 @@ data Space = Space { piece :: Maybe Piece
                    }
            | Void Coord
     deriving (Show, Generic)
+
 instance ToJSON Space
 
 data Board = Board [Space]
-  deriving (Show, Generic)
+    deriving (Show, Generic)
+
 instance ToJSON Board where
-  toJSON (Board sp) = toJSON $ encode . toColor . shape . sortSpaces $ sp
-    where
+    toJSON (Board sp) = toJSON $ encode . toColor . shape . sortSpaces $ sp
+      where
+        multimap :: (a -> b) -> [[a]] -> [[b]]
+        multimap f ss = map (\xs -> map f xs) ss
 
-      multimap :: (a -> b) -> [[a]] -> [[b]]
-      multimap f ss = map (\xs -> map f xs) ss
+        -- group by row
+        shape :: [Space] -> [[Space]]
+        shape vs = DL.groupBy (\a -> (\b -> (extractRow a) == (extractRow b)))
+                              vs
+          where
+            extractRow :: Space -> Int
+            extractRow (Space{coord = Coord row _}) =
+                row
 
-      -- group by row
-      shape :: [Space] -> [[Space]]
-      shape vs = DL.groupBy (\a -> (\b -> (extractRow a) == (extractRow b))) vs
-        where
-          extractRow :: Space -> Int
-          extractRow (Space {coord = Coord row _}) = row
+        encode :: [[Color]] -> [[Value]]
+        encode sp = multimap (\x -> toJSON x) sp
 
-      encode :: [[Color]] -> [[Value]]
-      encode sp = multimap (\x -> toJSON x) sp
+        toColor :: [[Space]] -> [[Color]]
+        toColor sp = multimap (\s -> color (s :: Space)) sp
 
-      toColor :: [[Space]] -> [[Color]]
-      toColor sp = multimap (\s -> color (s::Space)) sp
+        sortSpaces :: [Space] -> [Space]
+        sortSpaces sp = DL.sortBy orderByColumnAndRow sp
 
-      sortSpaces :: [Space] -> [Space]
-      sortSpaces sp = DL.sortBy orderByColumnAndRow sp
+        orderByColumnAndRow :: Space -> Space -> Ordering
+        orderByColumnAndRow a b =
+            case (a, b) of
+                (Void (Coord a1 b1), Void (Coord a2 b2))
+                    | a1 > a2 -> GT
+                    | a2 > a1 -> LT
+                    | a1 == a2 -> if (b1 > b2) then GT else LT
+                    | otherwise -> EQ
+                (Void (Coord a1 b1), Space{coord = (Coord a2 b2)})
+                    | a1 > a2 -> GT
+                    | a2 > a1 -> LT
+                    | a1 == a2 -> if (b1 > b2) then GT else LT
+                    | otherwise -> EQ
+                (Space{coord = (Coord a1 b1)}, Void (Coord a2 b2))
+                    | a1 > a2 -> GT
+                    | a2 > a1 -> LT
+                    | a1 == a2 -> if (b1 > b2) then GT else LT
+                    | otherwise -> EQ
+                (Space{coord = (Coord a1 b1)}, Space{coord = (Coord a2 b2)})
+                    | a1 > a2 -> GT
+                    | a2 > a1 -> LT
+                    | a1 == a2 -> if (b1 > b2) then GT else LT
+                    | otherwise -> EQ
 
-      orderByColumnAndRow :: Space -> Space -> Ordering
-      orderByColumnAndRow a b = case (a, b) of
-        (Void (Coord a1 b1), Void (Coord a2 b2))
-          | a1 > a2 -> GT
-          | a2 > a1 -> LT
-          | a1 == a2 -> if (b1 > b2) then GT else LT
-          | otherwise -> EQ
-        (Void (Coord a1 b1), Space {coord = (Coord a2 b2)})
-          | a1 > a2 -> GT
-          | a2 > a1 -> LT
-          | a1 == a2 -> if (b1 > b2) then GT else LT
-          | otherwise -> EQ
-        (Space {coord = (Coord a1 b1)}, Void (Coord a2 b2))
-          | a1 > a2 -> GT
-          | a2 > a1 -> LT
-          | a1 == a2 -> if (b1 > b2) then GT else LT
-          | otherwise -> EQ
-        (Space {coord = (Coord a1 b1)}, Space {coord = (Coord a2 b2)})
-          | a1 > a2 -> GT
-          | a2 > a1 -> LT
-          | a1 == a2 -> if (b1 > b2) then GT else LT
-          | otherwise -> EQ
-
---  toJSON b = --J.encode(b) 
-
+--  toJSON b = --J.encode(b)
 data Move = Move { piece :: Piece
                  , space :: Space
                  }
@@ -118,8 +126,8 @@ initBoard width height =
             [ (i, j)
             | i <- [1 .. width]
             , j <- [1 .. height] ]
-        -- ++ [Void (Coord 0 0)]
   where
+    -- ++ [Void (Coord 0 0)]
     newSpace :: Int -> Int -> Color -> PieceType -> Space
     newSpace x y pc pt = Space { piece = Just Piece { color = White
                                                     , pieceType = pt
