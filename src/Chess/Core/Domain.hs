@@ -1,6 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Chess.Core.Domain where
 
-import qualified Data.Text         as T
+import qualified Data.Text.Lazy    as T
+import qualified Data.Text as TT
 import           Data.Aeson        ( FromJSON, ToJSON )
 import           Data.Aeson.Types
 import qualified Data.Aeson.Encode as J
@@ -11,23 +14,24 @@ data Color = Black | White
     deriving Show
 
 instance ToJSON Color where
-    toJSON Black = toJSON "b"
-    toJSON White = toJSON "w"
+    toJSON Black = toJSON ("b" :: T.Text)
+    toJSON White = toJSON ("w" :: T.Text)
 
 data PieceType = Pawn | Rook | Knight | Bishop | King | Queen
     deriving Show
 
 instance ToJSON PieceType where
-    toJSON Pawn = toJSON "p"
-    toJSON Rook = toJSON "r"
-    toJSON Knight = toJSON "n"
-    toJSON Bishop = toJSON "b"
-    toJSON King = toJSON "k"
-    toJSON Queen = toJSON "q"
+    toJSON Pawn = toJSON ("p" :: T.Text)
+    toJSON Rook = toJSON ("r" :: T.Text)
+    toJSON Knight = toJSON ("n" :: T.Text)
+    toJSON Bishop = toJSON ("b" :: T.Text)
+    toJSON King = toJSON ("k" :: T.Text)
+    toJSON Queen = toJSON ("q" :: T.Text)
 
 data Piece = Piece { color     :: Color
                    , pieceType :: PieceType
                    , player    :: Player
+                   , pieceId   :: Int
                    }
     deriving (Show, Generic)
 
@@ -39,9 +43,9 @@ data Player = Human T.Text Int
 
 instance ToJSON Player where
     toJSON (Human name id) =
-        object [ T.pack "name" .= name, T.pack "id" .= id ]
+        object [ "name" .= name, "id" .= id ]
     toJSON (Computer name id) =
-        object [ T.pack "name" .= name, T.pack "id" .= id ]
+        object [ "name" .= name, "id" .= id ]
 
 data Coord = Coord Int Int
     deriving (Show, Generic)
@@ -121,13 +125,17 @@ data GameState = GameState { board      :: Board
                            , playerTurn :: Player
                            , token      :: T.Text
                            }
+    deriving Show
 
 instance ToJSON GameState where
     toJSON GameState{board = b} =
-        object [ (T.pack "board") .= b, (T.pack "pieces") .= (renderPieces b) ]
+        object [ "board" .= b, "pieces" .= (renderPieces b) ]
       where
         renderPieces :: Board -> [Value]
-        renderPieces b = undefined
+        renderPieces (Board sp) =
+            map (\(Space{piece = Just p}) ->
+                     object [ (TT.pack (show (pieceId p))) .= T.pack "1" ])
+                sp
 
 {- Generate a new board.  -}
 initBoard :: Int -> Int -> Board
@@ -145,6 +153,7 @@ initBoard width height =
     newSpace x y pc pt = Space { piece = Just Piece { color = White
                                                     , pieceType = pt
                                                     , player = dummyPlayer
+                                                    , pieceId = (x * y + y)
                                                     }
                                , color = pc
                                , coord = Coord x y
