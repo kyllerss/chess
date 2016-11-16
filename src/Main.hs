@@ -1,6 +1,7 @@
 module Main where
 
 import Chess.Core.Domain
+import Chess.Core.Serialization
 import Data.Text
 
 display :: PieceType -> String
