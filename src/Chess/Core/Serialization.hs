@@ -8,7 +8,7 @@ import           Data.Aeson.Types
 import qualified Data.Aeson.Encode as J
 import           GHC.Generics
 import           Data.List         as DL ( groupBy, sortBy )
-import qualified Data.IntMap       as IM
+import qualified Data.Map       as M
 
 instance ToJSON Color where
     toJSON Black = toJSON ("b" :: T.Text)
@@ -87,11 +87,11 @@ instance ToJSON GameState where
     toJSON GameState{board = b} =
         object [ "board" .= b, "pieces" .= (renderPieces b) ]
       where
-        renderPieces :: Board -> IM.IntMap Value
-        renderPieces (Board sp) = foldl appendPiece IM.empty sp
+        renderPieces :: Board -> M.Map T.Text Value
+        renderPieces (Board sp) = foldl appendPiece M.empty sp
 
-        appendPiece :: IM.IntMap Value -> Space -> IM.IntMap Value
-        appendPiece m (Space{coord = c, piece = Just p}) = IM.insert (pieceId p) (renderPiece p c) m 
+        appendPiece :: M.Map T.Text Value -> Space -> M.Map T.Text Value
+        appendPiece m (Space{coord = c, piece = Just p}) = M.insert (T.pack $ show $ pieceId p) (renderPiece p c) m 
 
 {-
             map (\(Space{coord = c, piece = Just p}) ->
