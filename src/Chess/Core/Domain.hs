@@ -1,34 +1,35 @@
 module Chess.Core.Domain where
 
+import qualified Data.List as DL
 import qualified Data.Text.Lazy as T
 import           GHC.Generics
 
 data Color = Black | White
-    deriving Show
+    deriving (Show, Eq)
 
 data PieceType = Pawn | Rook | Knight | Bishop | King | Queen
-    deriving Show
+    deriving (Show, Eq)
 
 data Piece = Piece { color     :: Color
                    , pieceType :: PieceType
                    , player    :: Player
                    , pieceId   :: Int
                    }
-    deriving (Show, Generic)
+    deriving (Show, Generic, Eq)
 
 data Player = Human T.Text Int
             | Computer T.Text Int
-    deriving Show
+    deriving (Show, Eq)
 
 data Coord = Coord Int Int
-    deriving (Show, Generic)
+    deriving (Show, Generic, Eq)
 
 data Space = Space { piece :: Maybe Piece
                    , color :: Color
                    , coord :: Coord
                    }
            | Void Coord
-    deriving (Show, Generic)
+    deriving (Show, Generic, Eq)
 
 data Board = Board [Space]
     deriving (Show, Generic)
@@ -48,33 +49,19 @@ data GameState = GameState { board      :: Board
     deriving Show
 
 {- Generate a new board.  -}
-initBoard :: Int -> Int -> Board
-initBoard width height =
+initBoard :: Int -> Int -> (Coord -> Space) -> Board
+initBoard width height spaceBuilder =
     Board $
-        map (\(x, y) -> newSpace x y (calcPieceColor x y) Pawn)
-            [ (i, j)
+        map spaceBuilder
+            [ Coord i j
             | i <- [1 .. width]
-            , j <- [1 .. height] ]
-  where
-    -- ++ [Void (Coord 0 0)]
-    dummyPlayer = Human (T.pack "dummy1") 1
-
-    newSpace :: Int -> Int -> Color -> PieceType -> Space
-    newSpace x y pc pt = Space { piece = Just Piece { color = White
-                                                    , pieceType = pt
-                                                    , player = dummyPlayer
-                                                    , pieceId = (x * y + y)
-                                                    }
-                               , color = pc
-                               , coord = Coord x y
-                               }
-
-    calcPieceColor :: Int -> Int -> Color
-    calcPieceColor x y = if (even (x + y)) then White else Black
+            , j <- [1 .. height] ] 
 
 {- Create a new board.  -}
 initGame :: Int -> Int -> GameState
-initGame width height = GameState { board = initBoard width height
+initGame width height = GameState { board = initBoard width
+                                                      height
+                                                      defaultSpaceBuilder
                                   , moves = []
                                   , players = [ human1, ai1 ]
                                   , playerTurn = human1
@@ -83,3 +70,30 @@ initGame width height = GameState { board = initBoard width height
   where
     human1 = Human (T.pack "Kyle") 1
     ai1 = Computer (T.pack "Bot 1") 2
+
+{- default space builder -}
+defaultSpaceBuilder :: Coord -> Space
+defaultSpaceBuilder = (\(Coord x y) -> buildSpace x
+                                                      y
+                                                      (calcPieceColor x y)
+                                                      Pawn)
+
+{- fetch space with given coordinates -}
+fetchSpace :: Board -> Coord -> Maybe Space
+fetchSpace (Board spaces) c =
+    DL.find (\x -> coord x == c) spaces
+
+{- alternates piece color -}
+calcPieceColor :: Int -> Int -> Color
+calcPieceColor x y = if (even (x + y)) then White else Black
+
+{- space builder -}
+buildSpace :: Int -> Int -> Color -> PieceType -> Space
+buildSpace x y pc pt = Space { piece = Just Piece { color = White
+                                                  , pieceType = pt
+                                                  , player = Human (T.pack "dummy1") 1
+                                                  , pieceId = (x * y + y)
+                                                  }
+                             , color = pc
+                             , coord = Coord x y
+                             }
