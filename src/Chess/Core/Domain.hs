@@ -10,10 +10,13 @@ data Color = Black | White
 data PieceType = Pawn | Rook | Knight | Bishop | King | Queen
     deriving (Show, Eq)
 
+data PieceId = PieceId Int
+  deriving (Show, Generic, Eq)
+
 data Piece = Piece { color     :: Color
                    , pieceType :: PieceType
                    , player    :: Player
-                   , pieceId   :: Int
+                   , pieceId   :: PieceId
                    }
     deriving (Show, Generic, Eq)
 
@@ -73,10 +76,7 @@ initGame width height = GameState { board = initBoard width
 
 {- default space builder -}
 defaultSpaceBuilder :: Coord -> Space
-defaultSpaceBuilder = (\(Coord x y) -> buildSpace x
-                                                      y
-                                                      (calcPieceColor x y)
-                                                      Pawn)
+defaultSpaceBuilder = \(Coord x y) -> buildSpace x y $ calcSpaceColor $ Coord x y
 
 {- fetch space with given coordinates -}
 fetchSpace :: Board -> Coord -> Maybe Space
@@ -84,16 +84,25 @@ fetchSpace (Board spaces) c =
     DL.find (\x -> coord x == c) spaces
 
 {- alternates piece color -}
-calcPieceColor :: Int -> Int -> Color
-calcPieceColor x y = if (even (x + y)) then White else Black
+calcSpaceColor :: Coord -> Color
+calcSpaceColor (Coord x y) = if (even (x + y)) then White else Black
 
 {- space builder -}
-buildSpace :: Int -> Int -> Color -> PieceType -> Space
-buildSpace x y pc pt = Space { piece = Just Piece { color = White
-                                                  , pieceType = pt
-                                                  , player = Human (T.pack "dummy1") 1
-                                                  , pieceId = (x * y + y)
-                                                  }
-                             , color = pc
-                             , coord = Coord x y
-                             }
+buildSpace :: Int -> Int -> Color -> Space
+buildSpace x y c = Space { piece = Nothing
+                         , color = c
+                         , coord = Coord x y
+                         }
+
+{- piece builder -}
+buildPiece :: Space -> PieceType -> Color -> Player -> Maybe Piece
+buildPiece (space@Space{}) pt color player = Just Piece { color = White
+                                              , pieceType = pt
+                                              , player = Human (T.pack "dummy1") 1
+                                              , pieceId = buildPieceId $ coord space 
+                                              }
+buildPiece (Void _) pt color player = Nothing
+
+{- PieceId builder -}
+buildPieceId :: Coord -> PieceId
+buildPieceId (Coord x y) = PieceId (x * y + y)

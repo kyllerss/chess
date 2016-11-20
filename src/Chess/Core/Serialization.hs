@@ -24,6 +24,8 @@ instance ToJSON PieceType where
 
 instance ToJSON Piece
 
+instance ToJSON PieceId
+
 instance ToJSON Player where
     toJSON (Human name id) =
         object [ "name" .= name, "id" .= id ]
