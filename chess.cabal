@@ -22,9 +22,9 @@ executable chess
                      , bytestring
                      , containers
                      , hspec >= 2.2
-  extensions:          DuplicateRecordFields
-                     , DeriveGeneric
-                     , OverloadedStrings
+  default-extensions:          DuplicateRecordFields
+                             , DeriveGeneric
+                             , OverloadedStrings
 test-suite hspec
   main-is: Spec.hs
   type: exitcode-stdio-1.0

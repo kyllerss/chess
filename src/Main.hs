@@ -2,6 +2,7 @@ module Main where
 
 import Chess.Core.Domain
 import Chess.Core.Serialization
+import Chess.Core.Moves
 import Data.Text
 
 display :: PieceType -> String
