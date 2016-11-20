@@ -10,26 +10,50 @@ maintainer:          klomeli@gmail.com
 copyright:           2016 Kyle L.
 category:            Web
 build-type:          Simple
+-- extra-source-files:
 cabal-version:       >=1.10
 
-executable chess
+library
   hs-source-dirs:      src
-  main-is:             Main.hs
-  default-language:    Haskell2010
+  exposed-modules:     Chess.Core.Domain
+                       Chess.Core.Serialization
+                       Chess.Core.Moves
   build-depends:       base >= 4.7 && < 5
                      , text
                      , aeson
                      , bytestring
                      , containers
+  default-language:    Haskell2010
+  default-extensions: DuplicateRecordFields
+                    , DeriveGeneric
+                    , OverloadedStrings
+
+executable chess-exe
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , chess
+                     , text
+                     , aeson
+                     , bytestring
+                     , containers
                      , hspec >= 2.2
-  default-extensions:          DuplicateRecordFields
-                             , DeriveGeneric
-                             , OverloadedStrings
-test-suite hspec
-  main-is: Spec.hs
-  type: exitcode-stdio-1.0
-  build-depends: base
-               , hspec
-               , QuickCheck
-  hs-source-dirs: test
+  default-language:    Haskell2010
+  default-extensions: DuplicateRecordFields
+                    , DeriveGeneric
+                    , OverloadedStrings
+
+test-suite chess-test
+  main-is:          Spec.hs
+  type:             exitcode-stdio-1.0
+  build-depends:    base
+                  , hspec
+                  , QuickCheck
+                  , chess
+  hs-source-dirs:   test
+  ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   default-language: Haskell2010
+  default-extensions: DuplicateRecordFields
+                    , DeriveGeneric
+                    , OverloadedStrings
