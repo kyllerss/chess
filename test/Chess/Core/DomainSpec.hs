@@ -15,7 +15,7 @@ spec = describe "board" $ do
             let (Board spaces) = initBoard 1 1 defaultSpaceBuilder
             coord (head spaces) `shouldSatisfy`
                 (\(Coord x y) -> x == 1 && y == 1)
-        it "colors alternate" $ do
+        it "colors alternate by rows" $ do
             let board = initBoard 2 2 defaultSpaceBuilder
                 coord1 = Coord 1 1
                 coord2 = Coord 1 2
@@ -23,9 +23,9 @@ spec = describe "board" $ do
                 coord4 = Coord 2 2
             (fetchSpace board coord1) `shouldSatisfy`
                 (\(Just s) -> (color (s :: Space)) == White)
-            (fetchSpace board coord1) `shouldSatisfy`
+            (fetchSpace board coord2) `shouldSatisfy`
                 (\(Just s) -> (color (s :: Space)) == Black)
-            (fetchSpace board coord1) `shouldSatisfy`
+            (fetchSpace board coord3) `shouldSatisfy`
+                (\(Just s) -> (color (s :: Space)) == Black)
+            (fetchSpace board coord4) `shouldSatisfy`
                 (\(Just s) -> (color (s :: Space)) == White)
-            (fetchSpace board coord1) `shouldSatisfy`
-                (\(Just s) -> (color (s :: Space)) == Black)
