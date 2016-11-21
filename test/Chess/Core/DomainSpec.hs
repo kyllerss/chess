@@ -33,8 +33,8 @@ spec = describe "board" $ do
                 newBoard = move board (DM.fromJust pawn) destCoord
                 origSpace = fetchSpace newBoard originCoord
                 destSpace = fetchSpace newBoard destCoord
-            (piece ((DM.fromJust origSpace)::Space))::(Maybe Piece) `shouldBe` Nothing
-            --(piece (DM.fromJust origSpace))::(Maybe Piece) `shouldSatisfy` (\p -> DM.isNothing p)
+            piece (DM.fromJust origSpace::Space) `shouldBe` Nothing
+            piece (DM.fromJust destSpace::Space) `shouldNotBe` Nothing
       describe "when 2 x 2" $ do
         it "has right dimensions" $ do
             let (Board spaces) = initBoard 2 2 defaultSpaceBuilder

@@ -37,7 +37,9 @@ data Space = Space { piece :: Maybe Piece
 data Board = Board [Space]
     deriving (Show, Generic)
 
---  toJSON b = --J.encode(b)
+spacesFromBoard :: Board -> [Space]
+spacesFromBoard (Board sps) = sps
+
 data Move = Move { piece :: Piece
                  , space :: Space
                  }
