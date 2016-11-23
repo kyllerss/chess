@@ -18,7 +18,10 @@ data Piece = Piece { color     :: Color
                    , player    :: Player
                    , pieceId   :: PieceId
                    }
-    deriving (Show, Generic, Eq)
+    deriving (Show, Generic)
+
+instance Eq Piece where
+  (==) a b = (pieceId a) == (pieceId b)
 
 data Player = Human T.Text Int
             | Computer T.Text Int
