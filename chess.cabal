@@ -27,7 +27,8 @@ library
   default-extensions: DuplicateRecordFields
                     , DeriveGeneric
                     , OverloadedStrings
-
+                    , DisambiguateRecordFields
+                    
 executable chess-exe
   hs-source-dirs:      app
   main-is:             Main.hs
@@ -43,7 +44,8 @@ executable chess-exe
   default-extensions: DuplicateRecordFields
                     , DeriveGeneric
                     , OverloadedStrings
-
+                    , DisambiguateRecordFields
+                    
 test-suite chess-test
   main-is:          Spec.hs
   type:             exitcode-stdio-1.0
@@ -57,3 +59,5 @@ test-suite chess-test
   default-extensions: DuplicateRecordFields
                     , DeriveGeneric
                     , OverloadedStrings
+                    , DisambiguateRecordFields
+                    

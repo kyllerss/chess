@@ -43,7 +43,7 @@ data Board = Board [Space]
 spacesFromBoard :: Board -> [Space]
 spacesFromBoard (Board sps) = sps
 
-data Move = Move { piece :: Piece
+data Move = Move { pId :: PieceId
                  , space :: Space
                  }
     deriving Show
@@ -121,7 +121,14 @@ addPiece sadd padd = sadd { piece = Just padd }
 
 {- Add a piece to board -}
 addPieceToBoard :: Board -> Piece -> Coord -> Maybe Board
-addPieceToBoard b@(Board sps) p c = addPiece' [] sps
+addPieceToBoard (Board sps) p c = addPiece' (Just $ Board []) sps False
   where
 
-    addPiece' :: 
+    addPiece' :: Maybe Board -> [Space] -> Bool -> Maybe Board
+    addPiece' Nothing _ _ = Nothing
+    addPiece' b [] False = Nothing
+    addPiece' b [] True = b
+    addPiece' (Just (Board sps')) (x : xs) consumed =
+      if coord x == c
+      then addPiece' (Just $ Board ((addPiece x p) : sps')) xs True
+      else addPiece' (Just $ Board (x : sps')) xs consumed
