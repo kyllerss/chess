@@ -84,36 +84,3 @@ spec = describe "board" $ do
                 (\(Just s) -> (color (s :: Space)) == Black)
             (fetchSpace board coord4) `shouldSatisfy`
                 (\(Just s) -> (color (s :: Space)) == White)
-        it "can have a piece moved" $ do
-
-            -- initial board setup
-            let emptyBoard = initBoard 2 2 defaultSpaceBuilder
-                originCoord = Coord 0 0
-                pawn = buildPiece (buildPieceId originCoord) Pawn White (Human "dummy" 1)
-
-                board :: Maybe Board
-                board = addPieceToBoard emptyBoard pawn originCoord
-
-            board `shouldNotBe` Nothing
-
-            -- move piece
-            let destCoord = Coord 1 0
-                newBoard = move (DM.fromJust board) pawn destCoord
-
-            newBoard `shouldNotBe` Nothing
-
-            -- verify spaces still present
-            let origSpace, destSpace :: Maybe Space
-                origSpace = fetchSpace (DM.fromJust newBoard) originCoord
-                destSpace = fetchSpace (DM.fromJust newBoard) destCoord
-
-            origSpace `shouldNotBe` Nothing
-            destSpace `shouldNotBe` Nothing
-
-            -- verify piece moved
-            let origSpace', destSpace' :: Space
-                origSpace' = DM.fromJust origSpace
-                destSpace' = DM.fromJust destSpace
-
-            piece origSpace' `shouldBe` Nothing
-            piece destSpace' `shouldNotBe` Nothing
