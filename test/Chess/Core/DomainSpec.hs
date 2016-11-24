@@ -17,22 +17,30 @@ spec = describe "board" $ do
         it "has coordinate (1, 1)" $ do
             let (Board spaces) = initBoard 1 1 defaultSpaceBuilder
             coord (head spaces) `shouldSatisfy`
-                (\(Coord x y) -> x == 1 && y == 1)
+                (\(Coord x y) -> x == 0 && y == 0)
         it "has no pieces" $ do
             let board = initBoard 1 1 defaultSpaceBuilder
-                coord = Coord 1 1
+                coord = Coord 0 0
             (fetchSpace board coord) `shouldSatisfy`
                 (\(Just s) -> DM.isNothing $ piece (s :: Space))
-        it "can have a piece moved" $ do
+        it "can have piece added" $ do
             let board = initBoard 2 2 defaultSpaceBuilder
-                originCoord = Coord 1 1
-                space1 = fetchSpace board originCoord
-                player1 = Human "dummy" 1
-                pawn = buildPiece (DM.fromJust space1) Pawn White player1
-                destCoord = Coord 2 1
-                newBoard = move board (DM.fromJust pawn) destCoord
-                origSpace = fetchSpace newBoard originCoord
-                destSpace = fetchSpace newBoard destCoord
+                coord' = Coord 0 1
+                space' = fetchSpace board coord'
+                player' = Human "dummy" 1
+                pawn = buildPiece (buildPieceId coord') Pawn White player'
+                newBoard = addPieceToBoard board pawn coord'
+            newBoard `shouldNotBe` Nothing
+        it "can have a piece moved" $ do
+            let emptyBoard = initBoard 2 2 defaultSpaceBuilder
+                originCoord = Coord 0 0
+                player' = Human "dummy" 1
+                pawn = buildPiece (buildPieceId originCoord) Pawn White player'
+                board = DM.fromJust $ addPieceToBoard emptyBoard pawn originCoord 
+                destCoord = Coord 1 0
+                newBoard = move board pawn destCoord
+                origSpace = DM.fromJust $ fetchSpace (DM.fromJust newBoard) originCoord
+                destSpace = DM.fromJust $ fetchSpace (DM.fromJust newBoard) destCoord
             piece (origSpace::Space) `shouldBe` Nothing
             piece (destSpace::Space) `shouldNotBe` Nothing
       describe "when 2 x 2" $ do
@@ -42,10 +50,10 @@ spec = describe "board" $ do
                 (`shouldBe` (4 :: Int))
         it "has alternating colors by rows" $ do
             let board = initBoard 2 2 defaultSpaceBuilder
-                coord1 = Coord 1 1
-                coord2 = Coord 1 2
-                coord3 = Coord 2 1
-                coord4 = Coord 2 2
+                coord1 = Coord 0 0
+                coord2 = Coord 0 1
+                coord3 = Coord 1 0
+                coord4 = Coord 1 1
             (fetchSpace board coord1) `shouldSatisfy`
                 (\(Just s) -> (color (s :: Space)) == White)
             (fetchSpace board coord2) `shouldSatisfy`
@@ -54,4 +62,4 @@ spec = describe "board" $ do
                 (\(Just s) -> (color (s :: Space)) == Black)
             (fetchSpace board coord4) `shouldSatisfy`
                 (\(Just s) -> (color (s :: Space)) == White)
-    
+

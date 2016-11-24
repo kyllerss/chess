@@ -38,7 +38,7 @@ data Space = Space { piece :: Maybe Piece
     deriving (Show, Generic, Eq)
 
 data Board = Board [Space]
-    deriving (Show, Generic)
+    deriving (Show, Generic, Eq)
 
 spacesFromBoard :: Board -> [Space]
 spacesFromBoard (Board sps) = sps
@@ -62,8 +62,8 @@ initBoard width height spaceBuilder =
     Board $
         map spaceBuilder
             [ Coord i j
-            | i <- [1 .. width]
-            , j <- [1 .. height] ] 
+            | i <- [0 .. (width - 1)]
+            , j <- [0 .. (height - 1)] ] 
 
 {- Create a new board.  -}
 initGame :: Int -> Int -> GameState
@@ -100,17 +100,16 @@ buildSpace x y c = Space { piece = Nothing
                          }
 
 {- piece builder -}
-buildPiece :: Space -> PieceType -> Color -> Player -> Maybe Piece
-buildPiece (space@Space{}) pt color player = Just Piece { color = White
-                                              , pieceType = pt
-                                              , player = Human (T.pack "dummy1") 1
-                                              , pieceId = buildPieceId $ coord space 
-                                              }
-buildPiece (Void _) pt color player = Nothing
+buildPiece :: PieceId -> PieceType -> Color -> Player -> Piece
+buildPiece pId pt color player = Piece { color = White
+                                       , pieceType = pt
+                                       , player = Human (T.pack "dummy1") 1
+                                       , pieceId = pId 
+                                       }
 
 {- PieceId builder -}
 buildPieceId :: Coord -> PieceId
-buildPieceId (Coord x y) = PieceId (x * y + y)
+buildPieceId (Coord x y) = PieceId (x * y + y + 1)
 
 {- Remove a piece from a given space.  -}
 removePiece :: Space -> Piece -> Space
@@ -120,3 +119,9 @@ removePiece srem spem = srem { piece = Nothing }
 addPiece :: Space -> Piece -> Space
 addPiece sadd padd = sadd { piece = Just padd }
 
+{- Add a piece to board -}
+addPieceToBoard :: Board -> Piece -> Coord -> Maybe Board
+addPieceToBoard b@(Board sps) p c = addPiece' [] sps
+  where
+
+    addPiece' :: 
