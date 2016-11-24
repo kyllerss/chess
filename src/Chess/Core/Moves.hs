@@ -14,32 +14,46 @@ move b p c = newBoard (spacesFromBoard b) p c
     newBoard [] _ _ = Nothing
     newBoard sps p c = newBoard fromSpace toSpace otherSpaces
       where
+        (fromSpace, toSpace, otherSpaces) =
+            DL.foldl' collectComponents (Nothing, Nothing, []) sps
+
         collectComponents :: (Maybe Space, Maybe Space, [Space])
                           -> Space
                           -> (Maybe Space, Maybe Space, [Space])
         collectComponents tr@(from, to, rsps) space =
-          if ((DM.isJust $ piece space) and ((piece space) == (piece))) then XXXX determine if coordinate matches or piece    
+            (handleFrom from space, handleTo to space, handleRest rsps space)
+          where
+            handleFrom :: Maybe Space -> Space -> Maybe Space
+            handleFrom Nothing Space{piece = Nothing} =
+                Nothing
+            handleFrom Nothing s@Space{piece = Just cp} =
+                if p == cp
+                then Just (s :: Space) { piece = Nothing }
+                else Nothing
+            handleFrom mfrom _ = mfrom
 
-        (fromSpace, toSpace, otherSpaces) =
-            DL.foldl' collectComponents (Nothing, Nothing, []) sps
+            handleTo :: Maybe Space -> Space -> Maybe Space
+            handleTo Nothing s@Space{coord = cc} =
+                if c == cc
+                then Just ((s :: Space) { piece = Just p })
+                else Nothing
+            handleTo mto _ = mto
 
-        removePiece :: Piece -> Space -> Space
-        removePiece prem srem = srem { piece = Nothing }
-
-        addPiece :: Piece -> Space -> Space
-        addPiece padd sadd = sadd { piece = Just padd }
+            handleRest :: [Space] -> Space -> [Space]
+            handleRest rest s@Space{piece = Nothing,coord = cc} =
+                if c == cc then rest else s : rest
+            handleRest rest s@Space{piece = Just cp,coord = cc} =
+                if p == cp || c == cc then rest else s : rest
 
         newBoard :: Maybe Space -> Maybe Space -> [Space] -> Maybe Board
         newBoard Nothing _ _ = Nothing
         newBoard _ Nothing _ = Nothing
         newboard (Just newFromSpace) (Just newToSpace) newOtherSpaces =
             Board $
-                [ removePiece p newFromSpace ] ++
-                    [ addPiece p newToSpace ] ++ newOtherSpaces
-    newSpaces :: [Space]
-                                                                                                                                      -> Piece
-                                                                                                                                      -> Coord
-                                                                                                                                      -> [Space]
+                [ removePiece newFromSpace p ]
+                    ++ [ addPiece newToSpace p ]
+                        ++ newOtherSpaces
+    newSpaces :: [Space] -> Piece -> Coord -> [Space]
     newSpaces sps p c = undefined
 
 validMoves :: Board -> Piece -> [Coord]

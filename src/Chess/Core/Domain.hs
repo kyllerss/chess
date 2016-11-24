@@ -111,3 +111,12 @@ buildPiece (Void _) pt color player = Nothing
 {- PieceId builder -}
 buildPieceId :: Coord -> PieceId
 buildPieceId (Coord x y) = PieceId (x * y + y)
+
+{- Remove a piece from a given space.  -}
+removePiece :: Space -> Piece -> Space
+removePiece srem spem = srem { piece = Nothing }
+
+{- Add a piece to a given space.  -}
+addPiece :: Space -> Piece -> Space
+addPiece sadd padd = sadd { piece = Just padd }
+
