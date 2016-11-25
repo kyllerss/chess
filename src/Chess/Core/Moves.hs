@@ -1,9 +1,6 @@
 module Chess.Core.Moves
     ( move
     , moves
-    , handleTo
-    , handleFrom
-    , collectComponents
     ) where
 
 import           Chess.Core.Domain
@@ -20,12 +17,12 @@ newBoard sps p c = newBoard' p fromSpace toSpace otherSpaces
     (fromSpace, toSpace, otherSpaces) =
         DL.foldl' (collectComponents p c) (Nothing, Nothing, []) sps
 
-newBoard' :: Piece -> Maybe Space -> Maybe Space -> [Space] -> Maybe Board
-newBoard' _ Nothing _ _ = Nothing
-newBoard' _ _ Nothing _ = Nothing
-newBoard' p (Just newFromSpace) (Just newToSpace) newOtherSpaces =
-    Just $
-        Board $
+    newBoard' :: Piece -> Maybe Space -> Maybe Space -> [Space] -> Maybe Board
+    newBoard' _ Nothing _ _ = Nothing
+    newBoard' _ _ Nothing _ = Nothing
+    newBoard' p (Just newFromSpace) (Just newToSpace) newOtherSpaces =
+      Just $
+          Board $
             [ removePiece newFromSpace p ]
                 ++ [ addPiece newToSpace p ]
                     ++ newOtherSpaces
