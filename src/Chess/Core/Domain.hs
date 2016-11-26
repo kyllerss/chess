@@ -128,7 +128,6 @@ addPieceToBoard (Board sps) p c = addPiece' (Just $ Board []) sps False
     addPiece' Nothing _ _ = Nothing
     addPiece' b [] False = Nothing
     addPiece' b [] True = b
-    addPiece' (Just (Board sps')) (x : xs) consumed =
-      if coord x == c
-      then addPiece' (Just $ Board ((addPiece x p) : sps')) xs True
-      else addPiece' (Just $ Board (x : sps')) xs consumed
+    addPiece' (Just (Board sps')) (x : xs) consumed
+      | coord x == c = addPiece' (Just $ Board ((addPiece x p) : sps')) xs True
+      | otherwise    = addPiece' (Just $ Board (x : sps')) xs consumed

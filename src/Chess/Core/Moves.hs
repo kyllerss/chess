@@ -7,6 +7,7 @@ import           Chess.Core.Domain
 import qualified Data.Map          as M
 import           Data.List         as DL
 
+{- Moves piece from one space to the next. If requested move is invalid, returns nothing.  -}
 move :: Board -> Piece -> Coord -> Maybe Board
 move b p c = newBoard (spacesFromBoard b) p c
 
@@ -27,6 +28,7 @@ newBoard sps p c = newBoard' p fromSpace toSpace otherSpaces
                 ++ [ addPiece newToSpace p ]
                     ++ newOtherSpaces
 
+{- Populates tuple where first element is from space, second is to space, and third is remaining spaces. -}
 collectComponents :: Piece
                   -> Coord
                   -> (Maybe Space, Maybe Space, [Space])
@@ -38,23 +40,21 @@ collectComponents p c tr@(from, to, rsps) space =
 handleFrom :: Piece -> Maybe Space -> Space -> Maybe Space
 handleFrom _ Nothing Space{piece = Nothing} =
     Nothing
-handleFrom p Nothing s@Space{piece = Just cp} =
-    if p == cp then Just (s :: Space) { piece = Nothing } else Nothing
+handleFrom p Nothing s@Space{piece = Just cp}
+    | p == cp   = Just (s :: Space) { piece = Nothing }
+    | otherwise = Nothing
 handleFrom _ mfrom _ = mfrom
 
 handleTo :: Piece -> Coord -> Maybe Space -> Space -> Maybe Space
-handleTo p c Nothing s@Space{coord = cc} =
-    if c == cc then Just ((s :: Space) { piece = Just p }) else Nothing
+handleTo p c Nothing s@Space{coord = cc}
+    | c == cc   = Just ((s :: Space) { piece = Just p })
+    | otherwise = Nothing
 handleTo _ _ mto _ = mto
 
 handleRest :: Piece -> Coord -> [Space] -> Space -> [Space]
-handleRest p c rest s@Space{piece = Nothing,coord = cc} =
-    if c == cc then rest else s : rest
-handleRest p c rest s@Space{piece = Just cp,coord = cc} =
-    if p == cp || c == cc then rest else s : rest
-
-newSpaces :: [Space] -> Piece -> Coord -> [Space]
-newSpaces sps p c = undefined
-
-validMoves :: Board -> Piece -> [Coord]
-validMoves b p = []
+handleRest p c rest s@Space{piece = Nothing,coord = cc}
+    | c == cc   = rest
+    | otherwise = s : rest
+handleRest p c rest s@Space{piece = Just cp,coord = cc}
+    | p == cp || c == cc = rest
+    | otherwise          = s : rest
