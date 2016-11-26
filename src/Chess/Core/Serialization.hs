@@ -38,7 +38,7 @@ instance ToJSON Coord where
 instance ToJSON Space
 
 instance ToJSON Board where
-    toJSON (Board sp) = toJSON $ encode . toColor . shape . sortSpaces $ sp
+    toJSON (Board {spacesMap = spMap}) = toJSON $ encode . toColor . shape . sortSpaces $ M.foldr (:) [] spMap
       where
         multimap :: (a -> b) -> [[a]] -> [[b]]
         multimap f ss = map (\xs -> map f xs) ss

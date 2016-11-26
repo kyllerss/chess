@@ -5,6 +5,7 @@ import           Chess.Core.Domain
 import           Chess.Core.Moves
 import qualified Data.List         as DL
 import qualified Data.Maybe        as DM
+import qualified Data.Map          as M
 
 spec :: Spec
 spec = describe "board" $ do
@@ -12,11 +13,13 @@ spec = describe "board" $ do
       describe "when 1 x 1" $ do
         it "has right dimensions" $ do
             let (Board spaces) = initBoard 1 1 defaultSpaceBuilder
-            return (DL.length spaces) >>=
+            return (M.size spaces) >>=
                 (`shouldBe` (1 :: Int))
         it "has coordinate (1, 1)" $ do
-            let (Board spaces) = initBoard 1 1 defaultSpaceBuilder
-            coord (head spaces) `shouldSatisfy`
+            let (Board spsMap) = initBoard 1 1 defaultSpaceBuilder
+                space = M.lookup (Coord 0 0) spsMap
+            space `shouldNotBe` Nothing
+            coord (DM.fromJust space) `shouldSatisfy`
                 (\(Coord x y) -> x == 0 && y == 0)
         it "has no pieces" $ do
             let board = initBoard 1 1 defaultSpaceBuilder
@@ -68,7 +71,7 @@ spec = describe "board" $ do
       describe "when 2 x 2" $ do
         it "has right dimensions" $ do
             let (Board spaces) = initBoard 2 2 defaultSpaceBuilder
-            return (DL.length spaces) >>=
+            return (M.size spaces) >>=
                 (`shouldBe` (4 :: Int))
         it "has alternating colors by rows" $ do
             let board = initBoard 2 2 defaultSpaceBuilder

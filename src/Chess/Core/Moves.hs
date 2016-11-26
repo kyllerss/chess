@@ -5,57 +5,31 @@ module Chess.Core.Moves
 
 import           Chess.Core.Domain
 import qualified Data.Map          as M
-import           Data.List         as DL
+import qualified Data.List         as DL
 
 {- Moves piece from one space to the next. If requested move is invalid, returns nothing.  -}
 move :: Board -> Piece -> Coord -> Maybe Board
-move b p c = newBoard (spacesFromBoard b) p c
+move (Board {spacesMap = spsMap}) p c = move' originSpace destSpace
     where
-        newBoard :: [Space] -> Piece -> Coord -> Maybe Board
-        newBoard [] _ _ = Nothing
-        newBoard sps p c = newBoard' p fromSpace toSpace otherSpaces
-            where
-              (fromSpace, toSpace, otherSpaces) =
-                DL.foldl' (collectComponents p c) (Nothing, Nothing, []) sps
-
-        newBoard' :: Piece -> Maybe Space -> Maybe Space -> [Space] -> Maybe Board
-        newBoard' _ Nothing _ _ = Nothing
-        newBoard' _ _ Nothing _ = Nothing
-        newBoard' p (Just newFromSpace) (Just newToSpace) newOtherSpaces =
-          Just $ buildBoard $ newFrom : newTo : newOtherSpaces
+      move' :: Maybe Space -> Maybe Space -> Maybe Board
+      move' Nothing _ = Nothing
+      move' _ Nothing = Nothing
+      move' (Just os) (Just ds) = Just $ Board {spacesMap = updatedMap}
           where
-            newFrom = removePiece newFromSpace p
-            newTo = addPiece newToSpace p
-        {-
-           Populates tuple where first element is 'from' space,
-           second is 'to' space,
-           and third is 'remaining' spaces.
-        -}
-        collectComponents :: Piece
-                          -> Coord
-                          -> (Maybe Space, Maybe Space, [Space])
-                          -> Space
-                          -> (Maybe Space, Maybe Space, [Space])
-        collectComponents p c tr@(from, to, rsps) space =
-          (handleFrom p from space, handleTo p c to space, handleRest p c rsps space)
+            updatedMap :: M.Map Coord Space
+            updatedMap = M.insert (coord ds) (addPiece ds p) $ M.insert (coord os) (removePiece os) spsMap
 
-        handleFrom :: Piece -> Maybe Space -> Space -> Maybe Space
-        handleFrom _ Nothing Space{piece = Nothing} = Nothing
-        handleFrom p Nothing s@Space{piece = Just cp}
-          | p == cp   = Just (s :: Space) { piece = Nothing }
-          | otherwise = Nothing
-        handleFrom _ mfrom _ = mfrom
+      originSpace :: Maybe Space
+      originSpace = fetchSpace' $ M.toList $ M.filter (\s -> evalPiece $ piece s) spsMap
+          where
 
-        handleTo :: Piece -> Coord -> Maybe Space -> Space -> Maybe Space
-        handleTo p c Nothing s@Space{coord = cc}
-          | c == cc   = Just ((s :: Space) { piece = Just p })
-          | otherwise = Nothing
-        handleTo _ _ mto _ = mto
+            fetchSpace' :: [(Coord, Space)] -> Maybe Space
+            fetchSpace' [] = Nothing
+            fetchSpace' [(coord, spc)] = Just spc
 
-        handleRest :: Piece -> Coord -> [Space] -> Space -> [Space]
-        handleRest p c rest s@Space{piece = Nothing,coord = cc}
-          | c == cc   = rest
-          | otherwise = s : rest
-        handleRest p c rest s@Space{piece = Just cp,coord = cc}
-          | p == cp || c == cc = rest
-          | otherwise          = s : rest
+            evalPiece :: Maybe Piece -> Bool
+            evalPiece Nothing = False
+            evalPiece (Just p') = p' == p
+
+      destSpace :: Maybe Space
+      destSpace = M.lookup c spsMap

@@ -3,6 +3,7 @@ module Chess.Core.Domain where
 import qualified Data.List as DL
 import qualified Data.Text.Lazy as T
 import           GHC.Generics
+import qualified Data.Map as Map
 
 data Color = Black | White
     deriving (Show, Eq)
@@ -31,7 +32,8 @@ data Coord = Coord Int Int
     deriving (Show, Generic, Eq)
 
 instance Ord Coord where
-  (Coord x1 y1) `compare` (Coord x2 y2) = (x1 * y1 + y1) `compare` (x2 * y2 + y2)
+  (Coord x1 y1) `compare` (Coord x2 y2) =
+    ((x1 + 1) * (y1 + 1) + (y1 + 1)) `compare` ((x2 + 1) * (y2 + 1) + (y2 + 1))
 
 data Space = Space { piece :: Maybe Piece
                    , color :: Color
@@ -43,11 +45,8 @@ data Space = Space { piece :: Maybe Piece
 instance Ord Space where
   (Space {coord = c1}) `compare` (Space {coord = c2}) = c1 `compare` c2
 
-data Board = Board [Space]
+data Board = Board { spacesMap :: Map.Map Coord Space }
     deriving (Show, Generic, Eq)
-
-spacesFromBoard :: Board -> [Space]
-spacesFromBoard (Board sps) = sps
 
 data Move = Move { pId :: PieceId
                  , space :: Space
@@ -73,7 +72,10 @@ initBoard width height spaceBuilder =
 
 {- Builder function -}
 buildBoard :: [Space] -> Board
-buildBoard sps = Board sps
+buildBoard sps = Board {spacesMap = buildSpaceMap sps}
+
+buildSpaceMap :: [Space] -> Map.Map Coord Space
+buildSpaceMap sps = foldl (\m s -> Map.insert (coord s) s m) Map.empty sps
 
 {- Create a new board.  -}
 initGame :: Int -> Int -> GameState
@@ -91,12 +93,11 @@ initGame width height = GameState { board = initBoard width
 
 {- default space builder -}
 defaultSpaceBuilder :: Coord -> Space
-defaultSpaceBuilder = \(Coord x y) -> buildSpace x y $ calcSpaceColor $ Coord x y
+defaultSpaceBuilder = \c@(Coord x y) -> buildSpace x y $ calcSpaceColor $ c
 
 {- fetch space with given coordinates -}
 fetchSpace :: Board -> Coord -> Maybe Space
-fetchSpace (Board spaces) c =
-    DL.find (\x -> coord x == c) spaces
+fetchSpace (Board {spacesMap = m}) c = Map.lookup c m
 
 {- alternates piece color -}
 calcSpaceColor :: Coord -> Color
@@ -122,8 +123,8 @@ buildPieceId :: Coord -> PieceId
 buildPieceId (Coord x y) = PieceId (x * y + y + 1)
 
 {- Remove a piece from a given space.  -}
-removePiece :: Space -> Piece -> Space
-removePiece srem spem = srem { piece = Nothing }
+removePiece :: Space -> Space
+removePiece srem = srem { piece = Nothing }
 
 {- Add a piece to a given space.  -}
 addPiece :: Space -> Piece -> Space
@@ -131,13 +132,8 @@ addPiece sadd padd = sadd { piece = Just padd }
 
 {- Add a piece to board -}
 addPieceToBoard :: Board -> Piece -> Coord -> Maybe Board
-addPieceToBoard (Board sps) p c = addPiece' (Just $ Board []) sps False
+addPieceToBoard (Board {spacesMap = spsMap}) p c = addPiece' $ Map.lookup c spsMap
   where
-
-    addPiece' :: Maybe Board -> [Space] -> Bool -> Maybe Board
-    addPiece' Nothing _ _ = Nothing
-    addPiece' b [] False = Nothing
-    addPiece' b [] True = b
-    addPiece' (Just (Board sps')) (x : xs) consumed
-      | coord x == c = addPiece' (Just $ Board ((addPiece x p) : sps')) xs True
-      | otherwise    = addPiece' (Just $ Board (x : sps')) xs consumed
+    addPiece' :: Maybe Space -> Maybe Board
+    addPiece' Nothing = Nothing
+    addPiece' (Just s) = Just $ Board {spacesMap = Map.insert c (addPiece s p) spsMap}
