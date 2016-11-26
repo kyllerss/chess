@@ -21,7 +21,7 @@ data Piece = Piece { color     :: Color
     deriving (Show, Generic)
 
 instance Eq Piece where
-  (==) a b = (pieceId a) == (pieceId b)
+  (==) (Piece {pieceId = a}) (Piece {pieceId = b}) = a == b
 
 data Player = Human T.Text Int
             | Computer T.Text Int
@@ -30,12 +30,18 @@ data Player = Human T.Text Int
 data Coord = Coord Int Int
     deriving (Show, Generic, Eq)
 
+instance Ord Coord where
+  (Coord x1 y1) `compare` (Coord x2 y2) = (x1 * y1 + y1) `compare` (x2 * y2 + y2)
+
 data Space = Space { piece :: Maybe Piece
                    , color :: Color
                    , coord :: Coord
                    }
            | Void Coord
     deriving (Show, Generic, Eq)
+
+instance Ord Space where
+  (Space {coord = c1}) `compare` (Space {coord = c2}) = c1 `compare` c2
 
 data Board = Board [Space]
     deriving (Show, Generic, Eq)
@@ -59,11 +65,15 @@ data GameState = GameState { board      :: Board
 {- Generate a new board.  -}
 initBoard :: Int -> Int -> (Coord -> Space) -> Board
 initBoard width height spaceBuilder =
-    Board $
+    buildBoard $
         map spaceBuilder
             [ Coord i j
             | i <- [0 .. (width - 1)]
-            , j <- [0 .. (height - 1)] ] 
+            , j <- [0 .. (height - 1)] ]
+
+{- Builder function -}
+buildBoard :: [Space] -> Board
+buildBoard sps = Board sps
 
 {- Create a new board.  -}
 initGame :: Int -> Int -> GameState
