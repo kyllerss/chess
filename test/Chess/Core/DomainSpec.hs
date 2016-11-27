@@ -19,13 +19,13 @@ spec = describe "board" $ do
             let (Board spsMap) = initBoard 1 1 defaultSpaceBuilder
                 space = M.lookup (Coord 0 0) spsMap
             space `shouldNotBe` Nothing
-            coord (DM.fromJust space) `shouldSatisfy`
+            spaceCoord (DM.fromJust space) `shouldSatisfy`
                 (\(Coord x y) -> x == 0 && y == 0)
         it "has no pieces" $ do
             let board = initBoard 1 1 defaultSpaceBuilder
                 coord = Coord 0 0
             (fetchSpace board coord) `shouldSatisfy`
-                (\(Just s) -> DM.isNothing $ piece (s :: Space))
+                (\(Just s) -> DM.isNothing $ spacePiece (s :: Space))
         it "can have piece added" $ do
 
             -- initial empty board setup
@@ -36,7 +36,7 @@ spec = describe "board" $ do
                 space' :: Maybe Space
                 space' = fetchSpace board coord'
 
-                player' = Human "dummy" 1
+                player' = Player {playerName = "dummy", playerType = Human, playerId = 1, playerOrientation = Up}
                 pawn = buildPiece (buildPieceId coord') Pawn White player'
 
             space' `shouldNotBe` Nothing
@@ -45,7 +45,7 @@ spec = describe "board" $ do
             let space'' :: Space
                 space'' = DM.fromJust space'
                 piece' :: Maybe Piece
-                piece' = piece $ space''
+                piece' = spacePiece $ space''
 
             piece' `shouldBe` Nothing
 
@@ -63,7 +63,7 @@ spec = describe "board" $ do
 
             -- verify space's piece
             let piece'' :: Maybe Piece
-                piece'' = piece $ DM.fromJust newSpace'
+                piece'' = spacePiece $ DM.fromJust newSpace'
 
             piece'' `shouldNotBe` Nothing
             DM.fromJust piece'' `shouldBe` pawn
@@ -80,10 +80,10 @@ spec = describe "board" $ do
                 coord3 = Coord 1 0
                 coord4 = Coord 1 1
             (fetchSpace board coord1) `shouldSatisfy`
-                (\(Just s) -> (color (s :: Space)) == White)
+                (\(Just s) -> (spaceColor (s :: Space)) == White)
             (fetchSpace board coord2) `shouldSatisfy`
-                (\(Just s) -> (color (s :: Space)) == Black)
+                (\(Just s) -> (spaceColor (s :: Space)) == Black)
             (fetchSpace board coord3) `shouldSatisfy`
-                (\(Just s) -> (color (s :: Space)) == Black)
+                (\(Just s) -> (spaceColor (s :: Space)) == Black)
             (fetchSpace board coord4) `shouldSatisfy`
-                (\(Just s) -> (color (s :: Space)) == White)
+                (\(Just s) -> (spaceColor (s :: Space)) == White)

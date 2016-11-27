@@ -14,9 +14,9 @@ data PieceType = Pawn | Rook | Knight | Bishop | King | Queen
 data PieceId = PieceId Int
   deriving (Show, Generic, Eq)
 
-data Piece = Piece { color     :: Color
+data Piece = Piece { pieceColor     :: Color
                    , pieceType :: PieceType
-                   , player    :: Player
+                   , piecePlayer    :: Player
                    , pieceId   :: PieceId
                    }
     deriving (Show, Generic)
@@ -24,8 +24,17 @@ data Piece = Piece { color     :: Color
 instance Eq Piece where
   (==) (Piece {pieceId = a}) (Piece {pieceId = b}) = a == b
 
-data Player = Human T.Text Int
-            | Computer T.Text Int
+data Orientation = Up | Down | Left | Right
+    deriving (Show, Eq)
+
+data PlayerType = Human | Computer
+    deriving (Show, Eq)
+
+data Player = Player { playerName :: T.Text
+                     , playerId :: Int
+                     , playerType :: PlayerType
+                     , playerOrientation :: Orientation
+                     }
     deriving (Show, Eq)
 
 data Coord = Coord Int Int
@@ -35,21 +44,21 @@ instance Ord Coord where
   (Coord x1 y1) `compare` (Coord x2 y2) =
     ((x1 + 1) * (y1 + 1) + (y1 + 1)) `compare` ((x2 + 1) * (y2 + 1) + (y2 + 1))
 
-data Space = Space { piece :: Maybe Piece
-                   , color :: Color
-                   , coord :: Coord
+data Space = Space { spacePiece :: Maybe Piece
+                   , spaceColor :: Color
+                   , spaceCoord :: Coord
                    }
            | Void Coord
     deriving (Show, Generic, Eq)
 
 instance Ord Space where
-  (Space {coord = c1}) `compare` (Space {coord = c2}) = c1 `compare` c2
+  (Space {spaceCoord = c1}) `compare` (Space {spaceCoord = c2}) = c1 `compare` c2
 
 data Board = Board { spacesMap :: Map.Map Coord Space }
     deriving (Show, Generic, Eq)
 
-data Move = Move { pId :: PieceId
-                 , space :: Space
+data Move = Move { movePieceId :: PieceId
+                 , moveSpace :: Space
                  }
     deriving Show
 
@@ -75,7 +84,7 @@ buildBoard :: [Space] -> Board
 buildBoard sps = Board {spacesMap = buildSpaceMap sps}
 
 buildSpaceMap :: [Space] -> Map.Map Coord Space
-buildSpaceMap sps = foldl (\m s -> Map.insert (coord s) s m) Map.empty sps
+buildSpaceMap sps = foldl (\m s -> Map.insert (spaceCoord s) s m) Map.empty sps
 
 {- Create a new board.  -}
 initGame :: Int -> Int -> GameState
@@ -88,8 +97,8 @@ initGame width height = GameState { board = initBoard width
                                   , token = T.pack "abc"
                                   }
   where
-    human1 = Human (T.pack "Kyle") 1
-    ai1 = Computer (T.pack "Bot 1") 2
+    human1 = Player {playerName = T.pack "Kyle", playerId = 1, playerType = Human, playerOrientation = Up}
+    ai1 = Player {playerName = T.pack "Bot 1", playerId = 2, playerType = Computer, playerOrientation = Down}
 
 {- default space builder -}
 defaultSpaceBuilder :: Coord -> Space
@@ -105,30 +114,33 @@ calcSpaceColor (Coord x y) = if (even (x + y)) then White else Black
 
 {- space builder -}
 buildSpace :: Int -> Int -> Color -> Space
-buildSpace x y c = Space { piece = Nothing
-                         , color = c
-                         , coord = Coord x y
+buildSpace x y c = Space { spacePiece = Nothing
+                         , spaceColor = c
+                         , spaceCoord = Coord x y
                          }
 
 {- piece builder -}
 buildPiece :: PieceId -> PieceType -> Color -> Player -> Piece
-buildPiece pId pt color player = Piece { color = White
+buildPiece pId pt color player = Piece { pieceColor = White
                                        , pieceType = pt
-                                       , player = Human (T.pack "dummy1") 1
+                                       , piecePlayer = Player { playerName = "dummy1"
+                                                         , playerType = Human
+                                                         , playerId = 1
+                                                         , playerOrientation = Down}
                                        , pieceId = pId 
                                        }
 
 {- PieceId builder -}
 buildPieceId :: Coord -> PieceId
-buildPieceId (Coord x y) = PieceId (x * y + y + 1)
+buildPieceId (Coord x y) = PieceId ((x + 1) * (y + 1) + (y + 1))
 
 {- Remove a piece from a given space.  -}
 removePiece :: Space -> Space
-removePiece srem = srem { piece = Nothing }
+removePiece srem = srem { spacePiece = Nothing }
 
 {- Add a piece to a given space.  -}
 addPiece :: Space -> Piece -> Space
-addPiece sadd padd = sadd { piece = Just padd }
+addPiece sadd padd = sadd { spacePiece = Just padd }
 
 {- Add a piece to board -}
 addPieceToBoard :: Board -> Piece -> Coord -> Maybe Board

@@ -8,7 +8,7 @@ import           Data.Aeson.Types
 import qualified Data.Aeson.Encode as J
 import           GHC.Generics
 import           Data.List         as DL ( groupBy, sortBy )
-import qualified Data.Map       as M
+import qualified Data.Map          as M
 
 instance ToJSON Color where
     toJSON Black = toJSON ("b" :: T.Text)
@@ -27,10 +27,8 @@ instance ToJSON Piece
 instance ToJSON PieceId
 
 instance ToJSON Player where
-    toJSON (Human name id) =
-        object [ "name" .= name, "id" .= id ]
-    toJSON (Computer name id) =
-        object [ "name" .= name, "id" .= id ]
+    toJSON (Player{playerName = pName,playerId = pId}) =
+        object [ "name" .= pName, "id" .= pId ]
 
 instance ToJSON Coord where
     toJSON (Coord x y) = toJSON $ [ x, y ]
@@ -38,7 +36,8 @@ instance ToJSON Coord where
 instance ToJSON Space
 
 instance ToJSON Board where
-    toJSON (Board {spacesMap = spMap}) = toJSON $ encode . toColor . shape . sortSpaces $ M.foldr (:) [] spMap
+    toJSON (Board{spacesMap = spMap}) =
+        toJSON $ encode . toColor . shape . sortSpaces $ M.foldr (:) [] spMap
       where
         multimap :: (a -> b) -> [[a]] -> [[b]]
         multimap f ss = map (\xs -> map f xs) ss
@@ -49,14 +48,14 @@ instance ToJSON Board where
                               vs
           where
             extractRow :: Space -> Int
-            extractRow (Space{coord = Coord row _}) =
+            extractRow (Space{spaceCoord = Coord row _}) =
                 row
 
         encode :: [[Color]] -> [[Value]]
         encode sp = multimap (\x -> toJSON x) sp
 
         toColor :: [[Space]] -> [[Color]]
-        toColor sp = multimap (\s -> color (s :: Space)) sp
+        toColor sp = multimap (\s -> spaceColor (s :: Space)) sp
 
         sortSpaces :: [Space] -> [Space]
         sortSpaces sp = DL.sortBy orderByColumnAndRow sp
@@ -69,17 +68,17 @@ instance ToJSON Board where
                     | a2 > a1 -> LT
                     | a1 == a2 -> if (b1 > b2) then GT else LT
                     | otherwise -> EQ
-                (Void (Coord a1 b1), Space{coord = (Coord a2 b2)})
+                (Void (Coord a1 b1), Space{spaceCoord = (Coord a2 b2)})
                     | a1 > a2 -> GT
                     | a2 > a1 -> LT
                     | a1 == a2 -> if (b1 > b2) then GT else LT
                     | otherwise -> EQ
-                (Space{coord = (Coord a1 b1)}, Void (Coord a2 b2))
+                (Space{spaceCoord = (Coord a1 b1)}, Void (Coord a2 b2))
                     | a1 > a2 -> GT
                     | a2 > a1 -> LT
                     | a1 == a2 -> if (b1 > b2) then GT else LT
                     | otherwise -> EQ
-                (Space{coord = (Coord a1 b1)}, Space{coord = (Coord a2 b2)})
+                (Space{spaceCoord = (Coord a1 b1)}, Space{spaceCoord = (Coord a2 b2)})
                     | a1 > a2 -> GT
                     | a2 > a1 -> LT
                     | a1 == a2 -> if (b1 > b2) then GT else LT
@@ -90,24 +89,22 @@ instance ToJSON GameState where
         object [ "board" .= b, "pieces" .= (renderPieces b) ]
       where
         renderPieces :: Board -> M.Map T.Text Value
-        renderPieces (Board sp) = foldl appendPiece M.empty sp
+        renderPieces (Board sp) =
+            foldl appendPiece M.empty sp
 
         appendPiece :: M.Map T.Text Value -> Space -> M.Map T.Text Value
-        appendPiece m (Space{coord = c, piece = Just p}) = M.insert (T.pack $ show $ pieceId p) (renderPiece p c) m 
+        appendPiece m (Space{spaceCoord = c,spacePiece = Just p}) =
+            M.insert (T.pack $ show $ pieceId p) (renderPiece p c) m
 
-{-
+        {-
             map (\(Space{coord = c, piece = Just p}) ->
                      object [ (TT.pack (show (pieceId p))) .= (renderPiece p c) ])
                 sp
 
 -}
-
         renderPiece :: Piece -> Coord -> Value
         renderPiece p c = object [ "t" .= (pieceType p)
-                                 , "c" .= (color (p :: Piece))
-                                 , "p" .= (playerId $ player p)
-                                 , "xy" .= c]
-
-        playerId :: Player -> Int
-        playerId (Human _ id) = id
-        playerId (Computer _ id) = id
+                                 , "c" .= (pieceColor (p :: Piece))
+                                 , "p" .= (playerId $ piecePlayer p)
+                                 , "xy" .= c
+                                 ]
