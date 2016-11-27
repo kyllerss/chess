@@ -89,7 +89,7 @@ instance ToJSON GameState where
         object [ "board" .= b, "pieces" .= (renderPieces b) ]
       where
         renderPieces :: Board -> M.Map T.Text Value
-        renderPieces (Board sp) =
+        renderPieces Board{spacesMap = sp} =
             foldl appendPiece M.empty sp
 
         appendPiece :: M.Map T.Text Value -> Space -> M.Map T.Text Value

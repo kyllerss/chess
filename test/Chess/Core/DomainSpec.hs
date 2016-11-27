@@ -36,7 +36,10 @@ spec = describe "board" $ do
                 space' :: Maybe Space
                 space' = fetchSpace board coord'
 
-                player' = Player {playerName = "dummy", playerType = Human, playerId = 1, playerOrientation = Up}
+                player' = Player { playerName = "dummy"
+                                 , playerType = Human
+                                 , playerId = 1
+                                 , playerDirection = North}
                 pawn = buildPiece (buildPieceId coord') Pawn White player'
 
             space' `shouldNotBe` Nothing

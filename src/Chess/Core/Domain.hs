@@ -24,8 +24,8 @@ data Piece = Piece { pieceColor     :: Color
 instance Eq Piece where
   (==) (Piece {pieceId = a}) (Piece {pieceId = b}) = a == b
 
-data Orientation = Up | Down | Left | Right
-    deriving (Show, Eq)
+data Direction = North | NorthEast | East | SouthEast | South | SouthWest | West | NorthWest
+    deriving (Show, Eq, Ord)
 
 data PlayerType = Human | Computer
     deriving (Show, Eq)
@@ -33,7 +33,7 @@ data PlayerType = Human | Computer
 data Player = Player { playerName :: T.Text
                      , playerId :: Int
                      , playerType :: PlayerType
-                     , playerOrientation :: Orientation
+                     , playerDirection :: Direction
                      }
     deriving (Show, Eq)
 
@@ -73,15 +73,15 @@ data GameState = GameState { board      :: Board
 {- Generate a new board.  -}
 initBoard :: Int -> Int -> (Coord -> Space) -> Board
 initBoard width height spaceBuilder =
-    buildBoard $
+    buildBoard width height $
         map spaceBuilder
             [ Coord i j
             | i <- [0 .. (width - 1)]
             , j <- [0 .. (height - 1)] ]
 
 {- Builder function -}
-buildBoard :: [Space] -> Board
-buildBoard sps = Board {spacesMap = buildSpaceMap sps}
+buildBoard ::  Int -> Int -> [Space] -> Board
+buildBoard r c sps = Board { spacesMap = buildSpaceMap sps }
 
 buildSpaceMap :: [Space] -> Map.Map Coord Space
 buildSpaceMap sps = foldl (\m s -> Map.insert (spaceCoord s) s m) Map.empty sps
@@ -97,8 +97,8 @@ initGame width height = GameState { board = initBoard width
                                   , token = T.pack "abc"
                                   }
   where
-    human1 = Player {playerName = T.pack "Kyle", playerId = 1, playerType = Human, playerOrientation = Up}
-    ai1 = Player {playerName = T.pack "Bot 1", playerId = 2, playerType = Computer, playerOrientation = Down}
+    human1 = Player {playerName = T.pack "Kyle", playerId = 1, playerType = Human, playerDirection = North}
+    ai1 = Player {playerName = T.pack "Bot 1", playerId = 2, playerType = Computer, playerDirection = South}
 
 {- default space builder -}
 defaultSpaceBuilder :: Coord -> Space
@@ -126,7 +126,7 @@ buildPiece pId pt color player = Piece { pieceColor = White
                                        , piecePlayer = Player { playerName = "dummy1"
                                                          , playerType = Human
                                                          , playerId = 1
-                                                         , playerOrientation = Down}
+                                                         , playerDirection = South}
                                        , pieceId = pId 
                                        }
 
@@ -144,8 +144,8 @@ addPiece sadd padd = sadd { spacePiece = Just padd }
 
 {- Add a piece to board -}
 addPieceToBoard :: Board -> Piece -> Coord -> Maybe Board
-addPieceToBoard (Board {spacesMap = spsMap}) p c = addPiece' $ Map.lookup c spsMap
+addPieceToBoard b@Board {spacesMap = spsMap} p c = addPiece' $ Map.lookup c spsMap
   where
     addPiece' :: Maybe Space -> Maybe Board
     addPiece' Nothing = Nothing
-    addPiece' (Just s) = Just $ Board {spacesMap = Map.insert c (addPiece s p) spsMap}
+    addPiece' (Just s) = Just $ b {spacesMap = Map.insert c (addPiece s p) spsMap}

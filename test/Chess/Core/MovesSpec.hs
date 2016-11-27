@@ -6,9 +6,9 @@ import           Chess.Core.Moves
 import qualified Data.Maybe        as DM
 
 spec :: Spec
-spec = describe "Pawn basic moves" $ do
-    it "consist of forward two spots" $ do
-        -- initial board setup
+spec = describe "Pawn" $ do
+    it "valid moves consists of forward two spots when unubstructed" $ do
+        -- initial board setupo
         let emptyBoard = initBoard 3 3 defaultSpaceBuilder
             originCoord = Coord 1 0
             pawn = buildPiece (buildPieceId originCoord)
@@ -17,7 +17,7 @@ spec = describe "Pawn basic moves" $ do
                               (Player { playerName = "dummy"
                                       , playerType = Human
                                       , playerId = 1
-                                      , playerOrientation = Down
+                                      , playerDirection = South
                                       })
 
             board :: Maybe Board
@@ -26,7 +26,7 @@ spec = describe "Pawn basic moves" $ do
         board `shouldNotBe` Nothing
 
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) pawn
+            ms = validMoves (DM.fromJust board) pawn originCoord
 
         length ms `shouldBe` 2
 
@@ -36,7 +36,7 @@ spec = describe "Pawn basic moves" $ do
         elem (Coord 2 0) coords `shouldBe` True
         elem (Coord 3 0) coords `shouldBe` True
 
-    it "can move forward" $ do
+    it "can move to valid space" $ do
         -- initial board setup
         let emptyBoard = initBoard 2 2 defaultSpaceBuilder
             originCoord = Coord 0 0
@@ -46,7 +46,7 @@ spec = describe "Pawn basic moves" $ do
                               (Player { playerName = "dummy"
                                       , playerType = Human
                                       , playerId = 1
-                                      , playerOrientation = Up
+                                      , playerDirection = North
                                       })
 
             board :: Maybe Board
@@ -75,3 +75,7 @@ spec = describe "Pawn basic moves" $ do
 
         spacePiece origSpace' `shouldBe` Nothing
         spacePiece destSpace' `shouldNotBe` Nothing
+
+    it "cannot move to invalid space" $ do
+
+      True `shouldBe` False
