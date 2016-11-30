@@ -7,10 +7,12 @@ import qualified Data.Maybe        as DM
 
 spec :: Spec
 spec = describe "Pawn" $ do
-    it "valid moves consists of forward two spots when unubstructed" $ do
+  
+    it "valid moves consists of forward two spots when unobstructed" $ do
+      
         -- initial board setupo
         let emptyBoard = initBoard 3 3 defaultSpaceBuilder
-            originCoord = Coord 1 0
+            originCoord = Coord 0 1
             pawn = buildPiece (buildPieceId originCoord)
                               Pawn
                               White
@@ -33,13 +35,14 @@ spec = describe "Pawn" $ do
         let coords :: [Coord]
             coords = map (\m -> spaceCoord $ moveSpace m) ms
 
-        elem (Coord 2 0) coords `shouldBe` True
-        elem (Coord 3 0) coords `shouldBe` True
+        elem (Coord 1 1) coords `shouldBe` True
+        elem (Coord 2 1) coords `shouldBe` True
 
-    it "can move to valid space" $ do
-        -- initial board setup
-        let emptyBoard = initBoard 2 2 defaultSpaceBuilder
-            originCoord = Coord 0 0
+    it "no valid moves when facing edge of board" $ do
+      
+        -- initial board setupo
+        let emptyBoard = initBoard 3 3 defaultSpaceBuilder
+            originCoord = Coord 0 1
             pawn = buildPiece (buildPieceId originCoord)
                               Pawn
                               White
@@ -54,8 +57,32 @@ spec = describe "Pawn" $ do
 
         board `shouldNotBe` Nothing
 
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) pawn originCoord
+
+        length ms `shouldBe` 0
+
+    it "can move to valid space" $ do
+      
+        -- initial board setup
+        let emptyBoard = initBoard 3 3 defaultSpaceBuilder
+            originCoord = Coord 0 1
+            pawn = buildPiece (buildPieceId originCoord)
+                              Pawn
+                              White
+                              (Player { playerName = "dummy"
+                                      , playerType = Human
+                                      , playerId = 1
+                                      , playerDirection = South
+                                      })
+
+            board :: Maybe Board
+            board = addPieceToBoard emptyBoard pawn originCoord
+
+        board `shouldNotBe` Nothing
+
         -- move piece
-        let destCoord = Coord 1 0
+        let destCoord = Coord 1 1
             newBoard = move (DM.fromJust board) pawn destCoord
 
         newBoard `shouldNotBe` Nothing
@@ -78,4 +105,29 @@ spec = describe "Pawn" $ do
 
     it "cannot move to invalid space" $ do
 
-      True `shouldBe` False
+        -- initial board setup
+        let emptyBoard = initBoard 2 2 defaultSpaceBuilder
+            originCoord = Coord 0 0
+            pawn = buildPiece (buildPieceId originCoord)
+                              Pawn
+                              White
+                              (Player { playerName = "dummy"
+                                      , playerType = Human
+                                      , playerId = 1
+                                      , playerDirection = South
+                                      })
+
+            board :: Maybe Board
+            board = addPieceToBoard emptyBoard pawn originCoord
+
+        board `shouldNotBe` Nothing
+
+        -- move piece
+        let destCoord = Coord 1 1
+            newBoard = move (DM.fromJust board) pawn destCoord
+
+        newBoard `shouldBe` Nothing
+
+    it "cannot move in wrong direction" $ do
+
+      False `shouldBe` True

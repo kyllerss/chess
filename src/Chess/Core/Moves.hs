@@ -10,8 +10,10 @@ import qualified Data.Maybe        as DM
 
 {- Moves piece from one space to the next. If requested move is invalid, returns nothing.  -}
 move :: Board -> Piece -> Coord -> Maybe Board
-move b@Board{spacesMap = spsMap} p c =
-    move' originSpace destSpace
+move b@Board{spacesMap = spsMap} p c
+  | c `elem` validCoords b p c = move' originSpace destSpace
+  | otherwise = Nothing
+  
   where
     move' :: Maybe Space -> Maybe Space -> Maybe Board
     move' Nothing _ = Nothing
@@ -41,7 +43,8 @@ move b@Board{spacesMap = spsMap} p c =
 
 {- Returns all valid moves for a given piece. -}
 validMoves :: Board -> Piece -> Coord -> [Move]
-validMoves b p c = (candidateMoves p c b North)
+validMoves b p c =
+  (candidateMoves p c b North)
     ++ (candidateMoves p c b NorthEast)
         ++ (candidateMoves p c b East)
             ++ (candidateMoves p c b SouthEast)
@@ -49,6 +52,10 @@ validMoves b p c = (candidateMoves p c b North)
                     ++ (candidateMoves p c b SouthWest)
                         ++ (candidateMoves p c b West)
                             ++ (candidateMoves p c b NorthWest)
+
+{- Returns coordinates for all valid moves. -}
+validCoords :: Board -> Piece -> Coord -> [Coord]
+validCoords b p c = map (\m -> spaceCoord . moveSpace $ m) $ validMoves b p c
 
 {- Utility function for incrementing space based on direction. -}
 moveD :: Coord -> Direction -> Int -> Coord
@@ -65,14 +72,14 @@ moveD (Coord row col) dir count
 {- Returns candidate moves (legal and illegal) for given piece type.  -}
 candidateMoves :: Piece -> Coord -> Board -> Direction -> [Move]
 -- pawn
-candidateMoves Piece{pieceType = Pawn,piecePlayer = Player{playerDirection = pd}, pieceId = pId} c@(Coord row col) Board{spacesMap = spsMap} d =
+candidateMoves Piece{pieceType = Pawn,piecePlayer = pp@Player{playerDirection = pd},pieceId = pId} c@(Coord row col) Board{spacesMap = spsMap} d =
     (pawnMove $ M.lookup (moveD c d 1) spsMap) ++
         (pawnMove $ M.lookup (moveD c d 2) spsMap)
   where
     pawnMove :: Maybe Space -> [Move]
     pawnMove mSpace
         | d /= pd = []
-        | DM.isNothing mSpace = []
+        | canOccupy pp mSpace == False = []
         | otherwise = [ Move { movePieceId = pId
                              , moveSpace = DM.fromJust mSpace
                              }
@@ -80,73 +87,43 @@ candidateMoves Piece{pieceType = Pawn,piecePlayer = Player{playerDirection = pd}
 
 -- knight
 candidateMoves Piece{pieceType = Knight,pieceId = pId} (Coord row col) Board{spacesMap = spsMap} d
-  | d == North =
-    map (\s -> Move { movePieceId = pId, moveSpace = DM.fromJust s })
+    | d == North =
+        map (\s -> Move { movePieceId = pId
+                        , moveSpace = DM.fromJust s
+                        })
         $ DL.filter (\s -> DM.isJust s)
-            $ [ lSpace $ Coord (row + 1) (col + 2)
-              , lSpace $ Coord (row + 1) (col - 2)
-              , lSpace $ Coord (row + 2) (col + 1)
-              , lSpace $ Coord (row + 2) (col - 1)
-              , lSpace $ Coord (row - 1) (col + 2)
-              , lSpace $ Coord (row - 1) (col - 2)
-              , lSpace $ Coord (row - 2) (col + 1)
-              , lSpace $ Coord (row - 2) (col - 1)
-              ]
-  | otherwise = []
-  
+        $ [ lSpace $ Coord (row + 1) (col + 2)
+          , lSpace $ Coord (row + 1) (col - 2)
+          , lSpace $ Coord (row + 2) (col + 1)
+          , lSpace $ Coord (row + 2) (col - 1)
+          , lSpace $ Coord (row - 1) (col + 2)
+          , lSpace $ Coord (row - 1) (col - 2)
+          , lSpace $ Coord (row - 2) (col + 1)
+          , lSpace $ Coord (row - 2) (col - 1)
+          ]
+    | otherwise = []
+    
   where
     lSpace = flip M.lookup spsMap
 
 -- rook
-candidateMoves p@Piece{pieceType = Rook, pieceId = pId}
-               c@(Coord row col)
-               b@Board{spacesMap = spsMap}
-               d
-  | d `notElem` [North, East, South, West] = []
-  | otherwise = if validSpace
-                then Move {movePieceId = pId, moveSpace = cSpace} : candidateMoves p (moveD c d 1) b d
-                else []
-  
+candidateMoves p@Piece{pieceType = Rook,pieceId = pId,piecePlayer = cPlayer} c@(Coord row col) b@Board{spacesMap = spsMap} d
+    | d `notElem` [ North, East, South, West ] =
+          []
+    | validSpace = Move { movePieceId = pId, moveSpace = cSpace } :
+          candidateMoves p (moveD c d 1) b d
+    | otherwise = []
   where
-    cSpace :: Space
-    cSpace = if M.member c spsMap then 
-    
     validSpace :: Bool
-    validSpace = cSpace
+    validSpace = if M.member c spsMap
+                 then canOccupy cPlayer $ M.lookup c spsMap
+                 else False
 
+    cSpace :: Space
+    cSpace = DM.fromJust $ M.lookup c spsMap
 
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+{- Returns true if piece can be occupied by given player. -}
+canOccupy :: Player -> Maybe Space -> Bool
+canOccupy _ Nothing = False
+canOccupy _ (Just Space{spacePiece = Nothing}) = True
+canOccupy cPlayer (Just (Space{spacePiece = Just (Piece{piecePlayer = pp})})) = cPlayer /= pp
