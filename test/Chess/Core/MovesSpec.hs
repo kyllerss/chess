@@ -4,6 +4,7 @@ import           Test.Hspec
 import           Chess.Core.Domain
 import           Chess.Core.Moves
 import qualified Data.Maybe        as DM
+import qualified Debug.Trace       as T
 
 spec :: Spec
 spec = describe "Pawn" $ do
@@ -40,7 +41,7 @@ spec = describe "Pawn" $ do
 
     it "no valid moves when facing edge of board" $ do
       
-        -- initial board setupo
+        -- initial board setup
         let emptyBoard = initBoard 3 3 defaultSpaceBuilder
             originCoord = Coord 0 1
             pawn = buildPiece (buildPieceId originCoord)
@@ -128,6 +129,3 @@ spec = describe "Pawn" $ do
 
         newBoard `shouldBe` Nothing
 
-    it "cannot move in wrong direction" $ do
-
-      False `shouldBe` True

@@ -7,23 +7,19 @@ import           Chess.Core.Domain
 import qualified Data.Map          as M
 import qualified Data.List         as DL
 import qualified Data.Maybe        as DM
+import qualified Debug.Trace       as T
 
 {- Moves piece from one space to the next. If requested move is invalid, returns nothing.  -}
 move :: Board -> Piece -> Coord -> Maybe Board
-move b@Board{spacesMap = spsMap} p c
-  | c `elem` validCoords b p c = move' originSpace destSpace
-  | otherwise = Nothing
+move b@Board{spacesMap = spsMap} p c =
+  if targetCoordValid originSpace 
+  then move' originSpace destSpace
+  else  Nothing
   
   where
-    move' :: Maybe Space -> Maybe Space -> Maybe Board
-    move' Nothing _ = Nothing
-    move' _ Nothing = Nothing
-    move' (Just os) (Just ds) =
-        Just $ b { spacesMap = updatedMap }
-      where
-        updatedMap :: M.Map Coord Space
-        updatedMap = M.insert (spaceCoord ds) (addPiece ds p) $
-            M.insert (spaceCoord os) (removePiece os) spsMap
+    targetCoordValid :: Maybe Space -> Bool
+    targetCoordValid Nothing = False
+    targetCoordValid (Just s) = c `elem` (validCoords b p (spaceCoord s))
 
     originSpace :: Maybe Space
     originSpace = fetchSpace' $
@@ -40,6 +36,16 @@ move b@Board{spacesMap = spsMap} p c
 
     destSpace :: Maybe Space
     destSpace = M.lookup c spsMap
+
+    move' :: Maybe Space -> Maybe Space -> Maybe Board
+    move' Nothing _ = Nothing
+    move' _ Nothing = Nothing
+    move' (Just os) (Just ds) =
+        Just $ b { spacesMap = updatedMap }
+      where
+        updatedMap :: M.Map Coord Space
+        updatedMap = M.insert (spaceCoord ds) (addPiece ds p) $
+            M.insert (spaceCoord os) (removePiece os) spsMap
 
 {- Returns all valid moves for a given piece. -}
 validMoves :: Board -> Piece -> Coord -> [Move]
@@ -83,14 +89,13 @@ candidateCoords Piece{ pieceType = Pawn
                 c@(Coord row col)
                 Board{spacesMap = spsMap}
                 d =
-    (pawnMove $ M.lookup (moveD c d 1) spsMap) ++
-        (pawnMove $ M.lookup (moveD c d 2) spsMap)
+    (pawnMove $ M.lookup (moveD c d 1) spsMap)
+        ++ (pawnMove $ M.lookup (moveD c d 2) spsMap)
   where
     pawnMove :: Maybe Space -> [Coord]
     pawnMove mSpace
-        | d /= pd = []
-        | canOccupy pp mSpace == False = []
-        | otherwise = [ spaceCoord $ DM.fromJust mSpace ]
+        | d == pd && canOccupy pp mSpace = [ spaceCoord $ DM.fromJust mSpace ]
+        | otherwise = []
 
 -- knight
 candidateCoords Piece{pieceType = Knight, piecePlayer = p} (Coord row col) Board{spacesMap = spsMap} d

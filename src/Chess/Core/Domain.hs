@@ -42,7 +42,7 @@ data Coord = Coord Int Int
 
 instance Ord Coord where
   (Coord x1 y1) `compare` (Coord x2 y2) =
-    ((x1 + 1) * (y1 + 1) + (y1 + 1)) `compare` ((x2 + 1) * (y2 + 1) + (y2 + 1))
+    (show x1 ++ " -- " ++ show y1) `compare` (show x2 ++ " -- " ++ show y2)
 
 data Space = Space { spacePiece :: Maybe Piece
                    , spaceColor :: Color
@@ -123,10 +123,7 @@ buildSpace x y c = Space { spacePiece = Nothing
 buildPiece :: PieceId -> PieceType -> Color -> Player -> Piece
 buildPiece pId pt color player = Piece { pieceColor = White
                                        , pieceType = pt
-                                       , piecePlayer = Player { playerName = "dummy1"
-                                                         , playerType = Human
-                                                         , playerId = 1
-                                                         , playerDirection = South}
+                                       , piecePlayer = player
                                        , pieceId = pId 
                                        }
 
