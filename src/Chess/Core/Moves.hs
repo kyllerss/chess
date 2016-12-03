@@ -115,19 +115,35 @@ candidateCoords Piece{pieceType = Knight, piecePlayer = p} (Coord row col) Board
 -- rook
 candidateCoords p@Piece{pieceType = Rook, piecePlayer = cPlayer} c b@Board{spacesMap = spsMap} d
     | d `notElem` [ North, East, South, West ] = []
-    | validSpace = spaceCoord cSpace  : candidateCoords p (moveD c d 1) b d
+    | validSpaceWithOpp = [spaceCoord cSpace]
+    | validSpace = spaceCoord cSpace : candidateCoords p nextCoord b d
     | otherwise = []
   where
     validSpace :: Bool
-    validSpace = if M.member c spsMap
-                 then canOccupy cPlayer $ M.lookup c spsMap
+    validSpace = if M.member nextCoord spsMap
+                 then canOccupy cPlayer $ M.lookup nextCoord spsMap
                  else False
 
+    validSpaceWithOpp :: Bool
+    validSpaceWithOpp = if validSpace && (hasOpponent cPlayer $ M.lookup nextCoord spsMap)
+                        then True
+                        else False
+
     cSpace :: Space
-    cSpace = DM.fromJust $ M.lookup c spsMap
+    cSpace = DM.fromJust $ M.lookup nextCoord spsMap
+
+    nextCoord :: Coord
+    nextCoord = moveD c d 1
+
+{- Returns true if space has opponent  -}
+hasOpponent :: Player -> Maybe Space -> Bool
+hasOpponent _ Nothing = False
+hasOpponent _ (Just Space{spacePiece = Nothing}) = False
+hasOpponent cPlayer (Just (Space{spacePiece = Just (Piece{piecePlayer = pp})})) = cPlayer /= pp
 
 {- Returns true if piece can be occupied by given player. -}
 canOccupy :: Player -> Maybe Space -> Bool
 canOccupy _ Nothing = False
 canOccupy _ (Just Space{spacePiece = Nothing}) = True
-canOccupy cPlayer (Just (Space{spacePiece = Just (Piece{piecePlayer = pp})})) = cPlayer /= pp
+canOccupy p s = hasOpponent p s
+
