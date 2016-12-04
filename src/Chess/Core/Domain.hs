@@ -71,7 +71,7 @@ data Board = Board { spacesMap :: Map.Map Coord Space }
 data Move = Move { movePieceId :: PieceId
                  , moveSpace   :: Space
                  }
-    deriving Show
+    deriving (Show, Eq)
 
 data GameState = GameState { board      :: Board
                            , moves      :: [Move]

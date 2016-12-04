@@ -12,7 +12,7 @@ spec = describe "Pieces" $ do
   
     it "valid moves consists of forward two spots when unobstructed" $ do
       
-        -- initial board setupo
+        -- initial board setup
         let emptyBoard = initBoard 3 3 defaultSpaceBuilder
             originCoord = Coord 0 1
             pawn = buildPiece (buildPieceId originCoord)
@@ -152,6 +152,62 @@ spec = describe "Pieces" $ do
 
         length ms `shouldBe` 1
         (spaceCoord . moveSpace) (ms !! 0) `shouldBe` Coord 2 4
+
+    it "valid moves contains diagonals when opp present" $ do
+      
+        -- initial board setup
+        let emptyBoard = initBoard 9 9 defaultSpaceBuilder
+            originCoord = Coord 1 4
+            pawn = buildPiece (PieceId 1)
+                              Pawn
+                              White
+                              (Player { playerName = "dummy"
+                                      , playerType = Human
+                                      , playerId = 1
+                                      , playerDirection = South
+                                      })
+
+            pawn2 = buildPiece (PieceId 2)
+                               Pawn
+                               White
+                               (Player { playerName = "dummy"
+                                       , playerType = Human
+                                       , playerId = 2
+                                       , playerDirection = North
+                                       })
+
+            pawn3 = buildPiece (PieceId 3)
+                               Pawn
+                               White
+                               (Player { playerName = "dummy"
+                                       , playerType = Human
+                                       , playerId = 2
+                                       , playerDirection = North
+                                       })
+
+
+            board :: Maybe Board
+            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
+                          (Just emptyBoard)
+                          [ (pawn, originCoord)
+                          , (pawn2, Coord 2 5)
+                          , (pawn3, Coord 2 3)]
+
+        board `shouldNotBe` Nothing
+
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) pawn originCoord
+
+        --map (\m -> spaceCoord . moveSpace $ m) ms `shouldBe` []
+        length ms `shouldBe` 4
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 2 4) coords `shouldBe` True
+        elem (Coord 3 4) coords `shouldBe` True
+        elem (Coord 2 3) coords `shouldBe` True
+        elem (Coord 2 5) coords `shouldBe` True
 
     it "cannot move to invalid space" $ do
 

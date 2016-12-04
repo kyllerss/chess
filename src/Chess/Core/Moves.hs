@@ -88,6 +88,7 @@ candidateCoords Piece{ pieceType = Pawn
                 c@(Coord row col)
                 Board{spacesMap = spsMap}
                 d
+  | d /= pd = []
   | pMoved == True = forwardOne ++ diagonals
   | pMoved == False = forwardTwo ++ diagonals
     
@@ -112,7 +113,7 @@ candidateCoords Piece{ pieceType = Pawn
     pawnForwardMove :: Maybe Space -> [Coord]
     pawnForwardMove Nothing = []
     pawnForwardMove s@(Just Space{spaceCoord = coord})
-        | d == pd && canOccupy pp s = [ coord ]
+        | canOccupy pp s = [ coord ]
         | otherwise = []
 
 -- knight
