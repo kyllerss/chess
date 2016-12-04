@@ -225,12 +225,14 @@ spec = describe "Pieces" $ do
                                        , playerDirection = South
                                        })
 
-            board' :: Maybe Board
-            board' = addPieceToBoard emptyBoard rook originCoord
-            board'' = addPieceToBoard (DM.fromJust board') pawn1 $ Coord 4 7
-            board''' = addPieceToBoard (DM.fromJust board'') pawn2 $ Coord 4 1
-            board'''' = addPieceToBoard (DM.fromJust board''') pawn3 $ Coord 7 4
-            board = addPieceToBoard (DM.fromJust board'''') pawn4 $ Coord 1 4
+            board :: Maybe Board
+            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
+                          (Just emptyBoard)
+                          [ (rook, originCoord)
+                          , (pawn1, Coord 4 7)
+                          , (pawn2, Coord 4 1)
+                          , (pawn3, Coord 7 4)
+                          , (pawn4, Coord 1 4)]
 
         board `shouldNotBe` Nothing
 
@@ -309,13 +311,14 @@ spec = describe "Pieces" $ do
                                        , playerDirection = South
                                        })
 
-            board', board'', board''', board'''', board :: Maybe Board
-            board' = addPieceToBoard emptyBoard rook originCoord
-            board'' = addPieceToBoard (DM.fromJust board') pawn1 $ Coord 4 7
-            board''' = addPieceToBoard (DM.fromJust board'') pawn2 $ Coord 4 1
-            board'''' = addPieceToBoard (DM.fromJust board''') pawn3 $ Coord 7 4
-            board = addPieceToBoard (DM.fromJust board'''') pawn4 $ Coord 1 4
-            
+            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
+                          (Just emptyBoard)
+                          [ (rook, originCoord)
+                          , (pawn1, Coord 4 7)
+                          , (pawn2, Coord 4 1)
+                          , (pawn3, Coord 7 4)
+                          , (pawn4, Coord 1 4)]
+
         board `shouldNotBe` Nothing
         
         -- fetch moves
