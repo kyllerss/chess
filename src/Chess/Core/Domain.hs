@@ -1,9 +1,10 @@
 module Chess.Core.Domain where
 
-import qualified Data.List as DL
+import qualified Data.List      as DL
 import qualified Data.Text.Lazy as T
 import           GHC.Generics
-import qualified Data.Map as Map
+import qualified Data.Map       as Map
+import qualified Data.Maybe     as DM
 
 data Color = Black | White
     deriving (Show, Eq)
@@ -12,27 +13,36 @@ data PieceType = Pawn | Rook | Knight | Bishop | King | Queen
     deriving (Show, Eq)
 
 data PieceId = PieceId Int
-  deriving (Show, Generic, Eq)
+    deriving (Show, Generic, Eq)
 
-data Piece = Piece { pieceColor     :: Color
-                   , pieceType :: PieceType
-                   , piecePlayer    :: Player
-                   , pieceId   :: PieceId
+data Piece = Piece { pieceColor  :: Color
+                   , pieceType   :: PieceType
+                   , piecePlayer :: Player
+                   , pieceId     :: PieceId
+                   , pieceMoved  :: Bool
                    }
     deriving (Show, Generic)
 
 instance Eq Piece where
-  (==) (Piece {pieceId = a}) (Piece {pieceId = b}) = a == b
+    (==) (Piece{pieceId = a}) (Piece{pieceId = b}) =
+        a == b
 
-data Direction = North | NorthEast | East | SouthEast | South | SouthWest | West | NorthWest
-    deriving (Show, Eq, Ord)
+data Direction = North
+               | NorthEast
+               | East
+               | SouthEast
+               | South
+               | SouthWest
+               | West
+               | NorthWest
+    deriving (Show, Eq, Ord, Enum, Bounded)
 
 data PlayerType = Human | Computer
     deriving (Show, Eq)
 
-data Player = Player { playerName :: T.Text
-                     , playerId :: Int
-                     , playerType :: PlayerType
+data Player = Player { playerName      :: T.Text
+                     , playerId        :: Int
+                     , playerType      :: PlayerType
                      , playerDirection :: Direction
                      }
     deriving (Show, Eq)
@@ -41,8 +51,8 @@ data Coord = Coord Int Int
     deriving (Show, Generic, Eq)
 
 instance Ord Coord where
-  (Coord x1 y1) `compare` (Coord x2 y2) =
-    (show x1 ++ " -- " ++ show y1) `compare` (show x2 ++ " -- " ++ show y2)
+    (Coord x1 y1) `compare` (Coord x2 y2) =
+        (show x1 ++ " -- " ++ show y1) `compare` (show x2 ++ " -- " ++ show y2)
 
 data Space = Space { spacePiece :: Maybe Piece
                    , spaceColor :: Color
@@ -52,13 +62,14 @@ data Space = Space { spacePiece :: Maybe Piece
     deriving (Show, Generic, Eq)
 
 instance Ord Space where
-  (Space {spaceCoord = c1}) `compare` (Space {spaceCoord = c2}) = c1 `compare` c2
+    (Space{spaceCoord = c1}) `compare` (Space{spaceCoord = c2}) =
+        c1 `compare` c2
 
 data Board = Board { spacesMap :: Map.Map Coord Space }
     deriving (Show, Generic, Eq)
 
 data Move = Move { movePieceId :: PieceId
-                 , moveSpace :: Space
+                 , moveSpace   :: Space
                  }
     deriving Show
 
@@ -80,7 +91,7 @@ initBoard width height spaceBuilder =
             , j <- [0 .. (height - 1)] ]
 
 {- Builder function -}
-buildBoard ::  Int -> Int -> [Space] -> Board
+buildBoard :: Int -> Int -> [Space] -> Board
 buildBoard r c sps = Board { spacesMap = buildSpaceMap sps }
 
 buildSpaceMap :: [Space] -> Map.Map Coord Space
@@ -97,8 +108,16 @@ initGame width height = GameState { board = initBoard width
                                   , token = T.pack "abc"
                                   }
   where
-    human1 = Player {playerName = T.pack "Kyle", playerId = 1, playerType = Human, playerDirection = North}
-    ai1 = Player {playerName = T.pack "Bot 1", playerId = 2, playerType = Computer, playerDirection = South}
+    human1 = Player { playerName = T.pack "Kyle"
+                    , playerId = 1
+                    , playerType = Human
+                    , playerDirection = North
+                    }
+    ai1 = Player { playerName = T.pack "Bot 1"
+                 , playerId = 2
+                 , playerType = Computer
+                 , playerDirection = South
+                 }
 
 {- default space builder -}
 defaultSpaceBuilder :: Coord -> Space
@@ -106,11 +125,13 @@ defaultSpaceBuilder = \c@(Coord x y) -> buildSpace x y $ calcSpaceColor $ c
 
 {- fetch space with given coordinates -}
 fetchSpace :: Board -> Coord -> Maybe Space
-fetchSpace (Board {spacesMap = m}) c = Map.lookup c m
+fetchSpace (Board{spacesMap = m}) c =
+    Map.lookup c m
 
 {- alternates piece color -}
 calcSpaceColor :: Coord -> Color
-calcSpaceColor (Coord x y) = if (even (x + y)) then White else Black
+calcSpaceColor (Coord x y) =
+    if (even (x + y)) then White else Black
 
 {- space builder -}
 buildSpace :: Int -> Int -> Color -> Space
@@ -121,15 +142,18 @@ buildSpace x y c = Space { spacePiece = Nothing
 
 {- piece builder -}
 buildPiece :: PieceId -> PieceType -> Color -> Player -> Piece
-buildPiece pId pt color player = Piece { pieceColor = White
-                                       , pieceType = pt
-                                       , piecePlayer = player
-                                       , pieceId = pId 
-                                       }
+buildPiece pId pt color player =
+    Piece { pieceColor = White
+          , pieceType = pt
+          , piecePlayer = player
+          , pieceId = pId
+          , pieceMoved = False
+          }
 
 {- PieceId builder -}
 buildPieceId :: Coord -> PieceId
-buildPieceId (Coord x y) = PieceId ((x + 1) * (y + 1) + (y + 1))
+buildPieceId (Coord x y) =
+    PieceId ((x + 1) * (y + 1) + (y + 1))
 
 {- Remove a piece from a given space.  -}
 removePiece :: Space -> Space
@@ -141,8 +165,22 @@ addPiece sadd padd = sadd { spacePiece = Just padd }
 
 {- Add a piece to board -}
 addPieceToBoard :: Board -> Piece -> Coord -> Maybe Board
-addPieceToBoard b@Board {spacesMap = spsMap} p c = addPiece' $ Map.lookup c spsMap
+addPieceToBoard b@Board{spacesMap = spsMap} p c =
+    addPiece' $ Map.lookup c spsMap
   where
     addPiece' :: Maybe Space -> Maybe Board
     addPiece' Nothing = Nothing
-    addPiece' (Just s) = Just $ b {spacesMap = Map.insert c (addPiece s p) spsMap}
+    addPiece' (Just s) = Just $
+        b { spacesMap = Map.insert c (addPiece s p) spsMap }
+
+{- Increment diagonal -}
+rotateRight :: (Bounded a, Enum a, Eq a) => a -> a 
+rotateRight d
+  | d == maxBound = minBound
+  | otherwise = succ d
+
+rotateLeft :: (Bounded a, Enum a, Eq a) => a -> a 
+rotateLeft d
+  | d == minBound = maxBound
+  | otherwise = pred d
+  

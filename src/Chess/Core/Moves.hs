@@ -44,7 +44,7 @@ move b@Board{spacesMap = spsMap} p c =
         Just $ b { spacesMap = updatedMap }
       where
         updatedMap :: M.Map Coord Space
-        updatedMap = M.insert (spaceCoord ds) (addPiece ds p) $
+        updatedMap = M.insert (spaceCoord ds) (addPiece ds p{ pieceMoved = True }) $
             M.insert (spaceCoord os) (removePiece os) spsMap
 
 {- Returns all valid moves for a given piece. -}
@@ -90,16 +90,35 @@ candidateCoords p@Piece{pieceType = King, piecePlayer = pp} c b@Board{spacesMap 
 -- pawn
 candidateCoords Piece{ pieceType = Pawn
                      , piecePlayer = pp@Player{playerDirection = pd}
-                     , pieceId = pId}
+                     , pieceId = pId
+                     , pieceMoved = pMoved}
                 c@(Coord row col)
                 Board{spacesMap = spsMap}
-                d =
-    (pawnMove $ M.lookup (moveD c d 1) spsMap)
-        ++ (pawnMove $ M.lookup (moveD c d 2) spsMap)
+                d
+  | pMoved == True = forwardOne ++ diagonals
+  | pMoved == False = forwardTwo ++ diagonals
+    
   where
-    pawnMove :: Maybe Space -> [Coord]
-    pawnMove Nothing = []
-    pawnMove s@(Just Space{spaceCoord = coord})
+
+    forwardOne :: [Coord]
+    forwardOne = (pawnForwardMove $ M.lookup (moveD c d 1) spsMap)
+    
+    forwardTwo :: [Coord]
+    forwardTwo = forwardOne ++ (pawnForwardMove $ M.lookup (moveD c d 2) spsMap)
+
+    diagonals :: [Coord]
+    diagonals = (pawnDiagonalMove $ M.lookup (moveD c (rotateLeft d) 1) spsMap)
+                ++ (pawnDiagonalMove $ M.lookup (moveD c (rotateRight d) 1) spsMap)
+
+    pawnDiagonalMove :: Maybe Space -> [Coord]
+    pawnDiagonalMove Nothing = []
+    pawnDiagonalMove s@(Just Space{spaceCoord = coord})
+      | hasOpponent pp s = [ coord ]
+      | otherwise = []
+    
+    pawnForwardMove :: Maybe Space -> [Coord]
+    pawnForwardMove Nothing = []
+    pawnForwardMove s@(Just Space{spaceCoord = coord})
         | d == pd && canOccupy pp s = [ coord ]
         | otherwise = []
 
