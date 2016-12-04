@@ -79,8 +79,13 @@ moveD (Coord row col) dir count
     | dir == West      = Coord row (col - count)
     | dir == NorthWest = Coord (row - count) (col - count)
 
-{- Returns candidate moves (legal and illegal) for given piece type.  -}
+{- Returns candidate moves (legal and illegal) for given piece type. -}
 candidateCoords :: Piece -> Coord -> Board -> Direction -> [Coord]
+
+-- king
+candidateCoords p@Piece{pieceType = King, piecePlayer = pp} c b@Board{spacesMap = spsMap} d
+  | canOccupy pp (M.lookup (moveD c d 1) spsMap) = [moveD c d 1]
+  | otherwise = []
 
 -- pawn
 candidateCoords Piece{ pieceType = Pawn
@@ -93,8 +98,9 @@ candidateCoords Piece{ pieceType = Pawn
         ++ (pawnMove $ M.lookup (moveD c d 2) spsMap)
   where
     pawnMove :: Maybe Space -> [Coord]
-    pawnMove mSpace
-        | d == pd && canOccupy pp mSpace = [ spaceCoord $ DM.fromJust mSpace ]
+    pawnMove Nothing = []
+    pawnMove s@(Just Space{spaceCoord = coord})
+        | d == pd && canOccupy pp s = [ coord ]
         | otherwise = []
 
 -- knight
@@ -113,8 +119,20 @@ candidateCoords Piece{pieceType = Knight, piecePlayer = p} (Coord row col) Board
     | otherwise = []
 
 -- rook
-candidateCoords p@Piece{pieceType = Rook, piecePlayer = cPlayer} c b@Board{spacesMap = spsMap} d
-    | d `notElem` [ North, East, South, West ] = []
+candidateCoords p@Piece{pieceType = Rook} c b d =
+  directionalCandidateCoords' [ North, East, South, West ] p c b d
+
+-- bishop
+candidateCoords p@Piece{pieceType = Bishop} c b d =
+  directionalCandidateCoords' [ NorthEast, SouthEast, SouthWest, NorthWest ] p c b d
+
+-- queen
+candidateCoords p@Piece{pieceType = Queen} c b d =
+  directionalCandidateCoords' [ North, NorthEast, East, SouthEast, South, SouthWest, West, NorthWest ] p c b d
+
+{- Pieces that move directionally, returns candidate coordinates  -}
+directionalCandidateCoords' ds p@Piece{piecePlayer = cPlayer} c b@Board{spacesMap = spsMap} d 
+    | d `notElem` ds = []
     | validSpaceWithOpp = [spaceCoord cSpace]
     | validSpace = spaceCoord cSpace : candidateCoords p nextCoord b d
     | otherwise = []
