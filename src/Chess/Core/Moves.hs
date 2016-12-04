@@ -57,15 +57,8 @@ validMoves b@Board {spacesMap = spsMap}
 
 {- Returns coordinates for all valid moves. -}
 validCoords :: Board -> Piece -> Coord -> [Coord]
-validCoords b p c = 
-  (candidateCoords p c b North)
-    ++ (candidateCoords p c b NorthEast)
-        ++ (candidateCoords p c b East)
-            ++ (candidateCoords p c b SouthEast)
-                ++ (candidateCoords p c b South)
-                    ++ (candidateCoords p c b SouthWest)
-                        ++ (candidateCoords p c b West)
-                            ++ (candidateCoords p c b NorthWest)
+validCoords b p c =
+  DL.foldl' (++) [] $ map (\d -> candidateCoords p c b d) [minBound .. maxBound]
 
 {- Utility function for incrementing space based on direction. -}
 moveD :: Coord -> Direction -> Int -> Coord

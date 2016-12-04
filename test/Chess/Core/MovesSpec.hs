@@ -64,7 +64,7 @@ spec = describe "Pieces" $ do
 
         length ms `shouldBe` 0
 
-    it "can move to valid space" $ do
+    it "can move to valid space vertically when unmoved" $ do
       
         -- initial board setup
         let emptyBoard = initBoard 3 3 defaultSpaceBuilder
@@ -104,6 +104,54 @@ spec = describe "Pieces" $ do
 
         spacePiece origSpace' `shouldBe` Nothing
         spacePiece destSpace' `shouldNotBe` Nothing
+
+    it "can move only once forward when previously moved" $ do
+      
+        -- initial board setup
+        let emptyBoard = initBoard 9 9 defaultSpaceBuilder
+            originCoord = Coord 0 4
+            pawn = buildPiece (buildPieceId originCoord)
+                              Pawn
+                              White
+                              (Player { playerName = "dummy"
+                                      , playerType = Human
+                                      , playerId = 1
+                                      , playerDirection = South
+                                      })
+
+            board :: Maybe Board
+            board = addPieceToBoard emptyBoard pawn originCoord
+
+        board `shouldNotBe` Nothing
+
+        -- move piece
+        let destCoord = Coord 1 4
+            newBoard = move (DM.fromJust board) pawn destCoord
+
+        newBoard `shouldNotBe` Nothing
+
+        -- verify piece marked as moved
+        let destSpace :: Maybe Space
+            destSpace = fetchSpace (DM.fromJust newBoard) destCoord
+
+        destSpace `shouldNotBe` Nothing
+
+        let destSpace' :: Space
+            destSpace' = DM.fromJust destSpace
+            movedPiece = spacePiece destSpace'
+
+        movedPiece `shouldNotBe` Nothing
+
+        let movedPawn :: Piece
+            movedPawn = DM.fromJust movedPiece
+
+        pieceMoved movedPawn `shouldBe` True
+
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust newBoard) movedPawn (spaceCoord destSpace')
+
+        length ms `shouldBe` 1
+        (spaceCoord . moveSpace) (ms !! 0) `shouldBe` Coord 2 4
 
     it "cannot move to invalid space" $ do
 
