@@ -6,6 +6,18 @@ import           Chess.Core.Moves
 import qualified Data.Maybe        as DM
 import qualified Debug.Trace       as T
 
+buildTestPiece :: Int -> PieceType -> Int -> Direction -> Piece
+buildTestPiece pId pType playerId playerDir =
+  buildPiece (PieceId pId)
+             pType
+             White
+             (Player { playerName = "dummy"
+                     , playerType = Human
+                     , playerId = playerId
+                     , playerDirection = playerDir
+                     })
+
+
 spec :: Spec
 spec = describe "Pieces" $ do
   describe "Pawn" $ do
@@ -15,14 +27,7 @@ spec = describe "Pieces" $ do
         -- initial board setup
         let emptyBoard = initBoard 3 3 defaultSpaceBuilder
             originCoord = Coord 0 1
-            pawn = buildPiece (buildPieceId originCoord)
-                              Pawn
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
+            pawn = buildTestPiece 1 Pawn 1 South
 
             board :: Maybe Board
             board = addPieceToBoard emptyBoard pawn originCoord
@@ -45,14 +50,7 @@ spec = describe "Pieces" $ do
         -- initial board setup
         let emptyBoard = initBoard 3 3 defaultSpaceBuilder
             originCoord = Coord 0 1
-            pawn = buildPiece (buildPieceId originCoord)
-                              Pawn
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = North
-                                      })
+            pawn = buildTestPiece 1 Pawn 1 North
 
             board :: Maybe Board
             board = addPieceToBoard emptyBoard pawn originCoord
@@ -69,14 +67,7 @@ spec = describe "Pieces" $ do
         -- initial board setup
         let emptyBoard = initBoard 3 3 defaultSpaceBuilder
             originCoord = Coord 0 1
-            pawn = buildPiece (buildPieceId originCoord)
-                              Pawn
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
+            pawn = buildTestPiece 1 Pawn 1 South
 
             board :: Maybe Board
             board = addPieceToBoard emptyBoard pawn originCoord
@@ -110,14 +101,7 @@ spec = describe "Pieces" $ do
         -- initial board setup
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 0 4
-            pawn = buildPiece (buildPieceId originCoord)
-                              Pawn
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
+            pawn = buildTestPiece 1 Pawn 1 South
 
             board :: Maybe Board
             board = addPieceToBoard emptyBoard pawn originCoord
@@ -158,33 +142,9 @@ spec = describe "Pieces" $ do
         -- initial board setup
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 1 4
-            pawn = buildPiece (PieceId 1)
-                              Pawn
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
-
-            pawn2 = buildPiece (PieceId 2)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = North
-                                       })
-
-            pawn3 = buildPiece (PieceId 3)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = North
-                                       })
-
+            pawn = buildTestPiece 1 Pawn 1 South
+            pawn2 = buildTestPiece 2 Pawn 2 North
+            pawn3 = buildTestPiece 3 Pawn 2 North
 
             board :: Maybe Board
             board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
@@ -213,14 +173,7 @@ spec = describe "Pieces" $ do
         -- initial board setup
         let emptyBoard = initBoard 2 2 defaultSpaceBuilder
             originCoord = Coord 0 0
-            pawn = buildPiece (buildPieceId originCoord)
-                              Pawn
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
+            pawn = buildTestPiece 1 Pawn 1 South
 
             board :: Maybe Board
             board = addPieceToBoard emptyBoard pawn originCoord
@@ -239,14 +192,7 @@ spec = describe "Pieces" $ do
 
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 4 4
-            rook = buildPiece (buildPieceId originCoord)
-                              Rook
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
+            rook = buildTestPiece 1 Rook 1 South
 
             board :: Maybe Board
             board = addPieceToBoard emptyBoard rook originCoord
@@ -283,50 +229,11 @@ spec = describe "Pieces" $ do
 
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 4 4
-            rook = buildPiece (PieceId 1)
-                              Rook
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
-
-            pawn1 = buildPiece (PieceId 2)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
-
-            pawn2 = buildPiece (PieceId 3)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
-
-            pawn3 = buildPiece (PieceId 4)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
-
-            pawn4 = buildPiece (PieceId 5)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
+            rook = buildTestPiece 1 Rook 1 South
+            pawn1 = buildTestPiece 2 Pawn 1 South
+            pawn2 = buildTestPiece 3 Pawn 1 South
+            pawn3 = buildTestPiece 4 Pawn 1 South
+            pawn4 = buildTestPiece 5 Pawn 1 South
 
             board :: Maybe Board
             board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
@@ -369,50 +276,11 @@ spec = describe "Pieces" $ do
 
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 4 4
-            rook = buildPiece (PieceId 1)
-                              Rook
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
-
-            pawn1 = buildPiece (PieceId 2)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-
-            pawn2 = buildPiece (PieceId 3)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-
-            pawn3 = buildPiece (PieceId 4)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-
-            pawn4 = buildPiece (PieceId 5)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
+            rook = buildTestPiece 1 Rook 1 South
+            pawn1 = buildTestPiece 2 Pawn 2 South
+            pawn2 = buildTestPiece 3 Pawn 2 South
+            pawn3 = buildTestPiece 4 Pawn 2 South
+            pawn4 = buildTestPiece 5 Pawn 2 South
 
             board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
                           (Just emptyBoard)
@@ -456,14 +324,7 @@ spec = describe "Pieces" $ do
 
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 4 4
-            bishop = buildPiece (buildPieceId originCoord)
-                              Bishop
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
+            bishop = buildTestPiece 1 Bishop 1 South
 
             board :: Maybe Board
             board = addPieceToBoard emptyBoard bishop originCoord
@@ -500,50 +361,11 @@ spec = describe "Pieces" $ do
 
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 4 4
-            bishop = buildPiece (PieceId 1)
-                              Bishop
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
-
-            pawn1 = buildPiece (PieceId 2)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
-
-            pawn2 = buildPiece (PieceId 3)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
-
-            pawn3 = buildPiece (PieceId 4)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
-
-            pawn4 = buildPiece (PieceId 5)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
+            bishop = buildTestPiece 1 Bishop 1 South
+            pawn1 = buildTestPiece 2 Pawn 1 South
+            pawn2 = buildTestPiece 3 Pawn 1 South
+            pawn3 = buildTestPiece 4 Pawn 1 South
+            pawn4 = buildTestPiece 5 Pawn 1 South
 
             board :: Maybe Board
             board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
@@ -586,50 +408,11 @@ spec = describe "Pieces" $ do
 
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 4 4
-            bishop = buildPiece (PieceId 1)
-                              Bishop
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
-
-            pawn1 = buildPiece (PieceId 2)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-
-            pawn2 = buildPiece (PieceId 3)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-
-            pawn3 = buildPiece (PieceId 4)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-
-            pawn4 = buildPiece (PieceId 5)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
+            bishop = buildTestPiece 1 Bishop 1 South
+            pawn1 = buildTestPiece 2 Pawn 2 South
+            pawn2 = buildTestPiece 3 Pawn 2 South
+            pawn3 = buildTestPiece 4 Pawn 2 South
+            pawn4 = buildTestPiece 5 Pawn 2 South
 
             board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
                           (Just emptyBoard)
@@ -673,14 +456,7 @@ spec = describe "Pieces" $ do
 
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 4 4
-            queen = buildPiece (buildPieceId originCoord)
-                              Queen
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
+            queen = buildTestPiece 1 Queen 1 South
 
             board :: Maybe Board
             board = addPieceToBoard emptyBoard queen originCoord
@@ -736,86 +512,15 @@ spec = describe "Pieces" $ do
 
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 4 4
-            queen = buildPiece (PieceId 1)
-                              Queen
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
-
-            pawn1 = buildPiece (PieceId 2)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
-
-            pawn2 = buildPiece (PieceId 3)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
-
-            pawn3 = buildPiece (PieceId 4)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
-
-            pawn4 = buildPiece (PieceId 5)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
-
-            pawn5 = buildPiece (PieceId 5)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
-
-            pawn6 = buildPiece (PieceId 6)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
-
-            pawn7 = buildPiece (PieceId 7)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
-
-            pawn8 = buildPiece (PieceId 8)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 1
-                                       , playerDirection = South
-                                       })
+            queen = buildTestPiece 1 Queen 1 South
+            pawn1 = buildTestPiece 2 Pawn 1 South
+            pawn2 = buildTestPiece 3 Pawn 1 South
+            pawn3 = buildTestPiece 4 Pawn 1 South
+            pawn4 = buildTestPiece 5 Pawn 1 South
+            pawn5 = buildTestPiece 6 Pawn 1 South
+            pawn6 = buildTestPiece 7 Pawn 1 South
+            pawn7 = buildTestPiece 8 Pawn 1 South
+            pawn8 = buildTestPiece 9 Pawn 1 South
 
             board :: Maybe Board
             board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
@@ -881,87 +586,16 @@ spec = describe "Pieces" $ do
 
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 4 4
-            queen = buildPiece (PieceId 1)
-                              Queen
-                              White
-                              (Player { playerName = "dummy"
-                                      , playerType = Human
-                                      , playerId = 1
-                                      , playerDirection = South
-                                      })
+            queen = buildTestPiece 1 Queen 1 South
+            pawn1 = buildTestPiece 2 Pawn 2 South
+            pawn2 = buildTestPiece 3 Pawn 2 South
+            pawn3 = buildTestPiece 4 Pawn 2 South
+            pawn4 = buildTestPiece 5 Pawn 2 South
+            pawn5 = buildTestPiece 6 Pawn 2 South
+            pawn6 = buildTestPiece 7 Pawn 2 South
+            pawn7 = buildTestPiece 8 Pawn 2 South
+            pawn8 = buildTestPiece 9 Pawn 2 South
 
-            pawn1 = buildPiece (PieceId 2)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-
-            pawn2 = buildPiece (PieceId 3)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-
-            pawn3 = buildPiece (PieceId 4)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-
-            pawn4 = buildPiece (PieceId 5)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-
-            pawn5 = buildPiece (PieceId 5)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-
-            pawn6 = buildPiece (PieceId 6)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-
-            pawn7 = buildPiece (PieceId 7)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-
-            pawn8 = buildPiece (PieceId 8)
-                               Pawn
-                               White
-                               (Player { playerName = "dummy"
-                                       , playerType = Human
-                                       , playerId = 2
-                                       , playerDirection = South
-                                       })
-                               
             board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
                           (Just emptyBoard)
                           [ (queen, originCoord)
