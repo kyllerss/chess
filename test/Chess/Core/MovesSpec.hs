@@ -198,7 +198,6 @@ spec = describe "Pieces" $ do
         let ms :: [Move]
             ms = validMoves (DM.fromJust board) pawn originCoord
 
-        --map (\m -> spaceCoord . moveSpace $ m) ms `shouldBe` []
         length ms `shouldBe` 4
 
         let coords :: [Coord]
@@ -451,3 +450,219 @@ spec = describe "Pieces" $ do
         elem (Coord 4 7) coords `shouldBe` True
         -- elem (Coord 4 8) coords `shouldBe` True
 
+  describe "Bishop" $ do
+
+    it "has vaid moves when unobstructed" $ do
+
+        let emptyBoard = initBoard 9 9 defaultSpaceBuilder
+            originCoord = Coord 4 4
+            rook = buildPiece (buildPieceId originCoord)
+                              Bishop
+                              White
+                              (Player { playerName = "dummy"
+                                      , playerType = Human
+                                      , playerId = 1
+                                      , playerDirection = South
+                                      })
+
+            board :: Maybe Board
+            board = addPieceToBoard emptyBoard rook originCoord
+
+        board `shouldNotBe` Nothing
+
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) rook originCoord
+
+        length ms `shouldBe` 16
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 0 0) coords `shouldBe` True
+        elem (Coord 1 1) coords `shouldBe` True
+        elem (Coord 2 2) coords `shouldBe` True
+        elem (Coord 3 3) coords `shouldBe` True
+        elem (Coord 5 3) coords `shouldBe` True
+        elem (Coord 6 2) coords `shouldBe` True
+        elem (Coord 7 1) coords `shouldBe` True
+        elem (Coord 8 0) coords `shouldBe` True
+        elem (Coord 0 8) coords `shouldBe` True
+        elem (Coord 1 7) coords `shouldBe` True
+        elem (Coord 2 6) coords `shouldBe` True
+        elem (Coord 3 5) coords `shouldBe` True
+        elem (Coord 5 5) coords `shouldBe` True
+        elem (Coord 6 6) coords `shouldBe` True
+        elem (Coord 7 7) coords `shouldBe` True
+        elem (Coord 8 8) coords `shouldBe` True
+
+    it "has vaid moves when obstructed by own pieces" $ do
+
+        let emptyBoard = initBoard 9 9 defaultSpaceBuilder
+            originCoord = Coord 4 4
+            rook = buildPiece (PieceId 1)
+                              Bishop
+                              White
+                              (Player { playerName = "dummy"
+                                      , playerType = Human
+                                      , playerId = 1
+                                      , playerDirection = South
+                                      })
+
+            pawn1 = buildPiece (PieceId 2)
+                               Pawn
+                               White
+                               (Player { playerName = "dummy"
+                                       , playerType = Human
+                                       , playerId = 1
+                                       , playerDirection = South
+                                       })
+
+            pawn2 = buildPiece (PieceId 3)
+                               Pawn
+                               White
+                               (Player { playerName = "dummy"
+                                       , playerType = Human
+                                       , playerId = 1
+                                       , playerDirection = South
+                                       })
+
+            pawn3 = buildPiece (PieceId 4)
+                               Pawn
+                               White
+                               (Player { playerName = "dummy"
+                                       , playerType = Human
+                                       , playerId = 1
+                                       , playerDirection = South
+                                       })
+
+            pawn4 = buildPiece (PieceId 5)
+                               Pawn
+                               White
+                               (Player { playerName = "dummy"
+                                       , playerType = Human
+                                       , playerId = 1
+                                       , playerDirection = South
+                                       })
+
+            board :: Maybe Board
+            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
+                          (Just emptyBoard)
+                          [ (rook, originCoord)
+                          , (pawn1, Coord 2 2)
+                          , (pawn2, Coord 2 6)
+                          , (pawn3, Coord 6 2)
+                          , (pawn4, Coord 6 6)]
+
+        board `shouldNotBe` Nothing
+
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) rook originCoord
+
+        length ms `shouldBe` 4
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        --elem (Coord 0 0) coords `shouldBe` True
+        --elem (Coord 1 1) coords `shouldBe` True
+        --elem (Coord 2 2) coords `shouldBe` True
+        elem (Coord 3 3) coords `shouldBe` True
+        elem (Coord 5 3) coords `shouldBe` True
+        --elem (Coord 6 2) coords `shouldBe` True
+        --elem (Coord 7 1) coords `shouldBe` True
+        --elem (Coord 8 0) coords `shouldBe` True
+        --elem (Coord 0 8) coords `shouldBe` True
+        --elem (Coord 1 7) coords `shouldBe` True
+        --elem (Coord 2 6) coords `shouldBe` True
+        elem (Coord 3 5) coords `shouldBe` True
+        elem (Coord 5 5) coords `shouldBe` True
+        --elem (Coord 6 6) coords `shouldBe` True
+        --elem (Coord 7 7) coords `shouldBe` True
+        --elem (Coord 8 8) coords `shouldBe` True
+
+    it "has vaid moves when obstructed by other pieces" $ do
+
+        let emptyBoard = initBoard 9 9 defaultSpaceBuilder
+            originCoord = Coord 4 4
+            rook = buildPiece (PieceId 1)
+                              Bishop
+                              White
+                              (Player { playerName = "dummy"
+                                      , playerType = Human
+                                      , playerId = 1
+                                      , playerDirection = South
+                                      })
+
+            pawn1 = buildPiece (PieceId 2)
+                               Pawn
+                               White
+                               (Player { playerName = "dummy"
+                                       , playerType = Human
+                                       , playerId = 2
+                                       , playerDirection = South
+                                       })
+
+            pawn2 = buildPiece (PieceId 3)
+                               Pawn
+                               White
+                               (Player { playerName = "dummy"
+                                       , playerType = Human
+                                       , playerId = 2
+                                       , playerDirection = South
+                                       })
+
+            pawn3 = buildPiece (PieceId 4)
+                               Pawn
+                               White
+                               (Player { playerName = "dummy"
+                                       , playerType = Human
+                                       , playerId = 2
+                                       , playerDirection = South
+                                       })
+
+            pawn4 = buildPiece (PieceId 5)
+                               Pawn
+                               White
+                               (Player { playerName = "dummy"
+                                       , playerType = Human
+                                       , playerId = 2
+                                       , playerDirection = South
+                                       })
+
+            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
+                          (Just emptyBoard)
+                          [ (rook, originCoord)
+                          , (pawn1, Coord 2 2)
+                          , (pawn2, Coord 2 6)
+                          , (pawn3, Coord 6 2)
+                          , (pawn4, Coord 6 6)]
+
+        board `shouldNotBe` Nothing
+        
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) rook originCoord
+
+        length ms `shouldBe` 8
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        --elem (Coord 0 0) coords `shouldBe` True
+        --elem (Coord 1 1) coords `shouldBe` True
+        elem (Coord 2 2) coords `shouldBe` True
+        elem (Coord 3 3) coords `shouldBe` True
+        elem (Coord 5 3) coords `shouldBe` True
+        elem (Coord 6 2) coords `shouldBe` True
+        --elem (Coord 7 1) coords `shouldBe` True
+        --elem (Coord 8 0) coords `shouldBe` True
+        --elem (Coord 0 8) coords `shouldBe` True
+        --elem (Coord 1 7) coords `shouldBe` True
+        elem (Coord 2 6) coords `shouldBe` True
+        elem (Coord 3 5) coords `shouldBe` True
+        elem (Coord 5 5) coords `shouldBe` True
+        elem (Coord 6 6) coords `shouldBe` True
+        --elem (Coord 7 7) coords `shouldBe` True
+        --elem (Coord 8 8) coords `shouldBe` True
