@@ -183,4 +183,18 @@ rotateLeft :: (Bounded a, Enum a, Eq a) => a -> a
 rotateLeft d
   | d == minBound = maxBound
   | otherwise = pred d
-  
+
+{- Fetches space containing specified piece. -}
+fetchPieceSpace :: Board -> Piece -> Maybe Space
+fetchPieceSpace (Board {spacesMap = spsMap}) p =
+  fetchSpace' $
+        Map.toList $ Map.filter (\s -> evalPiece $ spacePiece s) spsMap
+      where
+        fetchSpace' :: [(Coord, Space)] -> Maybe Space
+        fetchSpace' [] = Nothing
+        fetchSpace' [ (_, spc) ] = Just spc
+        fetchSpace' ((_, spc) : sps) = Nothing
+
+        evalPiece :: Maybe Piece -> Bool
+        evalPiece Nothing = False
+        evalPiece (Just p') = p' == p
