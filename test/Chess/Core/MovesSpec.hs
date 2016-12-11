@@ -654,3 +654,111 @@ spec = describe "Pieces" $ do
         elem (Coord 6 6) coords `shouldBe` True
         --elem (Coord 7 7) coords `shouldBe` True
         --elem (Coord 8 8) coords `shouldBe` True
+
+  describe "Knight" $ do
+
+    it "has valid moves when unobstructed" $ do
+
+        let emptyBoard = initBoard 9 9 defaultSpaceBuilder
+            originCoord = Coord 4 4
+            knight = buildTestPiece 1 Knight 1 South
+
+            board :: Maybe Board
+            board = addPieceToBoard emptyBoard knight originCoord
+
+        board `shouldNotBe` Nothing
+
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) knight originCoord
+
+        length ms `shouldBe` 8
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 2 3) coords `shouldBe` True
+        elem (Coord 2 5) coords `shouldBe` True
+        elem (Coord 3 6) coords `shouldBe` True
+        elem (Coord 5 6) coords `shouldBe` True
+        elem (Coord 6 3) coords `shouldBe` True
+        elem (Coord 6 5) coords `shouldBe` True
+        elem (Coord 3 2) coords `shouldBe` True
+        elem (Coord 5 2) coords `shouldBe` True
+
+    it "has valid moves when obstructed by own pieces" $ do
+
+        let emptyBoard = initBoard 9 9 defaultSpaceBuilder
+            originCoord = Coord 4 4
+            knight = buildTestPiece 1 Knight 1 South
+            pawn1 = buildTestPiece 2 Pawn 1 South
+            pawn2 = buildTestPiece 3 Pawn 1 South
+            pawn3 = buildTestPiece 4 Pawn 1 South
+            pawn4 = buildTestPiece 5 Pawn 1 South
+
+            board :: Maybe Board
+            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
+                          (Just emptyBoard)
+                          [ (knight, originCoord)
+                          , (pawn1, Coord 2 5)
+                          , (pawn2, Coord 5 6)
+                          , (pawn3, Coord 6 5)
+                          , (pawn4, Coord 5 2)]
+
+        board `shouldNotBe` Nothing
+
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) knight originCoord
+
+        length ms `shouldBe` 4
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 2 3) coords `shouldBe` True
+        --elem (Coord 2 5) coords `shouldBe` True
+        elem (Coord 3 6) coords `shouldBe` True
+        --elem (Coord 5 6) coords `shouldBe` True
+        elem (Coord 6 3) coords `shouldBe` True
+        --elem (Coord 6 5) coords `shouldBe` True
+        elem (Coord 3 2) coords `shouldBe` True
+        --elem (Coord 5 2) coords `shouldBe` True
+
+    it "has valid moves when obstructed by other pieces" $ do
+
+        let emptyBoard = initBoard 9 9 defaultSpaceBuilder
+            originCoord = Coord 4 4
+            knight = buildTestPiece 1 Knight 1 South
+            pawn1 = buildTestPiece 2 Pawn 2 South
+            pawn2 = buildTestPiece 3 Pawn 2 South
+            pawn3 = buildTestPiece 4 Pawn 2 South
+            pawn4 = buildTestPiece 5 Pawn 2 South
+
+            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
+                          (Just emptyBoard)
+                          [ (knight, originCoord)
+                          , (pawn1, Coord 2 5)
+                          , (pawn2, Coord 5 6)
+                          , (pawn3, Coord 6 5)
+                          , (pawn4, Coord 5 2)]
+
+        board `shouldNotBe` Nothing
+        
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) knight originCoord
+
+        length ms `shouldBe` 8
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 2 3) coords `shouldBe` True
+        elem (Coord 2 5) coords `shouldBe` True
+        elem (Coord 3 6) coords `shouldBe` True
+        elem (Coord 5 6) coords `shouldBe` True
+        elem (Coord 6 3) coords `shouldBe` True
+        elem (Coord 6 5) coords `shouldBe` True
+        elem (Coord 3 2) coords `shouldBe` True
+        elem (Coord 5 2) coords `shouldBe` True
