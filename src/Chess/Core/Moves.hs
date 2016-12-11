@@ -54,19 +54,19 @@ validCoords b p c = DL.foldl' (++) [] $
 {- Utility function for incrementing space based on direction. -}
 moveD :: Coord -> Direction -> Int -> Coord
 moveD (Coord row col) dir count
-    | dir == North = Coord (row - count) col
+    | dir == North     = Coord (row - count) col
     | dir == NorthEast = Coord (row - count) (col + count)
-    | dir == East = Coord row (col + count)
+    | dir == East      = Coord row (col + count)
     | dir == SouthEast = Coord (row + count) (col + count)
-    | dir == South = Coord (row + count) col
+    | dir == South     = Coord (row + count) col
     | dir == SouthWest = Coord (row + count) (col - count)
-    | dir == West = Coord row (col - count)
+    | dir == West      = Coord row (col - count)
     | dir == NorthWest = Coord (row - count) (col - count)
 
 {- Returns candidate moves (legal and illegal) for given piece type. -}
 candidateCoords :: Piece -> Coord -> Board -> Direction -> [Coord]
 -- pawn
-candidateCoords Piece{pieceType = Pawn,piecePlayer = pp@Player{playerDirection = pd},pieceId = pId,pieceMoved = pMoved} c@(Coord row col) Board{spacesMap = spsMap} d
+candidateCoords Piece{pieceType = Pawn, piecePlayer = pp@Player{playerDirection = pd},pieceId = pId,pieceMoved = pMoved} c@(Coord row col) Board{spacesMap = spsMap} d
     | d /= pd = []
     | pMoved == True = forwardOne ++ diagonals
     | pMoved == False = forwardTwo ++ diagonals
@@ -97,15 +97,22 @@ candidateCoords Piece{pieceType = Pawn,piecePlayer = pp@Player{playerDirection =
 
 -- king
 candidateCoords Piece{pieceType = King,piecePlayer = p} c b@Board{spacesMap = spsMap} d
-    | canOccupy p (M.lookup nextCoord spsMap) && threatenedSpace == False =
-          [ nextCoord ]
+    | canOccupy p (M.lookup nextCoord spsMap) && isThreatenedSpace == False = [ nextCoord ]
     | otherwise = []
   where
     nextCoord :: Coord
     nextCoord = moveD c d 1
 
-    threatenedSpace :: Bool
-    threatenedSpace = isThreatenedSpace nextCoord b
+    isThreatenedSpace :: Bool
+    isThreatenedSpace = isOverlapSpace nextCoord threatenedSpaces 
+
+    threatenedSpaces :: [Space]
+    threatenedSpaces = map (\coord -> DM.fromJust $ M.lookup coord spsMap) $ -- extract coords
+                           DL.foldl' (++) [] $ -- join list of valid coords
+                               map (\(op, oc) -> validCoords b op oc) $ oppCoords b -- calc valid coords
+
+    oppCoords :: Board -> [(Piece, Coord)]
+    oppCoords = undefined
 
 -- knight
 candidateCoords Piece{pieceType = Knight,piecePlayer = p} c@(Coord row col) Board{spacesMap = spsMap} d
@@ -182,18 +189,18 @@ directionalCandidateCoords' ds p@Piece{piecePlayer = cPlayer} c b@Board{spacesMa
 {- Returns true if space has opponent  -}
 hasOpponent :: Player -> Maybe Space -> Bool
 hasOpponent _ Nothing = False
-hasOpponent _ (Just Space{spacePiece = Nothing}) =
-    False
+hasOpponent _ (Just Space{spacePiece = Nothing}) = False
 hasOpponent cPlayer (Just (Space{spacePiece = Just (Piece{piecePlayer = pp})})) =
     cPlayer /= pp
 
 {- Returns true if piece can be occupied by given player. -}
 canOccupy :: Player -> Maybe Space -> Bool
 canOccupy _ Nothing = False
-canOccupy _ (Just Space{spacePiece = Nothing}) =
-    True
+canOccupy _ (Just Space{spacePiece = Nothing}) = True
 canOccupy p s = hasOpponent p s
 
 {- Determines if space is threatened by another piece. -}
-isThreatenedSpace :: Coord -> Board -> Bool
-isThreatenedSpace c b = False
+isOverlapSpace :: Coord -> [Space] -> Bool
+isOverlapSpace c [] = False
+isOverlapSpace c sps = c `elem` (map (\s -> spaceCoord s) sps)
+  
