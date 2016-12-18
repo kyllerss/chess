@@ -12,25 +12,24 @@ import qualified Debug.Trace       as T
 {- Moves piece from one space to the next. If requested move is invalid, returns nothing.  -}
 move :: Board -> Piece -> Coord -> Maybe Board
 move b@Board{spacesMap = spsMap} p c
-    | targetCoordValid originSpace =
-          move' originSpace destSpace
+    | targetCoordValid originSpace = transfer b p originSpace destSpace
     | otherwise = Nothing
   where
     targetCoordValid :: Maybe Space -> Bool
-    targetCoordValid Nothing =
-        False
+    targetCoordValid Nothing = False
     targetCoordValid (Just s) =
-        c `elem` (validCoords b p (spaceCoord s))
+        c `elem` (validCoords $ validMoves b p (spaceCoord s))
 
     originSpace :: Maybe Space
     originSpace = fetchPieceSpace b p
     destSpace :: Maybe Space
     destSpace = M.lookup c spsMap
 
-    move' :: Maybe Space -> Maybe Space -> Maybe Board
-    move' Nothing _ = Nothing
-    move' _ Nothing = Nothing
-    move' (Just os) (Just ds) =
+{- Moves piece without any validation. -}
+transfer :: Board -> Piece -> Maybe Space -> Maybe Space -> Maybe Board
+transfer _ _ Nothing _ = Nothing
+transfer _ _ _ Nothing = Nothing
+transfer b@Board {spacesMap = spsMap} p (Just os) (Just ds) =
         Just $ b { spacesMap = updatedMap }
       where
         updatedMap :: M.Map Coord Space
@@ -41,15 +40,11 @@ move b@Board{spacesMap = spsMap} p c
 {- Returns all valid moves for a given piece. -}
 validMoves :: Board -> Piece -> Coord -> [Move]
 validMoves b@Board{spacesMap = spsMap} p@Piece{pieceId = pId} originCoord =
-    map (\coord -> Move { movePieceId = pId
-                        , moveSpace = DM.fromJust $ M.lookup coord spsMap
-                        })
-        $ validCoords b p originCoord
-
+    DL.foldl' (++) [] $ map (\d -> candidateMoves p originCoord b d) [minBound .. maxBound]
+    
 {- Returns coordinates for all valid moves. -}
-validCoords :: Board -> Piece -> Coord -> [Coord]
-validCoords b p c = DL.foldl' (++) [] $
-    map (\d -> candidateCoords p c b d) [minBound .. maxBound]
+validCoords :: [Move] -> [Coord]
+validCoords ms = map (\m -> spaceCoord . moveSpace $ m) ms
 
 {- Utility function for incrementing space based on direction. -}
 moveD :: Coord -> Direction -> Int -> Coord
@@ -64,91 +59,105 @@ moveD (Coord row col) dir count
     | dir == NorthWest = Coord (row - count) (col - count)
 
 {- Returns candidate moves (legal and illegal) for given piece type. -}
-candidateCoords :: Piece -> Coord -> Board -> Direction -> [Coord]
+candidateMoves :: Piece -> Coord -> Board -> Direction -> [Move]
 -- pawn
-candidateCoords Piece{pieceType = Pawn, piecePlayer = pp@Player{playerDirection = pd},pieceId = pId,pieceMoved = pMoved} c@(Coord row col) Board{spacesMap = spsMap} d
+candidateMoves p@Piece{pieceType = Pawn, piecePlayer = pp@Player{playerDirection = pd},pieceId = pId,pieceMoved = pMoved} c@(Coord row col) b@Board{spacesMap = spsMap} d
     | d /= pd = []
     | pMoved == True = forwardOne ++ diagonals
     | pMoved == False = forwardTwo ++ diagonals
   where
-    forwardOne :: [Coord]
+    forwardOne :: [Move]
     forwardOne = (pawnForwardMove $ M.lookup (moveD c d 1) spsMap)
 
-    forwardTwo :: [Coord]
+    forwardTwo :: [Move]
     forwardTwo = forwardOne ++ (pawnForwardMove $ M.lookup (moveD c d 2) spsMap)
 
-    diagonals :: [Coord]
+    diagonals :: [Move]
     diagonals = (pawnDiagonalMove $ M.lookup (moveD c (rotateLeft d) 1) spsMap)
         ++ (pawnDiagonalMove $ M.lookup (moveD c (rotateRight d) 1) spsMap)
 
-    pawnDiagonalMove :: Maybe Space -> [Coord]
-    pawnDiagonalMove Nothing =
-        []
+    pawnDiagonalMove :: Maybe Space -> [Move]
+    pawnDiagonalMove Nothing = []
     pawnDiagonalMove s@(Just Space{spaceCoord = coord})
-        | hasOpponent pp s = [ coord ]
+        | hasOpponent pp s = [ buildMove p b coord True ]
         | otherwise = []
 
-    pawnForwardMove :: Maybe Space -> [Coord]
-    pawnForwardMove Nothing =
-        []
+    pawnForwardMove :: Maybe Space -> [Move]
+    pawnForwardMove Nothing = []
     pawnForwardMove s@(Just Space{spaceCoord = coord})
-        | canOccupy pp s = [ coord ]
+        | canOccupy pp s = [ buildMove p b coord False ]
         | otherwise = []
 
 -- king
-candidateCoords Piece{pieceType = King,piecePlayer = p} c b@Board{spacesMap = spsMap} d
-    | canOccupy p (M.lookup nextCoord spsMap) && isThreatenedSpace == False = [ nextCoord ]
+candidateMoves p@Piece{pieceType = King,piecePlayer = pp} c b@Board{spacesMap = spsMap} d
+    | canOccupy pp (M.lookup nextCoord spsMap) && (isThreatenedSpace nextCoord) == False
+        = [ buildMove p b nextCoord True ]
     | otherwise = []
   where
     nextCoord :: Coord
     nextCoord = moveD c d 1
 
-    isThreatenedSpace :: Bool
-    isThreatenedSpace = isOverlapSpace nextCoord threatenedSpaces 
+    isThreatenedSpace :: Coord -> Bool
+    isThreatenedSpace nc = isOverlapSpace nc threatenedSpaces 
+
+    kingMovedBoardState :: Maybe Board
+    kingMovedBoardState = transfer b p (fetchSpace b c) (fetchSpace b nextCoord)
 
     threatenedSpaces :: [Space]
-    threatenedSpaces = map (\coord -> DM.fromJust $ M.lookup coord spsMap) $ -- extract coords
-                           DL.foldl' (++) [] $ -- join list of valid coords
-                               map (\(op, oc) -> validCoords b op oc) $ oppCoords b -- calc valid coords
+    threatenedSpaces = map (\mv -> moveSpace mv) $ -- extract spaces
+                       DL.foldl' (++) [] $ -- join list of valid coords
+                       map (\(op, oc) -> validMoves b op oc) $
+                       oppCoords kingMovedBoardState -- calc valid coords
 
-    oppCoords :: Board -> [(Piece, Coord)]
-    oppCoords = undefined
+    oppCoords :: Maybe Board -> [(Piece, Coord)]
+    oppCoords Nothing = []
+    oppCoords (Just Board{spacesMap = spsMap'}) =
+      foldr (\spc acc -> if isOpponent spc pp
+                         then (DM.fromJust (spacePiece spc), spaceCoord spc) : acc
+                         else acc)
+                      []
+                      spsMap'
+
+    isOpponent :: Space -> Player -> Bool
+    isOpponent s pp = (DM.isJust $ spacePiece s)
+                      && (piecePlayer (DM.fromJust $ spacePiece s) /= pp) 
 
 -- knight
-candidateCoords Piece{pieceType = Knight,piecePlayer = p} c@(Coord row col) Board{spacesMap = spsMap} d
-    | d `notElem` [ North, East, South, West ] =
-          []
-    | otherwise = DL.filter (\c -> canOccupy p $ M.lookup c spsMap) $
-          fetchDirCoords d c
+candidateMoves p@Piece{pieceType = Knight,piecePlayer = pp} c@(Coord row col) b@Board{spacesMap = spsMap} d
+    | d `notElem` [ North, East, South, West ] = []
+    | otherwise = DL.filter (\Move {moveSpace = Space{spaceCoord = c}} ->
+                               canOccupy pp $ M.lookup c spsMap) $ fetchDirMoves d c
   where
-    fetchDirCoords :: Direction -> Coord -> [Coord]
-    fetchDirCoords North c =
-        [ Coord (row - 2) (col + 1), Coord (row - 2) (col - 1) ]
-    fetchDirCoords East c = [ Coord (row - 1) (col + 2)
-                            , Coord (row + 1) (col + 2)
+    fetchDirMoves :: Direction -> Coord -> [Move]
+    fetchDirMoves North c =[ buildMove p b (Coord (row - 2) (col + 1)) True
+                           , buildMove p b (Coord (row - 2) (col - 1)) True
+                           ]
+    fetchDirMoves East c = [ buildMove p b (Coord (row - 1) (col + 2)) True
+                            , buildMove p b (Coord (row + 1) (col + 2)) True
+                           ]
+    fetchDirMoves South c = [ buildMove p b (Coord (row + 2) (col - 1)) True
+                            , buildMove p b (Coord (row + 2) (col + 1)) True
                             ]
-    fetchDirCoords South c =
-        [ Coord (row + 2) (col - 1), Coord (row + 2) (col + 1) ]
-    fetchDirCoords West c = [ Coord (row - 1) (col - 2)
-                            , Coord (row + 1) (col - 2)
-                            ]
-    fetchDirCoords _ c = []
+    fetchDirMoves West c = [ buildMove p b (Coord (row - 1) (col - 2)) True
+                            , buildMove p b (Coord (row + 1) (col - 2)) True
+                           ]
+    fetchDirMoves _ c = []
 
 -- rook
-candidateCoords p@Piece{pieceType = Rook} c b d =
-    directionalCandidateCoords' [ North, East, South, West ] p c b d
+candidateMoves p@Piece{pieceType = Rook} c b d =
+    directionalCandidateMoves' [ North, East, South, West ] p c b d
 
 -- bishop
-candidateCoords p@Piece{pieceType = Bishop} c b d =
-    directionalCandidateCoords' [ NorthEast, SouthEast, SouthWest, NorthWest ]
+candidateMoves p@Piece{pieceType = Bishop} c b d =
+    directionalCandidateMoves' [ NorthEast, SouthEast, SouthWest, NorthWest ]
                                 p
                                 c
                                 b
                                 d
 
 -- queen
-candidateCoords p@Piece{pieceType = Queen} c b d =
-    directionalCandidateCoords' [ North
+candidateMoves p@Piece{pieceType = Queen} c b d =
+    directionalCandidateMoves' [ North
                                 , NorthEast
                                 , East
                                 , SouthEast
@@ -163,10 +172,11 @@ candidateCoords p@Piece{pieceType = Queen} c b d =
                                 d
 
 {- Pieces that move directionally, returns candidate coordinates  -}
-directionalCandidateCoords' ds p@Piece{piecePlayer = cPlayer} c b@Board{spacesMap = spsMap} d
+directionalCandidateMoves' :: [Direction] -> Piece -> Coord -> Board -> Direction -> [Move]
+directionalCandidateMoves' ds p@Piece{piecePlayer = cPlayer} c b@Board{spacesMap = spsMap} d
     | d `notElem` ds = []
-    | validSpaceWithOpp = [ spaceCoord cSpace ]
-    | validSpace = spaceCoord cSpace : candidateCoords p nextCoord b d
+    | validSpaceWithOpp = [ buildMove p b (spaceCoord cSpace) True ]
+    | validSpace = buildMove p b (spaceCoord cSpace) True : candidateMoves p nextCoord b d
     | otherwise = []
   where
     validSpace :: Bool

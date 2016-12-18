@@ -833,7 +833,7 @@ spec = describe "Pieces" $ do
         --elem (Coord 4 3) coords `shouldBe` True
         elem (Coord 3 3) coords `shouldBe` True
 
-    it "has valid moves when obstructed by other pieces" $ do
+    it "has valid moves when obstructed by opponent pieces" $ do
 
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 4 4
@@ -855,9 +855,9 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = T.trace ("show: " ++ show (validMoves (DM.fromJust board) king originCoord)) $ validMoves (DM.fromJust board) king originCoord
 
-        length ms `shouldBe` 8
+        length ms `shouldBe` 6
 
         let coords :: [Coord]
             coords = map (\m -> spaceCoord $ moveSpace m) ms
@@ -871,7 +871,7 @@ spec = describe "Pieces" $ do
         elem (Coord 4 3) coords `shouldBe` True
         elem (Coord 3 3) coords `shouldBe` True
 
-    it "has valid moves when threatened by other pieces" $ do
+    it "cannot move to open space if results in check" $ do
 
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 4 4
@@ -899,6 +899,40 @@ spec = describe "Pieces" $ do
         elem (Coord 3 4) coords `shouldBe` True
         elem (Coord 3 5) coords `shouldBe` True
         elem (Coord 4 5) coords `shouldBe` False
+        elem (Coord 5 5) coords `shouldBe` True
+        elem (Coord 5 4) coords `shouldBe` False
+        elem (Coord 5 3) coords `shouldBe` True
+        elem (Coord 4 3) coords `shouldBe` True
+        elem (Coord 3 3) coords `shouldBe` True
+
+    it "cannot move to opponent space if results in check" $ do
+
+        let emptyBoard = initBoard 9 9 defaultSpaceBuilder
+            originCoord = Coord 4 4
+            king = buildTestPiece 1 King 1 South
+            pawn1 = buildTestPiece 2 Pawn 2 North
+            pawn2 = buildTestPiece 3 Pawn 2 North
+
+            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
+                          (Just emptyBoard)
+                          [ (king, originCoord)
+                          , (pawn1, Coord 5 4)
+                          , (pawn2, Coord 6 5)]
+
+        board `shouldNotBe` Nothing
+        
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) king originCoord
+
+        length ms `shouldBe` 7
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 3 4) coords `shouldBe` True
+        elem (Coord 3 5) coords `shouldBe` True
+        elem (Coord 4 5) coords `shouldBe` True
         elem (Coord 5 5) coords `shouldBe` True
         elem (Coord 5 4) coords `shouldBe` False
         elem (Coord 5 3) coords `shouldBe` True

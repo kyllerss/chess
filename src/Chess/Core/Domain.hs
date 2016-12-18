@@ -68,8 +68,9 @@ instance Ord Space where
 data Board = Board { spacesMap :: Map.Map Coord Space }
     deriving (Show, Generic, Eq)
 
-data Move = Move { movePieceId :: PieceId
-                 , moveSpace   :: Space
+data Move = Move { movePieceId        :: PieceId
+                 , moveSpace          :: Space
+                 , moveIsConsumable   :: Bool
                  }
     deriving (Show, Eq)
 
@@ -125,8 +126,7 @@ defaultSpaceBuilder = \c@(Coord x y) -> buildSpace x y $ calcSpaceColor $ c
 
 {- fetch space with given coordinates -}
 fetchSpace :: Board -> Coord -> Maybe Space
-fetchSpace (Board{spacesMap = m}) c =
-    Map.lookup c m
+fetchSpace (Board{spacesMap = m}) c = Map.lookup c m
 
 {- alternates piece color -}
 calcSpaceColor :: Coord -> Color
@@ -198,3 +198,10 @@ fetchPieceSpace (Board {spacesMap = spsMap}) p =
         evalPiece :: Maybe Piece -> Bool
         evalPiece Nothing = False
         evalPiece (Just p') = p' == p
+
+{- Convenience builder for Move -}
+buildMove :: Piece -> Board -> Coord -> Bool -> Move
+buildMove p b c off = Move { movePieceId = pieceId p
+                           , moveSpace = DM.fromJust $ fetchSpace b c
+                           , moveIsConsumable = off
+                           }
