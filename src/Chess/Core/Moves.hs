@@ -1,6 +1,7 @@
 module Chess.Core.Moves
     ( move
     , validMoves
+    , candidateMoves
     ) where
 
 import           Chess.Core.Domain
@@ -90,24 +91,25 @@ candidateMoves p@Piece{pieceType = Pawn, piecePlayer = pp@Player{playerDirection
 
 -- king
 candidateMoves p@Piece{pieceType = King,piecePlayer = pp} c b@Board{spacesMap = spsMap} d
-    | canOccupy pp (M.lookup nextCoord spsMap) && (isThreatenedSpace nextCoord) == False
+    | canOccupy pp (M.lookup nextCoord spsMap) && (isThreatenedSpace == False)
         = [ buildMove p b nextCoord True ]
     | otherwise = []
   where
     nextCoord :: Coord
     nextCoord = moveD c d 1
 
-    isThreatenedSpace :: Coord -> Bool
-    isThreatenedSpace nc = isOverlapSpace nc threatenedSpaces 
+    isThreatenedSpace :: Bool
+    isThreatenedSpace = isOverlapSpace nextCoord threatenedSpaces 
 
     kingMovedBoardState :: Maybe Board
     kingMovedBoardState = transfer b p (fetchSpace b c) (fetchSpace b nextCoord)
 
     threatenedSpaces :: [Space]
     threatenedSpaces = map (\mv -> moveSpace mv) $ -- extract spaces
+                       filter (\mv -> moveIsConsumable mv) $ -- remove offensive moves
                        DL.foldl' (++) [] $ -- join list of valid coords
-                       map (\(op, oc) -> validMoves b op oc) $
-                       oppCoords kingMovedBoardState -- calc valid coords
+                       map (\(op, oc) -> validMoves b op oc) $ -- calc opp valid moves
+                       oppCoords kingMovedBoardState -- fetch opp coords
 
     oppCoords :: Maybe Board -> [(Piece, Coord)]
     oppCoords Nothing = []

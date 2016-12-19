@@ -835,6 +835,17 @@ spec = describe "Pieces" $ do
 
     it "has valid moves when obstructed by opponent pieces" $ do
 
+{-
+let emptyBoard = initBoard 9 9 defaultSpaceBuilder
+let originCoord = Coord 4 4
+let king = buildTestPiece 1 King 1 South
+let pawn1 = buildTestPiece 2 Pawn 2 South
+let pawn2 = buildTestPiece 3 Pawn 2 South
+let pawn3 = buildTestPiece 4 Pawn 2 South
+let pawn4 = buildTestPiece 5 Pawn 2 South
+let board = foldl (\b (p, c) -> addPieceToBoard (fromJust b) p c) (Just emptyBoard) [ (king, originCoord) , (pawn1, Coord 3 4), (pawn2, Coord 4 5), (pawn3, Coord 5 4), (pawn4, Coord 4 3)]
+-}
+
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 4 4
             king = buildTestPiece 1 King 1 South

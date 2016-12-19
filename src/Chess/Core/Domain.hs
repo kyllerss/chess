@@ -201,7 +201,7 @@ fetchPieceSpace (Board {spacesMap = spsMap}) p =
 
 {- Convenience builder for Move -}
 buildMove :: Piece -> Board -> Coord -> Bool -> Move
-buildMove p b c off = Move { movePieceId = pieceId p
-                           , moveSpace = DM.fromJust $ fetchSpace b c
-                           , moveIsConsumable = off
-                           }
+buildMove p b c offensive = Move { movePieceId = pieceId p
+                                 , moveSpace = DM.fromJust $ fetchSpace b c
+                                 , moveIsConsumable = offensive
+                                 }
