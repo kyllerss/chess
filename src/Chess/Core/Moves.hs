@@ -108,7 +108,9 @@ candidateMoves p@Piece{pieceType = King,piecePlayer = pp} c b@Board{spacesMap = 
     threatenedSpaces = map (\mv -> moveSpace mv) $ -- extract spaces
                        filter (\mv -> moveIsConsumable mv) $ -- remove offensive moves
                        DL.foldl' (++) [] $ -- join list of valid coords
-                       map (\(op, oc) -> validMoves b op oc) $ -- calc opp valid moves
+                       map (\(op, oc) -> if (DM.isJust kingMovedBoardState)
+                                         then validMoves (DM.fromJust kingMovedBoardState) op oc
+                                         else []) $ -- calc opp valid moves
                        oppCoords kingMovedBoardState -- fetch opp coords
 
     oppCoords :: Maybe Board -> [(Piece, Coord)]

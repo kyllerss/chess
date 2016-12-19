@@ -843,7 +843,8 @@ let pawn1 = buildTestPiece 2 Pawn 2 South
 let pawn2 = buildTestPiece 3 Pawn 2 South
 let pawn3 = buildTestPiece 4 Pawn 2 South
 let pawn4 = buildTestPiece 5 Pawn 2 South
-let board = foldl (\b (p, c) -> addPieceToBoard (fromJust b) p c) (Just emptyBoard) [ (king, originCoord) , (pawn1, Coord 3 4), (pawn2, Coord 4 5), (pawn3, Coord 5 4), (pawn4, Coord 4 3)]
+let board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c) (Just emptyBoard) [ (king, originCoord) , (pawn1, Coord 3 4), (pawn2, Coord 4 5), (pawn3, Coord 5 4), (pawn4, Coord 4 3)]
+candidateMoves king originCoord (Data.Maybe.fromJust board) East
 -}
 
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
@@ -866,21 +867,21 @@ let board = foldl (\b (p, c) -> addPieceToBoard (fromJust b) p c) (Just emptyBoa
         
         -- fetch moves
         let ms :: [Move]
-            ms = T.trace ("show: " ++ show (validMoves (DM.fromJust board) king originCoord)) $ validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) king originCoord
 
-        length ms `shouldBe` 6
+        length ms `shouldBe` 5
 
         let coords :: [Coord]
             coords = map (\m -> spaceCoord $ moveSpace m) ms
 
+        elem (Coord 3 3) coords `shouldBe` True
         elem (Coord 3 4) coords `shouldBe` True
         elem (Coord 3 5) coords `shouldBe` True
-        elem (Coord 4 5) coords `shouldBe` True
-        elem (Coord 5 5) coords `shouldBe` True
-        elem (Coord 5 4) coords `shouldBe` True
+        elem (Coord 4 3) coords `shouldBe` False
+        elem (Coord 4 5) coords `shouldBe` False
         elem (Coord 5 3) coords `shouldBe` True
-        elem (Coord 4 3) coords `shouldBe` True
-        elem (Coord 3 3) coords `shouldBe` True
+        elem (Coord 5 4) coords `shouldBe` False
+        elem (Coord 5 5) coords `shouldBe` True
 
     it "cannot move to open space if results in check" $ do
 
