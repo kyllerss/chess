@@ -937,16 +937,16 @@ candidateMoves king originCoord (Data.Maybe.fromJust board) East
         let ms :: [Move]
             ms = validMoves (DM.fromJust board) king originCoord
 
-        length ms `shouldBe` 7
+        length ms `shouldBe` 5
 
         let coords :: [Coord]
             coords = map (\m -> spaceCoord $ moveSpace m) ms
 
+        elem (Coord 3 3) coords `shouldBe` True
         elem (Coord 3 4) coords `shouldBe` True
         elem (Coord 3 5) coords `shouldBe` True
-        elem (Coord 4 5) coords `shouldBe` True
-        elem (Coord 5 5) coords `shouldBe` True
-        elem (Coord 5 4) coords `shouldBe` False
+        elem (Coord 4 3) coords `shouldBe` False
+        elem (Coord 4 5) coords `shouldBe` False
         elem (Coord 5 3) coords `shouldBe` True
-        elem (Coord 4 3) coords `shouldBe` True
-        elem (Coord 3 3) coords `shouldBe` True
+        elem (Coord 5 4) coords `shouldBe` False
+        elem (Coord 5 5) coords `shouldBe` True
