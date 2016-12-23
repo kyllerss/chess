@@ -950,3 +950,77 @@ candidateMoves king originCoord (Data.Maybe.fromJust board) East
         elem (Coord 5 3) coords `shouldBe` True
         elem (Coord 5 4) coords `shouldBe` False
         elem (Coord 5 5) coords `shouldBe` True
+
+    it "can castle when unobstructed (vertical orientation)" $ do
+
+        let emptyBoard = initBoard 8 8 defaultSpaceBuilder
+            originCoord = Coord 7 4
+            king = buildTestPiece 1 King 1 North
+            rook1 = buildTestPiece 2 Rook 1 North
+            rook2 = buildTestPiece 3 Rook 1 North
+
+            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
+                          (Just emptyBoard)
+                          [ (king, originCoord)
+                          , (rook1, Coord 7 0)
+                          , (rook2, Coord 7 7)]
+
+        board `shouldNotBe` Nothing
+        
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) king originCoord
+
+        length ms `shouldBe` 7
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 7 2) coords `shouldBe` True
+        elem (Coord 7 3) coords `shouldBe` True
+        elem (Coord 6 3) coords `shouldBe` True
+        elem (Coord 6 4) coords `shouldBe` True
+        elem (Coord 6 5) coords `shouldBe` True
+        elem (Coord 7 4) coords `shouldBe` True
+        elem (Coord 7 6) coords `shouldBe` True
+
+        -- verify move works (rook1)
+        let boardL :: Maybe Board
+            boardL = move (DM.fromJust board) king (Coord 7 2)
+
+        boardL `shouldNotBe` Nothing
+
+        let king1Space, rook1Space :: Maybe Space
+            king1Space = fetchPieceSpace (DM.fromJust boardL) king
+            rook1Space = fetchPieceSpace (DM.fromJust boardL) rook1
+
+        king1Space `shouldNotBe` Nothing
+        spaceCoord (DM.fromJust king1Space) `shouldBe` Coord 7 2
+        
+        rook1Space `shouldNotBe` Nothing
+        spaceCoord (DM.fromJust rook1Space) `shouldBe` Coord 7 3
+
+        -- verify move works (rook2)
+        let boardR :: Maybe Board
+            boardR = move (DM.fromJust board) king (Coord 7 6)
+
+        boardR `shouldNotBe` Nothing
+
+        let king2Space, rook2Space :: Maybe Space
+            king2Space = fetchPieceSpace (DM.fromJust boardR) king
+            rook2Space = fetchPieceSpace (DM.fromJust boardR) rook2
+
+        king2Space `shouldNotBe` Nothing
+        spaceCoord (DM.fromJust king2Space) `shouldBe` Coord 7 6
+        
+        rook2Space `shouldNotBe` Nothing
+        spaceCoord (DM.fromJust rook2Space) `shouldBe` Coord 7 5
+
+    it "can castle when unobstructed (horizontal orientation)" $ do
+      pending
+      
+    it "cannot castle when obstructed" $ do
+      pending
+
+    it "cannot castle when result is check" $ do
+      pending

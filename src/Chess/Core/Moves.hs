@@ -61,6 +61,7 @@ moveD (Coord row col) dir count
 
 {- Returns candidate moves (legal and illegal) for given piece type. -}
 candidateMoves :: Piece -> Coord -> Board -> Direction -> [Move]
+
 -- pawn
 candidateMoves p@Piece{pieceType = Pawn, piecePlayer = pp@Player{playerDirection = pd},pieceId = pId,pieceMoved = pMoved} c@(Coord row col) b@Board{spacesMap = spsMap} d
     | d /= pd = []
@@ -90,6 +91,11 @@ candidateMoves p@Piece{pieceType = Pawn, piecePlayer = pp@Player{playerDirection
         | otherwise = []
 
 -- king
+{-
+    Rules: 1) Pieces cannot have moved.
+           2) No pieces in the way.
+           3) Cannot castle out of, through, or into check.
+-}
 candidateMoves p@Piece{pieceType = King,piecePlayer = pp} c b@Board{spacesMap = spsMap} d
     | canOccupy pp (M.lookup nextCoord spsMap) && (isThreatenedSpace == False)
         = [ buildMove p b nextCoord True ]
