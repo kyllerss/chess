@@ -20,6 +20,7 @@ data Piece = Piece { pieceColor   :: Color
                    , piecePlayer  :: Player
                    , pieceId      :: PieceId
                    , pieceOrigin  :: Maybe Coord
+                   , pieceMoved   :: Bool
                    }
     deriving (Show, Generic)
 
@@ -143,11 +144,12 @@ buildSpace x y c = Space { spacePiece = Nothing
 {- piece builder -}
 buildPiece :: PieceId -> PieceType -> Color -> Player -> Maybe Coord -> Piece
 buildPiece pId pt color player initCoord =
-    Piece { pieceColor = White
+    Piece { pieceColor = color
           , pieceType = pt
           , piecePlayer = player
           , pieceId = pId
           , pieceOrigin = initCoord
+          , pieceMoved = False
           }
 
 {- PieceId builder -}
@@ -171,7 +173,9 @@ addPieceToBoard b@Board{spacesMap = spsMap} p c =
     addPiece' :: Maybe Space -> Maybe Board
     addPiece' Nothing = Nothing
     addPiece' (Just s) = Just $
-        b { spacesMap = Map.insert c (addPiece s p{pieceOrigin = Just c}) spsMap }
+        b { spacesMap = Map.insert c spaceWPiece spsMap }
+            where spaceWPiece :: Space
+                  spaceWPiece = addPiece s p{pieceOrigin = Just c, pieceMoved = False}
 
 {- Increment diagonal -}
 rotateRight :: (Bounded a, Enum a, Eq a) => a -> a 
@@ -205,8 +209,3 @@ buildMove p b c offensive = Move { movePieceId = pieceId p
                                  , moveSpace = DM.fromJust $ fetchSpace b c
                                  , moveIsConsumable = offensive
                                  }
-
-{- True if piece moved. -}
-pieceMoved :: Piece -> Coord -> Bool
-pieceMoved Piece {pieceOrigin = Nothing} _ = False
-pieceMoved Piece {pieceOrigin = Just po} c = po /= c 

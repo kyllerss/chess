@@ -131,7 +131,7 @@ spec = describe "Pieces" $ do
         let movedPawn :: Piece
             movedPawn = DM.fromJust movedPiece
 
-        pieceMoved movedPawn destCoord `shouldBe` True
+        pieceMoved movedPawn `shouldBe` True
 
         let ms :: [Move]
             ms = validMoves (DM.fromJust newBoard) movedPawn (spaceCoord destSpace')
@@ -1029,4 +1029,7 @@ candidateMoves king originCoord (Data.Maybe.fromJust board) East
       pending
 
     it "cannot castle when result is check" $ do
+      pending
+
+    it "cannot castle when pieces previously moved" $ do
       pending
