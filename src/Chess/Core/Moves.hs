@@ -35,7 +35,7 @@ transfer b@Board {spacesMap = spsMap} p (Just os) (Just ds) =
       where
         updatedMap :: M.Map Coord Space
         updatedMap = M.insert (spaceCoord ds)
-                              (addPiece ds p { pieceMoved = True }) $
+                              (addPiece ds p) $
             M.insert (spaceCoord os) (removePiece os) spsMap
 
 {- Returns all valid moves for a given piece. -}
@@ -63,10 +63,16 @@ moveD (Coord row col) dir count
 candidateMoves :: Piece -> Coord -> Board -> Direction -> [Move]
 
 -- pawn
-candidateMoves p@Piece{pieceType = Pawn, piecePlayer = pp@Player{playerDirection = pd},pieceId = pId,pieceMoved = pMoved} c@(Coord row col) b@Board{spacesMap = spsMap} d
+candidateMoves p@Piece{ pieceType = Pawn
+                      , piecePlayer = pp@Player{ playerDirection = pd }
+                      , pieceId = pId
+                      }
+               c@(Coord row col)
+               b@Board{spacesMap = spsMap}
+               d
     | d /= pd = []
-    | pMoved == True = forwardOne ++ diagonals
-    | pMoved == False = forwardTwo ++ diagonals
+    | pieceMoved p c == True = forwardOne ++ diagonals -- piece moved
+    | pieceMoved p c == False = forwardTwo ++ diagonals -- piece not moved
   where
     forwardOne :: [Move]
     forwardOne = (pawnForwardMove $ M.lookup (moveD c d 1) spsMap)

@@ -40,7 +40,7 @@ spec = describe "board" $ do
                                  , playerType = Human
                                  , playerId = 1
                                  , playerDirection = North}
-                pawn = buildPiece (buildPieceId coord') Pawn White player'
+                pawn = buildPiece (buildPieceId coord') Pawn White player' Nothing
 
             space' `shouldNotBe` Nothing
 
@@ -69,7 +69,13 @@ spec = describe "board" $ do
                 piece'' = spacePiece $ DM.fromJust newSpace'
 
             piece'' `shouldNotBe` Nothing
-            DM.fromJust piece'' `shouldBe` pawn
+            pieceId (DM.fromJust piece'') `shouldBe` pieceId pawn
+
+            let po :: Maybe Coord
+                po = pieceOrigin (DM.fromJust piece'') 
+
+            po `shouldNotBe` Nothing
+            DM.fromJust po `shouldBe` coord'
 
       describe "when 2 x 2" $ do
         it "has right dimensions" $ do

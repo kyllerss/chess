@@ -15,11 +15,11 @@ data PieceType = Pawn | Rook | Knight | Bishop | King | Queen
 data PieceId = PieceId Int
     deriving (Show, Generic, Eq)
 
-data Piece = Piece { pieceColor  :: Color
-                   , pieceType   :: PieceType
-                   , piecePlayer :: Player
-                   , pieceId     :: PieceId
-                   , pieceMoved  :: Bool
+data Piece = Piece { pieceColor   :: Color
+                   , pieceType    :: PieceType
+                   , piecePlayer  :: Player
+                   , pieceId      :: PieceId
+                   , pieceOrigin  :: Maybe Coord
                    }
     deriving (Show, Generic)
 
@@ -141,13 +141,13 @@ buildSpace x y c = Space { spacePiece = Nothing
                          }
 
 {- piece builder -}
-buildPiece :: PieceId -> PieceType -> Color -> Player -> Piece
-buildPiece pId pt color player =
+buildPiece :: PieceId -> PieceType -> Color -> Player -> Maybe Coord -> Piece
+buildPiece pId pt color player initCoord =
     Piece { pieceColor = White
           , pieceType = pt
           , piecePlayer = player
           , pieceId = pId
-          , pieceMoved = False
+          , pieceOrigin = initCoord
           }
 
 {- PieceId builder -}
@@ -205,3 +205,8 @@ buildMove p b c offensive = Move { movePieceId = pieceId p
                                  , moveSpace = DM.fromJust $ fetchSpace b c
                                  , moveIsConsumable = offensive
                                  }
+
+{- True if piece moved. -}
+pieceMoved :: Piece -> Coord -> Bool
+pieceMoved Piece {pieceOrigin = Nothing} _ = False
+pieceMoved Piece {pieceOrigin = Just po} c = po /= c 

@@ -16,6 +16,7 @@ buildTestPiece pId pType playerId playerDir =
                      , playerId = playerId
                      , playerDirection = playerDir
                      })
+             Nothing
 
 
 spec :: Spec
@@ -129,7 +130,7 @@ spec = describe "Pieces" $ do
         let movedPawn :: Piece
             movedPawn = DM.fromJust movedPiece
 
-        pieceMoved movedPawn `shouldBe` True
+        pieceMoved movedPawn originCoord `shouldBe` True
 
         let ms :: [Move]
             ms = validMoves (DM.fromJust newBoard) movedPawn (spaceCoord destSpace')
@@ -185,6 +186,10 @@ spec = describe "Pieces" $ do
             newBoard = move (DM.fromJust board) pawn destCoord
 
         newBoard `shouldBe` Nothing
+
+    it "can do en passant" $ do
+
+      pending
 
   describe "Rook" $ do
 
