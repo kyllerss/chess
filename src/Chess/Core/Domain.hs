@@ -171,7 +171,7 @@ addPieceToBoard b@Board{spacesMap = spsMap} p c =
     addPiece' :: Maybe Space -> Maybe Board
     addPiece' Nothing = Nothing
     addPiece' (Just s) = Just $
-        b { spacesMap = Map.insert c (addPiece s p) spsMap }
+        b { spacesMap = Map.insert c (addPiece s p{pieceOrigin = Just c}) spsMap }
 
 {- Increment diagonal -}
 rotateRight :: (Bounded a, Enum a, Eq a) => a -> a 

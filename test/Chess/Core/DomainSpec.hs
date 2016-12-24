@@ -31,51 +31,51 @@ spec = describe "board" $ do
             -- initial empty board setup
             let board :: Board
                 board = initBoard 2 2 defaultSpaceBuilder
-                coord' = Coord 0 1
+                coord = Coord 0 1
 
-                space' :: Maybe Space
-                space' = fetchSpace board coord'
+                space :: Maybe Space
+                space = fetchSpace board coord
 
-                player' = Player { playerName = "dummy"
+                player = Player { playerName = "dummy"
                                  , playerType = Human
                                  , playerId = 1
                                  , playerDirection = North}
-                pawn = buildPiece (buildPieceId coord') Pawn White player' Nothing
+                pawn = buildPiece (buildPieceId coord) Pawn White player Nothing
 
-            space' `shouldNotBe` Nothing
+            space `shouldNotBe` Nothing
 
             -- verify target space empty
-            let space'' :: Space
-                space'' = DM.fromJust space'
-                piece' :: Maybe Piece
-                piece' = spacePiece $ space''
+            let space' :: Space
+                space' = DM.fromJust space
+                piece :: Maybe Piece
+                piece = spacePiece $ space'
 
-            piece' `shouldBe` Nothing
+            piece `shouldBe` Nothing
 
             -- add piece to board
             let newBoard :: Maybe Board
-                newBoard = addPieceToBoard board pawn coord'
+                newBoard = addPieceToBoard board pawn coord
 
             newBoard `shouldNotBe` Nothing
 
             -- verify target space no longer empty
-            let newSpace' :: Maybe Space
-                newSpace' = fetchSpace (DM.fromJust newBoard) coord'
+            let newSpace :: Maybe Space
+                newSpace = fetchSpace (DM.fromJust newBoard) coord
 
-            newSpace' `shouldNotBe` Nothing
+            newSpace `shouldNotBe` Nothing
 
             -- verify space's piece
-            let piece'' :: Maybe Piece
-                piece'' = spacePiece $ DM.fromJust newSpace'
+            let piece' :: Maybe Piece
+                piece' = spacePiece $ DM.fromJust newSpace
 
-            piece'' `shouldNotBe` Nothing
-            pieceId (DM.fromJust piece'') `shouldBe` pieceId pawn
+            piece' `shouldNotBe` Nothing
+            pieceId (DM.fromJust piece') `shouldBe` pieceId pawn
 
             let po :: Maybe Coord
-                po = pieceOrigin (DM.fromJust piece'') 
+                po = pieceOrigin (DM.fromJust piece') 
 
             po `shouldNotBe` Nothing
-            DM.fromJust po `shouldBe` coord'
+            DM.fromJust po `shouldBe` coord
 
       describe "when 2 x 2" $ do
         it "has right dimensions" $ do

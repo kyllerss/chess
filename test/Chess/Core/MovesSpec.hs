@@ -102,15 +102,16 @@ spec = describe "Pieces" $ do
         -- initial board setup
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 0 4
-            pawn = buildTestPiece 1 Pawn 1 South
+            pawnOrphaned = buildTestPiece 1 Pawn 1 South
 
             board :: Maybe Board
-            board = addPieceToBoard emptyBoard pawn originCoord
-
+            board = addPieceToBoard emptyBoard pawnOrphaned originCoord
+        
         board `shouldNotBe` Nothing
 
         -- move piece
         let destCoord = Coord 1 4
+            pawn = DM.fromJust $ spacePiece $ DM.fromJust $ fetchSpace (DM.fromJust board) originCoord
             newBoard = move (DM.fromJust board) pawn destCoord
 
         newBoard `shouldNotBe` Nothing
@@ -130,7 +131,7 @@ spec = describe "Pieces" $ do
         let movedPawn :: Piece
             movedPawn = DM.fromJust movedPiece
 
-        pieceMoved movedPawn originCoord `shouldBe` True
+        pieceMoved movedPawn destCoord `shouldBe` True
 
         let ms :: [Move]
             ms = validMoves (DM.fromJust newBoard) movedPawn (spaceCoord destSpace')
