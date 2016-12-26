@@ -987,7 +987,7 @@ candidateMoves king originCoord (Data.Maybe.fromJust board) East
         elem (Coord 6 3) coords `shouldBe` True
         elem (Coord 6 4) coords `shouldBe` True
         elem (Coord 6 5) coords `shouldBe` True
-        elem (Coord 7 4) coords `shouldBe` True
+        elem (Coord 7 5) coords `shouldBe` True
         elem (Coord 7 6) coords `shouldBe` True
 
         -- verify move works (rook1)

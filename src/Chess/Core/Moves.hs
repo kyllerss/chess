@@ -203,22 +203,40 @@ specialCandidateMoves Piece{pieceType = Queen} _ _ _ = []
    Look right 4 spaces for non-moved rook
    Determine which slots threatened-}
 specialCandidateMoves p@Piece{pieceType = King, pieceMoved = True} c b d = []
-specialCandidateMoves p@Piece{pieceType = King} c b d = castleLeft ++ castleRight
-  where
-    castleLeft, castleRight :: [Move]
-    castleLeft =
-      let
-        rDir :: Direction
-        rDir = rotateLeft . rotateLeft $ d
+specialCandidateMoves p@Piece{pieceType = King, piecePlayer = Player{playerDirection = pd}} c b d
+  | d == cLeftDir = castleDir [moveD c cLeftDir 1, moveD c cLeftDir 2, moveD c cLeftDir 3] (moveD c cLeftDir 4) (moveD c cLeftDir 2)
+  | d == cRightDir = castleDir [moveD c cRightDir 1, moveD c cRightDir 2] (moveD c cRightDir 3) (moveD c cRightDir 2)
+  | otherwise = []
 
-        rookCoord, spaceACoord, spaceBCoord, spaceCCoord :: Coord
-        spaceACoord = moveD c rDir 1
-        spaceBCoord = moveD c rDir 2
-        spaceCCoord = moveD c rDir 3
-        rookCoord = moveD c rDir 4
+  where
+
+    cLeftDir :: Direction
+    cLeftDir = rotateLeft . rotateLeft $ pd
+
+    cRightDir :: Direction
+    cRightDir = rotateRight . rotateRight $ pd
+
+    castleDir :: [Coord] -> Coord -> Coord -> [Move]
+    castleDir betweenCoords rookCoord destCoord =
+      if (DM.isJust rookMoved)
+         && not (DM.fromJust rookMoved)
+         && spacesPassable
+      then [buildMove p b destCoord False]
+      else []
+
+      where
+
+        rookMoved :: Maybe Bool
+        rookMoved = pieceTypeMoved b rookCoord Rook
+
+        spacesPassable :: Bool
+        spacesPassable = DL.all (\coord -> (isValid b coord) && (not $ isObstructed coord)) betweenCoords
+
+        isObstructed :: Coord -> Bool
+        isObstructed coord = maybe False (\s -> DM.isJust $ spacePiece s) $ fetchSpace b coord
 
         {-
-          FIXME: Is there a better way? Too many contexts within contexts!
+           FIXME: Is there a better way? Too many contexts within contexts!
          -}
         pieceTypeMoved :: Board -> Coord -> PieceType -> Maybe Bool
         pieceTypeMoved b pCoord pType =
@@ -232,29 +250,7 @@ specialCandidateMoves p@Piece{pieceType = King} c b d = castleLeft ++ castleRigh
                 matchesPiece (Just Space{spacePiece = Just Piece{pieceType = pt}}) = Just (pt == pType)
 
                 movedPiece :: Space -> Bool
-                movedPiece sp = pieceMoved $ DM.fromJust $ spacePiece sp
-
-        rookMoved :: Maybe Bool
-        rookMoved = pieceTypeMoved b rookCoord Rook
-
-        spaceAPassable, spaceBPassable, spaceCPassable :: Bool
-        spaceAPassable = (isValid b spaceACoord) && (not $ isObstructed spaceACoord) 
-        spaceBPassable = (isValid b spaceBCoord) && (not $ isObstructed spaceBCoord) 
-        spaceCPassable = (isValid b spaceCCoord) && (not $ isObstructed spaceCCoord) 
-
-        isObstructed :: Coord -> Bool
-        isObstructed coord = maybe False (\s -> DM.isJust $ spacePiece s) $ fetchSpace b coord
-
-      in if (DM.isJust rookMoved)
-            && not (DM.fromJust rookMoved)
-            && spaceAPassable
-            && spaceBPassable
-            && spaceCPassable
-         then T.trace "Tada!" $ [buildMove p b spaceBCoord False]
-         else []
-      
-    castleRight = []
- 
+                movedPiece sp = pieceMoved $ DM.fromJust $ spacePiece sp 
 
 specialCandidateMoves p@Piece{pieceType = Pawn} c b d = []
 
