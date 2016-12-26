@@ -129,6 +129,10 @@ defaultSpaceBuilder = \c@(Coord x y) -> buildSpace x y $ calcSpaceColor $ c
 fetchSpace :: Board -> Coord -> Maybe Space
 fetchSpace (Board{spacesMap = m}) c = Map.lookup c m
 
+{- fetch piece at given coordinate -}
+fetchPiece :: Board -> Coord -> Maybe Piece
+fetchPiece b c = maybe Nothing (\s -> spacePiece s) $ fetchSpace b c
+  
 {- alternates piece color -}
 calcSpaceColor :: Coord -> Color
 calcSpaceColor (Coord x y) =

@@ -41,7 +41,8 @@ transfer b@Board {spacesMap = spsMap} p (Just os) (Just ds) =
 {- Returns all valid moves for a given piece. -}
 validMoves :: Board -> Piece -> Coord -> [Move]
 validMoves b@Board{spacesMap = spsMap} p@Piece{pieceId = pId} originCoord =
-    DL.foldl' (++) [] $ map (\d -> candidateMoves p originCoord b d) [minBound .. maxBound]
+    (DL.foldl' (++) [] $ map (\d -> candidateMoves p originCoord b d) [minBound .. maxBound])
+    ++ (DL.foldl' (++) [] $ map (\d -> specialCandidateMoves p originCoord b d) [minBound .. maxBound])
     
 {- Returns coordinates for all valid moves. -}
 validCoords :: [Move] -> [Coord]
@@ -58,6 +59,28 @@ moveD (Coord row col) dir count
     | dir == SouthWest = Coord (row + count) (col - count)
     | dir == West      = Coord row (col - count)
     | dir == NorthWest = Coord (row - count) (col - count)
+
+threatenedSpaces :: Maybe Board -> Player -> [Space]
+threatenedSpaces Nothing _ = []
+threatenedSpaces b player = map (\mv -> moveSpace mv) $ -- extract spaces
+                   filter (\mv -> moveIsConsumable mv) $ -- remove offensive moves
+                   DL.foldl' (++) [] $ -- join list of valid coords
+                   map (\(op, oc) -> validMoves (DM.fromJust b) op oc) $ -- calc opp valid moves
+                   oppCoords b -- fetch opp coords
+  where
+    oppCoords :: Maybe Board -> [(Piece, Coord)]
+    oppCoords Nothing = []
+    oppCoords (Just Board{spacesMap = spsMap'}) =
+      foldr (\spc acc -> if isOpponent spc
+                         then (DM.fromJust (spacePiece spc), spaceCoord spc) : acc
+                         else acc)
+                      []
+                      spsMap'
+
+    isOpponent :: Space -> Bool
+    isOpponent s = (DM.isJust $ spacePiece s)
+                   && (piecePlayer (DM.fromJust $ spacePiece s) /= player) 
+
 
 {- Returns candidate moves (legal and illegal) for given piece type. -}
 candidateMoves :: Piece -> Coord -> Board -> Direction -> [Move]
@@ -110,33 +133,14 @@ candidateMoves p@Piece{pieceType = King,piecePlayer = pp} c b@Board{spacesMap = 
     nextCoord :: Coord
     nextCoord = moveD c d 1
 
+    threatSpaces :: [Space]
+    threatSpaces = threatenedSpaces kingMovedBoardState pp
+
     isThreatenedSpace :: Bool
-    isThreatenedSpace = isOverlapSpace nextCoord threatenedSpaces 
+    isThreatenedSpace = isOverlapSpace nextCoord threatSpaces 
 
     kingMovedBoardState :: Maybe Board
     kingMovedBoardState = transfer b p (fetchSpace b c) (fetchSpace b nextCoord)
-
-    threatenedSpaces :: [Space]
-    threatenedSpaces = map (\mv -> moveSpace mv) $ -- extract spaces
-                       filter (\mv -> moveIsConsumable mv) $ -- remove offensive moves
-                       DL.foldl' (++) [] $ -- join list of valid coords
-                       map (\(op, oc) -> if (DM.isJust kingMovedBoardState)
-                                         then validMoves (DM.fromJust kingMovedBoardState) op oc
-                                         else []) $ -- calc opp valid moves
-                       oppCoords kingMovedBoardState -- fetch opp coords
-
-    oppCoords :: Maybe Board -> [(Piece, Coord)]
-    oppCoords Nothing = []
-    oppCoords (Just Board{spacesMap = spsMap'}) =
-      foldr (\spc acc -> if isOpponent spc pp
-                         then (DM.fromJust (spacePiece spc), spaceCoord spc) : acc
-                         else acc)
-                      []
-                      spsMap'
-
-    isOpponent :: Space -> Player -> Bool
-    isOpponent s pp = (DM.isJust $ spacePiece s)
-                      && (piecePlayer (DM.fromJust $ spacePiece s) /= pp) 
 
 -- knight
 candidateMoves p@Piece{pieceType = Knight,piecePlayer = pp} c@(Coord row col) b@Board{spacesMap = spsMap} d
@@ -187,6 +191,74 @@ candidateMoves p@Piece{pieceType = Queen} c b d =
                                 b
                                 d
 
+{- Returns candidate 'special' moves for given piece type. -}
+specialCandidateMoves :: Piece -> Coord -> Board -> Direction -> [Move]
+specialCandidateMoves Piece{pieceType = Rook} _ _ _ = []
+specialCandidateMoves Piece{pieceType = Knight} _ _ _ = []
+specialCandidateMoves Piece{pieceType = Bishop} _ _ _ = []
+specialCandidateMoves Piece{pieceType = Queen} _ _ _ = []
+
+{- Disqualify self if moved
+   Look left 5 spaces for non-moved rook
+   Look right 4 spaces for non-moved rook
+   Determine which slots threatened-}
+specialCandidateMoves p@Piece{pieceType = King, pieceMoved = True} c b d = []
+specialCandidateMoves p@Piece{pieceType = King} c b d = castleLeft ++ castleRight
+  where
+    castleLeft, castleRight :: [Move]
+    castleLeft =
+      let
+        rDir :: Direction
+        rDir = rotateLeft . rotateLeft $ d
+
+        rookCoord, spaceACoord, spaceBCoord, spaceCCoord :: Coord
+        spaceACoord = moveD c rDir 1
+        spaceBCoord = moveD c rDir 2
+        spaceCCoord = moveD c rDir 3
+        rookCoord = moveD c rDir 4
+
+        {-
+          FIXME: Is there a better way? Too many contexts within contexts!
+         -}
+        pieceTypeMoved :: Board -> Coord -> PieceType -> Maybe Bool
+        pieceTypeMoved b pCoord pType =
+          if DM.isNothing (matchesPiece $ fetchSpace b pCoord)
+          then Nothing
+          else Just (movedPiece $ DM.fromJust $ fetchSpace b pCoord)
+              where
+                matchesPiece :: Maybe Space -> Maybe Bool
+                matchesPiece Nothing = Nothing
+                matchesPiece (Just Space{spacePiece = Nothing}) = Nothing
+                matchesPiece (Just Space{spacePiece = Just Piece{pieceType = pt}}) = Just (pt == pType)
+
+                movedPiece :: Space -> Bool
+                movedPiece sp = pieceMoved $ DM.fromJust $ spacePiece sp
+
+        rookMoved :: Maybe Bool
+        rookMoved = pieceTypeMoved b rookCoord Rook
+
+        spaceAPassable, spaceBPassable, spaceCPassable :: Bool
+        spaceAPassable = (isValid b spaceACoord) && (not $ isObstructed spaceACoord) 
+        spaceBPassable = (isValid b spaceBCoord) && (not $ isObstructed spaceBCoord) 
+        spaceCPassable = (isValid b spaceCCoord) && (not $ isObstructed spaceCCoord) 
+
+        isObstructed :: Coord -> Bool
+        isObstructed coord = maybe False (\s -> DM.isJust $ spacePiece s) $ fetchSpace b coord
+
+      in if (DM.isJust rookMoved)
+            && not (DM.fromJust rookMoved)
+            && spaceAPassable
+            && spaceBPassable
+            && spaceCPassable
+         then T.trace "Tada!" $ [buildMove p b spaceBCoord False]
+         else []
+      
+    castleRight = []
+ 
+
+specialCandidateMoves p@Piece{pieceType = Pawn} c b d = []
+
+
 {- Pieces that move directionally, returns candidate coordinates  -}
 directionalCandidateMoves' :: [Direction] -> Piece -> Coord -> Board -> Direction -> [Move]
 directionalCandidateMoves' ds p@Piece{piecePlayer = cPlayer} c b@Board{spacesMap = spsMap} d
@@ -229,4 +301,7 @@ canOccupy p s = hasOpponent p s
 isOverlapSpace :: Coord -> [Space] -> Bool
 isOverlapSpace c [] = False
 isOverlapSpace c sps = c `elem` (map (\s -> spaceCoord s) sps)
-  
+
+{- Determines if space exists on board. -}
+isValid :: Board -> Coord -> Bool
+isValid Board{spacesMap = spsMap} c = M.member c spsMap
