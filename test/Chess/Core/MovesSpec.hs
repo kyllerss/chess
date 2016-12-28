@@ -188,7 +188,7 @@ spec = describe "Pieces" $ do
 
         newBoard `shouldBe` Nothing
 
-    it "can do en passant" $ do
+    it "can do 'en passant'" $ do
 
       pending
 
@@ -1006,6 +1006,13 @@ candidateMoves king originCoord (Data.Maybe.fromJust board) East
         rook1Space `shouldNotBe` Nothing
         spaceCoord (DM.fromJust rook1Space) `shouldBe` Coord 7 3
 
+        let rook1Piece, king1Piece :: Piece
+            rook1Piece = DM.fromJust $ fetchPiece (DM.fromJust boardL) (Coord 7 3)
+            king1Piece = DM.fromJust $ fetchPiece (DM.fromJust boardL) (Coord 7 2)
+
+        pieceMoved rook1Piece `shouldBe` True
+        pieceMoved king1Piece `shouldBe` True
+        
         -- verify move works (rook2)
         let boardR :: Maybe Board
             boardR = move (DM.fromJust board) king (Coord 7 6)
@@ -1028,8 +1035,14 @@ candidateMoves king originCoord (Data.Maybe.fromJust board) East
     it "cannot castle when obstructed" $ do
       pending
 
+    it "cannot castle when spaces in between threatened" $ do
+      pending
+
     it "cannot castle when result is check" $ do
       pending
 
     it "cannot castle when pieces previously moved" $ do
+      pending
+
+    it "cannot have another piece move (pinned) if results in check" $ do
       pending

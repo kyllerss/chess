@@ -72,6 +72,7 @@ data Board = Board { spacesMap :: Map.Map Coord Space }
 data Move = Move { movePieceId        :: PieceId
                  , moveSpace          :: Space
                  , moveIsConsumable   :: Bool
+                 , moveSideEffects    :: [Move]
                  }
     deriving (Show, Eq)
 
@@ -132,6 +133,10 @@ fetchSpace (Board{spacesMap = m}) c = Map.lookup c m
 {- fetch piece at given coordinate -}
 fetchPiece :: Board -> Coord -> Maybe Piece
 fetchPiece b c = maybe Nothing (\s -> spacePiece s) $ fetchSpace b c
+
+{- fetch piece by given pieceId -}
+fetchPieceById :: Board -> PieceId -> Maybe Piece
+fetchPieceById b pId = undefined
   
 {- alternates piece color -}
 calcSpaceColor :: Coord -> Color
@@ -208,8 +213,10 @@ fetchPieceSpace (Board {spacesMap = spsMap}) p =
         evalPiece (Just p') = p' == p
 
 {- Convenience builder for Move -}
-buildMove :: Piece -> Board -> Coord -> Bool -> Move
-buildMove p b c offensive = Move { movePieceId = pieceId p
-                                 , moveSpace = DM.fromJust $ fetchSpace b c
-                                 , moveIsConsumable = offensive
-                                 }
+buildMove :: Piece -> Board -> Coord -> Bool -> [Move] -> Move
+buildMove p b c offensive sideEffects =
+  Move { movePieceId = pieceId p
+       , moveSpace = DM.fromJust $ fetchSpace b c
+       , moveIsConsumable = offensive
+       , moveSideEffects = sideEffects
+       }
