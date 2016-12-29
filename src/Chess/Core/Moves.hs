@@ -12,33 +12,48 @@ import qualified Debug.Trace       as T
 
 {- Moves piece from one space to the next. If requested move is invalid, returns nothing.  -}
 move :: Board -> Piece -> Coord -> Maybe Board
-move b@Board{spacesMap = spsMap} p c
-    | targetCoordStandard originSpace c = transfer b p originSpace destSpace
-    | targetCoordSpecial originSpace c = transfer b p originSpace destSpace
+move b@Board{spacesMap = spsMap} p destCoord
+    | targetCoordStandard originSpace = transfer b p originSpace destSpace
+    | targetCoordSpecial originSpace = moveSpecial $ transfer b p originSpace destSpace
     | otherwise = Nothing
 
-{-            board = foldl (\b m -> transfer (DM.fromJust b) (fetchPieceById $ DM.fromJust $ movePieceId m) ???rook origin??? (Just $ moveSpace m))
-                          b
-                          ??? specific special move ???
--}
-
   where
-    targetCoordStandard :: Maybe Space -> Coord -> Bool
-    targetCoordStandard Nothing _ = False
-    targetCoordStandard (Just s) destCoord = movesChecker s destCoord validStandardMoves
 
-    targetCoordSpecial :: Maybe Space -> Coord -> Bool
-    targetCoordSpecial Nothing _ = False
-    targetCoordSpecial (Just s) destCoord = movesChecker s destCoord validSpecialMoves
+    moveSpecial :: Maybe Board -> Maybe Board
+    moveSpecial newB =
+      foldl (\accB m ->
+                let collateralPiece = DM.fromJust (fetchPieceById (DM.fromJust accB) (movePieceId m))
+                    collateralDestSpace = Just (moveSpace m)
+                    collateralOriginSpace = fetchPieceSpace (DM.fromJust accB) collateralPiece 
+                in
+                  transfer (DM.fromJust accB) collateralPiece collateralOriginSpace collateralDestSpace
+            )
+            newB
+            (moveSideEffects $ targetSpecialMove)
 
-    movesChecker :: Space -> Coord -> (Board -> Piece -> Coord -> [Move]) -> Bool
-    movesChecker s destCoord movesFunc =
-      destCoord `elem` (map (\m -> spaceCoord . moveSpace $ m) $ movesFunc b p (spaceCoord s))
+    targetCoordStandard :: Maybe Space -> Bool
+    targetCoordStandard Nothing = False
+    targetCoordStandard (Just s) = movesChecker s destCoord standardMoves
+
+    targetCoordSpecial :: Maybe Space -> Bool
+    targetCoordSpecial Nothing = False
+    targetCoordSpecial (Just s) = movesChecker s destCoord specialMoves
+
+    standardMoves, specialMoves :: [Move]
+    standardMoves = validStandardMoves b p (spaceCoord $ DM.fromJust originSpace)
+    specialMoves = validSpecialMoves b p (spaceCoord $ DM.fromJust originSpace)
+
+    movesChecker :: Space -> Coord -> [Move] -> Bool
+    movesChecker s destCoord moves =
+      destCoord `elem` (map (\m -> spaceCoord . moveSpace $ m) moves)
     
     originSpace :: Maybe Space
     originSpace = fetchPieceSpace b p
     destSpace :: Maybe Space
-    destSpace = fetchSpace b c
+    destSpace = fetchSpace b destCoord
+
+    targetSpecialMove :: Move
+    targetSpecialMove = DM.fromJust $ DL.find (\m -> Just (moveSpace m) == destSpace) specialMoves
 
 {- Moves piece without any validation. -}
 transfer :: Board -> Piece -> Maybe Space -> Maybe Space -> Maybe Board

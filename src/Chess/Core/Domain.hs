@@ -136,7 +136,12 @@ fetchPiece b c = maybe Nothing (\s -> spacePiece s) $ fetchSpace b c
 
 {- fetch piece by given pieceId -}
 fetchPieceById :: Board -> PieceId -> Maybe Piece
-fetchPieceById b pId = undefined
+fetchPieceById (Board {spacesMap = spsMap}) pId =
+  Map.foldr' (\v a -> let opId = pieceId <$> (spacePiece v)
+                      in if (Just pId) == opId then spacePiece v else a
+             )
+             Nothing
+             spsMap 
   
 {- alternates piece color -}
 calcSpaceColor :: Coord -> Color
