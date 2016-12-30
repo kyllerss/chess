@@ -180,8 +180,8 @@ addPiece :: Space -> Piece -> Space
 addPiece sadd padd = sadd { spacePiece = Just padd }
 
 {- Add a piece to board -}
-addPieceToBoard :: Board -> Piece -> Coord -> Maybe Board
-addPieceToBoard b@Board{spacesMap = spsMap} p c =
+addPieceToBoard :: Piece -> Coord -> Board -> Maybe Board
+addPieceToBoard p c b@Board{spacesMap = spsMap} =
     addPiece' $ Map.lookup c spsMap
   where
     addPiece' :: Maybe Space -> Maybe Board

@@ -31,7 +31,7 @@ spec = describe "Pieces" $ do
             pawn = buildTestPiece 1 Pawn 1 South
 
             board :: Maybe Board
-            board = addPieceToBoard emptyBoard pawn originCoord
+            board = addPieceToBoard pawn originCoord emptyBoard 
 
         board `shouldNotBe` Nothing
 
@@ -54,7 +54,7 @@ spec = describe "Pieces" $ do
             pawn = buildTestPiece 1 Pawn 1 North
 
             board :: Maybe Board
-            board = addPieceToBoard emptyBoard pawn originCoord
+            board = addPieceToBoard pawn originCoord emptyBoard
 
         board `shouldNotBe` Nothing
 
@@ -71,7 +71,7 @@ spec = describe "Pieces" $ do
             pawn = buildTestPiece 1 Pawn 1 South
 
             board :: Maybe Board
-            board = addPieceToBoard emptyBoard pawn originCoord
+            board = addPieceToBoard pawn originCoord emptyBoard
 
         board `shouldNotBe` Nothing
 
@@ -105,7 +105,7 @@ spec = describe "Pieces" $ do
             pawnOrphaned = buildTestPiece 1 Pawn 1 South
 
             board :: Maybe Board
-            board = addPieceToBoard emptyBoard pawnOrphaned originCoord
+            board = addPieceToBoard pawnOrphaned originCoord emptyBoard
         
         board `shouldNotBe` Nothing
 
@@ -149,11 +149,10 @@ spec = describe "Pieces" $ do
             pawn3 = buildTestPiece 3 Pawn 2 North
 
             board :: Maybe Board
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (pawn, originCoord)
-                          , (pawn2, Coord 2 5)
-                          , (pawn3, Coord 2 3)]
+            board = Just emptyBoard >>=
+                    addPieceToBoard pawn originCoord >>=
+                    addPieceToBoard pawn2 (Coord 2 5) >>=
+                    addPieceToBoard pawn3 (Coord 2 3)
 
         board `shouldNotBe` Nothing
 
@@ -178,7 +177,7 @@ spec = describe "Pieces" $ do
             pawn = buildTestPiece 1 Pawn 1 South
 
             board :: Maybe Board
-            board = addPieceToBoard emptyBoard pawn originCoord
+            board = addPieceToBoard pawn originCoord emptyBoard
 
         board `shouldNotBe` Nothing
 
@@ -201,7 +200,7 @@ spec = describe "Pieces" $ do
             rook = buildTestPiece 1 Rook 1 South
 
             board :: Maybe Board
-            board = addPieceToBoard emptyBoard rook originCoord
+            board = addPieceToBoard rook originCoord emptyBoard
 
         board `shouldNotBe` Nothing
 
@@ -242,13 +241,12 @@ spec = describe "Pieces" $ do
             pawn4 = buildTestPiece 5 Pawn 1 South
 
             board :: Maybe Board
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (rook, originCoord)
-                          , (pawn1, Coord 4 7)
-                          , (pawn2, Coord 4 1)
-                          , (pawn3, Coord 7 4)
-                          , (pawn4, Coord 1 4)]
+            board = Just emptyBoard >>=
+                    addPieceToBoard rook originCoord >>=
+                    addPieceToBoard pawn1 (Coord 4 7) >>=
+                    addPieceToBoard pawn2 (Coord 4 1) >>=
+                    addPieceToBoard pawn3 (Coord 7 4) >>=
+                    addPieceToBoard pawn4 (Coord 1 4)
 
         board `shouldNotBe` Nothing
 
@@ -288,13 +286,12 @@ spec = describe "Pieces" $ do
             pawn3 = buildTestPiece 4 Pawn 2 South
             pawn4 = buildTestPiece 5 Pawn 2 South
 
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (rook, originCoord)
-                          , (pawn1, Coord 4 7)
-                          , (pawn2, Coord 4 1)
-                          , (pawn3, Coord 7 4)
-                          , (pawn4, Coord 1 4)]
+            board = Just emptyBoard >>=
+                    addPieceToBoard rook originCoord >>=
+                    addPieceToBoard pawn1 (Coord 4 7) >>=
+                    addPieceToBoard pawn2 (Coord 4 1) >>=
+                    addPieceToBoard pawn3 (Coord 7 4) >>=
+                    addPieceToBoard pawn4 (Coord 1 4)
 
         board `shouldNotBe` Nothing
         
@@ -333,7 +330,7 @@ spec = describe "Pieces" $ do
             bishop = buildTestPiece 1 Bishop 1 South
 
             board :: Maybe Board
-            board = addPieceToBoard emptyBoard bishop originCoord
+            board = addPieceToBoard bishop originCoord emptyBoard
 
         board `shouldNotBe` Nothing
 
@@ -374,14 +371,13 @@ spec = describe "Pieces" $ do
             pawn4 = buildTestPiece 5 Pawn 1 South
 
             board :: Maybe Board
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (bishop, originCoord)
-                          , (pawn1, Coord 2 2)
-                          , (pawn2, Coord 2 6)
-                          , (pawn3, Coord 6 2)
-                          , (pawn4, Coord 6 6)]
-
+            board = Just emptyBoard >>=
+                    addPieceToBoard bishop originCoord >>=
+                    addPieceToBoard pawn1 (Coord 2 2) >>=
+                    addPieceToBoard pawn2 (Coord 2 6) >>=
+                    addPieceToBoard pawn3 (Coord 6 2) >>=
+                    addPieceToBoard pawn4 (Coord 6 6)
+                    
         board `shouldNotBe` Nothing
 
         -- fetch moves
@@ -420,13 +416,12 @@ spec = describe "Pieces" $ do
             pawn3 = buildTestPiece 4 Pawn 2 South
             pawn4 = buildTestPiece 5 Pawn 2 South
 
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (bishop, originCoord)
-                          , (pawn1, Coord 2 2)
-                          , (pawn2, Coord 2 6)
-                          , (pawn3, Coord 6 2)
-                          , (pawn4, Coord 6 6)]
+            board = Just emptyBoard >>=
+                    addPieceToBoard bishop originCoord >>=
+                    addPieceToBoard pawn1 (Coord 2 2) >>=
+                    addPieceToBoard pawn2 (Coord 2 6) >>=
+                    addPieceToBoard pawn3 (Coord 6 2) >>=
+                    addPieceToBoard pawn4 (Coord 6 6)
 
         board `shouldNotBe` Nothing
         
@@ -465,7 +460,7 @@ spec = describe "Pieces" $ do
             queen = buildTestPiece 1 Queen 1 South
 
             board :: Maybe Board
-            board = addPieceToBoard emptyBoard queen originCoord
+            board = addPieceToBoard queen originCoord emptyBoard
 
         board `shouldNotBe` Nothing
 
@@ -529,17 +524,16 @@ spec = describe "Pieces" $ do
             pawn8 = buildTestPiece 9 Pawn 1 South
 
             board :: Maybe Board
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (queen, originCoord)
-                          , (pawn1, Coord 4 7)
-                          , (pawn2, Coord 4 1)
-                          , (pawn3, Coord 7 4)
-                          , (pawn4, Coord 1 4)
-                          , (pawn5, Coord 2 2)
-                          , (pawn6, Coord 2 6)
-                          , (pawn7, Coord 6 2)
-                          , (pawn8, Coord 6 6)]
+            board = Just emptyBoard >>=
+                    addPieceToBoard queen originCoord >>=
+                    addPieceToBoard pawn1 (Coord 4 7) >>=
+                    addPieceToBoard pawn2 (Coord 4 1) >>=
+                    addPieceToBoard pawn3 (Coord 7 4) >>=
+                    addPieceToBoard pawn4 (Coord 1 4) >>=
+                    addPieceToBoard pawn5 (Coord 2 2) >>=
+                    addPieceToBoard pawn6 (Coord 2 6) >>=
+                    addPieceToBoard pawn7 (Coord 6 2) >>=
+                    addPieceToBoard pawn8 (Coord 6 6)
 
         board `shouldNotBe` Nothing
 
@@ -602,17 +596,16 @@ spec = describe "Pieces" $ do
             pawn7 = buildTestPiece 8 Pawn 2 South
             pawn8 = buildTestPiece 9 Pawn 2 South
 
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (queen, originCoord)
-                          , (pawn1, Coord 4 7)
-                          , (pawn2, Coord 4 1)
-                          , (pawn3, Coord 7 4)
-                          , (pawn4, Coord 1 4)
-                          , (pawn5, Coord 2 2)
-                          , (pawn6, Coord 2 6)
-                          , (pawn7, Coord 6 2)
-                          , (pawn8, Coord 6 6)]
+            board = Just emptyBoard >>=
+                    addPieceToBoard queen originCoord >>=
+                    addPieceToBoard pawn1 (Coord 4 7) >>=
+                    addPieceToBoard pawn2 (Coord 4 1) >>=
+                    addPieceToBoard pawn3 (Coord 7 4) >>=
+                    addPieceToBoard pawn4 (Coord 1 4) >>=
+                    addPieceToBoard pawn5 (Coord 2 2) >>=
+                    addPieceToBoard pawn6 (Coord 2 6) >>=
+                    addPieceToBoard pawn7 (Coord 6 2) >>=
+                    addPieceToBoard pawn8 (Coord 6 6)
 
         board `shouldNotBe` Nothing
         
@@ -670,7 +663,7 @@ spec = describe "Pieces" $ do
             knight = buildTestPiece 1 Knight 1 South
 
             board :: Maybe Board
-            board = addPieceToBoard emptyBoard knight originCoord
+            board = addPieceToBoard knight originCoord emptyBoard
 
         board `shouldNotBe` Nothing
 
@@ -703,13 +696,12 @@ spec = describe "Pieces" $ do
             pawn4 = buildTestPiece 5 Pawn 1 South
 
             board :: Maybe Board
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (knight, originCoord)
-                          , (pawn1, Coord 2 5)
-                          , (pawn2, Coord 5 6)
-                          , (pawn3, Coord 6 5)
-                          , (pawn4, Coord 5 2)]
+            board = Just emptyBoard >>=
+                    addPieceToBoard knight originCoord >>=
+                    addPieceToBoard pawn1 (Coord 2 5) >>=
+                    addPieceToBoard pawn2 (Coord 5 6) >>=
+                    addPieceToBoard pawn3 (Coord 6 5) >>=
+                    addPieceToBoard pawn4 (Coord 5 2)
 
         board `shouldNotBe` Nothing
 
@@ -741,13 +733,12 @@ spec = describe "Pieces" $ do
             pawn3 = buildTestPiece 4 Pawn 2 South
             pawn4 = buildTestPiece 5 Pawn 2 South
 
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (knight, originCoord)
-                          , (pawn1, Coord 2 5)
-                          , (pawn2, Coord 5 6)
-                          , (pawn3, Coord 6 5)
-                          , (pawn4, Coord 5 2)]
+            board = Just emptyBoard >>=
+                    addPieceToBoard knight originCoord >>=
+                    addPieceToBoard pawn1 (Coord 2 5) >>=
+                    addPieceToBoard pawn2 (Coord 5 6) >>=
+                    addPieceToBoard pawn3 (Coord 6 5) >>=
+                    addPieceToBoard pawn4 (Coord 5 2)
 
         board `shouldNotBe` Nothing
         
@@ -778,7 +769,7 @@ spec = describe "Pieces" $ do
             king = buildTestPiece 1 King 1 South
 
             board :: Maybe Board
-            board = addPieceToBoard emptyBoard king originCoord
+            board = addPieceToBoard king originCoord emptyBoard
 
         board `shouldNotBe` Nothing
 
@@ -811,13 +802,12 @@ spec = describe "Pieces" $ do
             pawn4 = buildTestPiece 5 Pawn 1 South
 
             board :: Maybe Board
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (king, originCoord)
-                          , (pawn1, Coord 3 4)
-                          , (pawn2, Coord 4 5)
-                          , (pawn3, Coord 5 4)
-                          , (pawn4, Coord 4 3)]
+            board = Just emptyBoard >>=
+                    addPieceToBoard king originCoord >>=
+                    addPieceToBoard pawn1 (Coord 3 4) >>=
+                    addPieceToBoard pawn2 (Coord 4 5) >>=
+                    addPieceToBoard pawn3 (Coord 5 4) >>=
+                    addPieceToBoard pawn4 (Coord 4 3)
 
         board `shouldNotBe` Nothing
 
@@ -841,18 +831,6 @@ spec = describe "Pieces" $ do
 
     it "has valid moves when obstructed by opponent pieces" $ do
 
-{-
-let emptyBoard = initBoard 9 9 defaultSpaceBuilder
-let originCoord = Coord 4 4
-let king = buildTestPiece 1 King 1 South
-let pawn1 = buildTestPiece 2 Pawn 2 South
-let pawn2 = buildTestPiece 3 Pawn 2 South
-let pawn3 = buildTestPiece 4 Pawn 2 South
-let pawn4 = buildTestPiece 5 Pawn 2 South
-let board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c) (Just emptyBoard) [ (king, originCoord) , (pawn1, Coord 3 4), (pawn2, Coord 4 5), (pawn3, Coord 5 4), (pawn4, Coord 4 3)]
-candidateMoves king originCoord (Data.Maybe.fromJust board) East
--}
-
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder
             originCoord = Coord 4 4
             king = buildTestPiece 1 King 1 South
@@ -861,13 +839,12 @@ candidateMoves king originCoord (Data.Maybe.fromJust board) East
             pawn3 = buildTestPiece 4 Pawn 2 South
             pawn4 = buildTestPiece 5 Pawn 2 South
 
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (king, originCoord)
-                          , (pawn1, Coord 3 4)
-                          , (pawn2, Coord 4 5)
-                          , (pawn3, Coord 5 4)
-                          , (pawn4, Coord 4 3)]
+            board = Just emptyBoard >>=
+                    addPieceToBoard king originCoord >>=
+                    addPieceToBoard pawn1 (Coord 3 4) >>=
+                    addPieceToBoard pawn2 (Coord 4 5) >>=
+                    addPieceToBoard pawn3 (Coord 5 4) >>=
+                    addPieceToBoard pawn4 (Coord 4 3)
 
         board `shouldNotBe` Nothing
         
@@ -897,11 +874,10 @@ candidateMoves king originCoord (Data.Maybe.fromJust board) East
             pawn1 = buildTestPiece 2 Pawn 2 North
             pawn2 = buildTestPiece 3 Pawn 2 North
 
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (king, originCoord)
-                          , (pawn1, Coord 6 3)
-                          , (pawn2, Coord 5 6)]
+            board = Just emptyBoard >>=
+                    addPieceToBoard king originCoord >>=
+                    addPieceToBoard pawn1 (Coord 6 3) >>=
+                    addPieceToBoard pawn2 (Coord 5 6)
 
         board `shouldNotBe` Nothing
         
@@ -931,11 +907,10 @@ candidateMoves king originCoord (Data.Maybe.fromJust board) East
             pawn1 = buildTestPiece 2 Pawn 2 North
             pawn2 = buildTestPiece 3 Pawn 2 North
 
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (king, originCoord)
-                          , (pawn1, Coord 5 4)
-                          , (pawn2, Coord 6 5)]
+            board = Just emptyBoard >>=
+                    addPieceToBoard king originCoord >>=
+                    addPieceToBoard pawn1 (Coord 5 4) >>=
+                    addPieceToBoard pawn2 (Coord 6 5)
 
         board `shouldNotBe` Nothing
         
@@ -965,12 +940,18 @@ candidateMoves king originCoord (Data.Maybe.fromJust board) East
             rook1 = buildTestPiece 2 Rook 1 North
             rook2 = buildTestPiece 3 Rook 1 North
 
-            board = foldl (\b (p, c) -> addPieceToBoard (DM.fromJust b) p c)
-                          (Just emptyBoard)
-                          [ (king, originCoord)
-                          , (rook1, Coord 7 0)
-                          , (rook2, Coord 7 7)]
+            board = Just emptyBoard >>=
+                    addPieceToBoard king originCoord >>= 
+                    addPieceToBoard rook1 (Coord 7 0) >>= 
+                    addPieceToBoard rook2 (Coord 7 7)
 
+        {-
+            board = do
+                       b <- Just emptyBoard
+                       b' <- addPieceToBoard b king originCoord
+                       b'' <- addPieceToBoard b' rook1 $ Coord 7 0
+                       addPieceToBoard b'' rook2 $ Coord 7 7
+         -}
         board `shouldNotBe` Nothing
         
         -- fetch moves

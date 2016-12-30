@@ -54,7 +54,7 @@ spec = describe "board" $ do
 
             -- add piece to board
             let newBoard :: Maybe Board
-                newBoard = addPieceToBoard board pawn coord
+                newBoard = addPieceToBoard pawn coord board
 
             newBoard `shouldNotBe` Nothing
 
