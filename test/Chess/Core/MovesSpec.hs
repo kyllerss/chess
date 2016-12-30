@@ -1011,7 +1011,75 @@ spec = describe "Pieces" $ do
         spaceCoord (DM.fromJust rook2Space) `shouldBe` Coord 7 5
 
     it "can castle when unobstructed (horizontal orientation)" $ do
-      pending
+
+        let emptyBoard = initBoard 8 8 defaultSpaceBuilder
+            originCoord = Coord 4 7
+            king = buildTestPiece 1 King 1 East
+            rook1 = buildTestPiece 2 Rook 1 East
+            rook2 = buildTestPiece 3 Rook 1 East
+
+            board = Just emptyBoard >>=
+                    addPieceToBoard king originCoord >>= 
+                    addPieceToBoard rook1 (Coord 0 7) >>= 
+                    addPieceToBoard rook2 (Coord 7 7)
+
+        board `shouldNotBe` Nothing
+        
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) king originCoord
+
+        length ms `shouldBe` 7
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 2 7) coords `shouldBe` True
+        elem (Coord 3 7) coords `shouldBe` True
+        elem (Coord 3 6) coords `shouldBe` True
+        elem (Coord 4 6) coords `shouldBe` True
+        elem (Coord 5 6) coords `shouldBe` True
+        elem (Coord 5 7) coords `shouldBe` True
+        elem (Coord 6 7) coords `shouldBe` True
+
+        -- verify move works (rook1)
+        let boardL :: Maybe Board
+            boardL = move (DM.fromJust board) king (Coord 2 7)
+
+        boardL `shouldNotBe` Nothing
+
+        let king1Space, rook1Space :: Maybe Space
+            king1Space = fetchPieceSpace (DM.fromJust boardL) king
+            rook1Space = fetchPieceSpace (DM.fromJust boardL) rook1
+
+        king1Space `shouldNotBe` Nothing
+        spaceCoord (DM.fromJust king1Space) `shouldBe` Coord 2 7
+        
+        rook1Space `shouldNotBe` Nothing
+        spaceCoord (DM.fromJust rook1Space) `shouldBe` Coord 3 7
+
+        let rook1Piece, king1Piece :: Piece
+            rook1Piece = DM.fromJust $ fetchPiece (DM.fromJust boardL) (Coord 3 7)
+            king1Piece = DM.fromJust $ fetchPiece (DM.fromJust boardL) (Coord 2 7)
+
+        pieceMoved rook1Piece `shouldBe` True
+        pieceMoved king1Piece `shouldBe` True
+        
+        -- verify move works (rook2)
+        let boardR :: Maybe Board
+            boardR = move (DM.fromJust board) king (Coord 6 7)
+
+        boardR `shouldNotBe` Nothing
+
+        let king2Space, rook2Space :: Maybe Space
+            king2Space = fetchPieceSpace (DM.fromJust boardR) king
+            rook2Space = fetchPieceSpace (DM.fromJust boardR) rook2
+
+        king2Space `shouldNotBe` Nothing
+        spaceCoord (DM.fromJust king2Space) `shouldBe` Coord 6 7
+        
+        rook2Space `shouldNotBe` Nothing
+        spaceCoord (DM.fromJust rook2Space) `shouldBe` Coord 5 7
       
     it "cannot castle when obstructed" $ do
       pending
