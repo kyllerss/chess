@@ -11,8 +11,8 @@ import qualified Data.Maybe        as DM
 import qualified Debug.Trace       as T
 
 {- Moves piece from one space to the next. If requested move is invalid, returns nothing.  -}
-move :: Board -> Piece -> Coord -> Maybe Board
-move b@Board{spacesMap = spsMap} p destCoord
+move :: Piece -> Coord -> Board -> Maybe Board
+move p destCoord b@Board{spacesMap = spsMap}
     | targetCoordStandard originSpace = transfer b p originSpace destSpace
     | targetCoordSpecial originSpace = moveSpecial $ transfer b p originSpace destSpace
     | otherwise = Nothing
@@ -22,9 +22,9 @@ move b@Board{spacesMap = spsMap} p destCoord
     moveSpecial :: Maybe Board -> Maybe Board
     moveSpecial newB =
       foldl (\accB m ->
-                let collateralPiece = DM.fromJust (fetchPieceById (DM.fromJust accB) (movePieceId m))
+                let collateralPiece = DM.fromJust (fetchPieceById (movePieceId m) (DM.fromJust accB))
                     collateralDestSpace = Just (moveSpace m)
-                    collateralOriginSpace = fetchPieceSpace (DM.fromJust accB) collateralPiece 
+                    collateralOriginSpace = fetchPieceSpace collateralPiece (DM.fromJust accB) 
                 in
                   transfer (DM.fromJust accB) collateralPiece collateralOriginSpace collateralDestSpace
             )
@@ -48,9 +48,9 @@ move b@Board{spacesMap = spsMap} p destCoord
       destCoord `elem` (map (\m -> spaceCoord . moveSpace $ m) moves)
     
     originSpace :: Maybe Space
-    originSpace = fetchPieceSpace b p
+    originSpace = fetchPieceSpace p b
     destSpace :: Maybe Space
-    destSpace = fetchSpace b destCoord
+    destSpace = fetchSpace destCoord b
 
     targetSpecialMove :: Move
     targetSpecialMove = DM.fromJust $ DL.find (\m -> Just (moveSpace m) == destSpace) specialMoves
@@ -172,7 +172,7 @@ candidateMoves p@Piece{pieceType = King,piecePlayer = pp} c b@Board{spacesMap = 
     isThreatenedSpace = isOverlapSpace nextCoord threatSpaces 
 
     kingMovedBoardState :: Maybe Board
-    kingMovedBoardState = transfer b p (fetchSpace b c) (fetchSpace b nextCoord)
+    kingMovedBoardState = transfer b p (fetchSpace c b) (fetchSpace nextCoord b)
 
 -- knight
 candidateMoves p@Piece{pieceType = Knight,piecePlayer = pp} c@(Coord row col) b@Board{spacesMap = spsMap} d
@@ -267,7 +267,7 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = Player{playerDirec
                       b
                       kingDestCoord
                       False
-                      [buildMove (DM.fromJust $ fetchPiece b rookCoord) b rookDestCoord False []]
+                      [buildMove (DM.fromJust $ fetchPiece rookCoord b) b rookDestCoord False []]
            ]
       else []
 
@@ -280,16 +280,16 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = Player{playerDirec
         spacesPassable = DL.all (\coord -> (isValid b coord) && (not $ isObstructed coord)) betweenCoords
 
         isObstructed :: Coord -> Bool
-        isObstructed coord = maybe False (\s -> DM.isJust $ spacePiece s) $ fetchSpace b coord
+        isObstructed coord = maybe False (\s -> DM.isJust $ spacePiece s) $ fetchSpace coord b
 
         {-
            FIXME: Is there a better way? Too many contexts within contexts!
          -}
         pieceTypeMoved :: Board -> Coord -> PieceType -> Maybe Bool
         pieceTypeMoved b pCoord pType =
-          if DM.isNothing (matchesPiece $ fetchSpace b pCoord)
+          if DM.isNothing (matchesPiece $ fetchSpace pCoord b)
           then Nothing
-          else Just (movedPiece $ DM.fromJust $ fetchSpace b pCoord)
+          else Just (movedPiece $ DM.fromJust $ fetchSpace pCoord b)
               where
                 matchesPiece :: Maybe Space -> Maybe Bool
                 matchesPiece Nothing = Nothing

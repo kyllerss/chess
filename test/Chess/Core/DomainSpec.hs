@@ -24,7 +24,7 @@ spec = describe "board" $ do
         it "has no pieces" $ do
             let board = initBoard 1 1 defaultSpaceBuilder
                 coord = Coord 0 0
-            (fetchSpace board coord) `shouldSatisfy`
+            (fetchSpace coord board) `shouldSatisfy`
                 (\(Just s) -> DM.isNothing $ spacePiece (s :: Space))
         it "can have piece added" $ do
 
@@ -34,7 +34,7 @@ spec = describe "board" $ do
                 coord = Coord 0 1
 
                 space :: Maybe Space
-                space = fetchSpace board coord
+                space = fetchSpace coord board
 
                 player = Player { playerName = "dummy"
                                  , playerType = Human
@@ -60,7 +60,7 @@ spec = describe "board" $ do
 
             -- verify target space no longer empty
             let newSpace :: Maybe Space
-                newSpace = fetchSpace (DM.fromJust newBoard) coord
+                newSpace = fetchSpace coord (DM.fromJust newBoard)
 
             newSpace `shouldNotBe` Nothing
 
@@ -88,11 +88,11 @@ spec = describe "board" $ do
                 coord2 = Coord 0 1
                 coord3 = Coord 1 0
                 coord4 = Coord 1 1
-            (fetchSpace board coord1) `shouldSatisfy`
+            (fetchSpace coord1 board) `shouldSatisfy`
                 (\(Just s) -> (spaceColor (s :: Space)) == White)
-            (fetchSpace board coord2) `shouldSatisfy`
+            (fetchSpace coord2 board) `shouldSatisfy`
                 (\(Just s) -> (spaceColor (s :: Space)) == Black)
-            (fetchSpace board coord3) `shouldSatisfy`
+            (fetchSpace coord3 board) `shouldSatisfy`
                 (\(Just s) -> (spaceColor (s :: Space)) == Black)
-            (fetchSpace board coord4) `shouldSatisfy`
+            (fetchSpace coord4 board) `shouldSatisfy`
                 (\(Just s) -> (spaceColor (s :: Space)) == White)

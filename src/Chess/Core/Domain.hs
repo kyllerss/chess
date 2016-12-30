@@ -127,16 +127,16 @@ defaultSpaceBuilder :: Coord -> Space
 defaultSpaceBuilder = \c@(Coord x y) -> buildSpace x y $ calcSpaceColor $ c
 
 {- fetch space with given coordinates -}
-fetchSpace :: Board -> Coord -> Maybe Space
-fetchSpace (Board{spacesMap = m}) c = Map.lookup c m
+fetchSpace :: Coord -> Board -> Maybe Space
+fetchSpace c Board{spacesMap = m} = Map.lookup c m
 
 {- fetch piece at given coordinate -}
-fetchPiece :: Board -> Coord -> Maybe Piece
-fetchPiece b c = maybe Nothing (\s -> spacePiece s) $ fetchSpace b c
+fetchPiece :: Coord -> Board -> Maybe Piece
+fetchPiece c b = maybe Nothing (\s -> spacePiece s) $ fetchSpace c b
 
 {- fetch piece by given pieceId -}
-fetchPieceById :: Board -> PieceId -> Maybe Piece
-fetchPieceById (Board {spacesMap = spsMap}) pId =
+fetchPieceById :: PieceId -> Board -> Maybe Piece
+fetchPieceById pId Board {spacesMap = spsMap} =
   Map.foldr' (\v a -> let opId = pieceId <$> (spacePiece v)
                       in if (Just pId) == opId then spacePiece v else a
              )
@@ -203,8 +203,8 @@ rotateLeft d
   | otherwise = pred d
 
 {- Fetches space containing specified piece. -}
-fetchPieceSpace :: Board -> Piece -> Maybe Space
-fetchPieceSpace (Board {spacesMap = spsMap}) p =
+fetchPieceSpace :: Piece -> Board -> Maybe Space
+fetchPieceSpace p Board {spacesMap = spsMap} =
   fetchSpace' $
         Map.toList $ Map.filter (\s -> evalPiece $ spacePiece s) spsMap
       where
@@ -221,7 +221,7 @@ fetchPieceSpace (Board {spacesMap = spsMap}) p =
 buildMove :: Piece -> Board -> Coord -> Bool -> [Move] -> Move
 buildMove p b c offensive sideEffects =
   Move { movePieceId = pieceId p
-       , moveSpace = DM.fromJust $ fetchSpace b c
+       , moveSpace = DM.fromJust $ fetchSpace c b
        , moveIsConsumable = offensive
        , moveSideEffects = sideEffects
        }
