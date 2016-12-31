@@ -139,6 +139,26 @@ spec = describe "Pieces" $ do
         length ms `shouldBe` 1
         (spaceCoord . moveSpace) (ms !! 0) `shouldBe` Coord 2 4
 
+    it "cannot move forward when obstructed by opponent" $ do
+
+        -- initial board setup
+        let emptyBoard = initBoard 3 3 defaultSpaceBuilder
+            originCoord = Coord 0 1
+            pawn = buildTestPiece 1 Pawn 1 South
+            opponent = buildTestPiece 2 Pawn 2 North
+
+            board :: Maybe Board
+            board = Just emptyBoard >>=
+                    addPieceToBoard pawn originCoord >>=
+                    addPieceToBoard opponent (Coord 1 1)
+
+        board `shouldNotBe` Nothing
+
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) pawn originCoord
+
+        length ms `shouldBe` 0
+
     it "valid moves contains diagonals when opp present" $ do
       
         -- initial board setup
@@ -1151,7 +1171,9 @@ spec = describe "Pieces" $ do
         -- fetch moves
         let ms :: [Move]
             ms = validMoves (DM.fromJust board) king originCoord
-
+            --ms = T.traceShow (threatenedSpaces board $ piecePlayer king) $ validMoves (DM.fromJust board) king originCoord
+            --ms = T.traceShow board $ validMoves (DM.fromJust board) king originCoord
+            
         length ms `shouldBe` 5
 
         let coords :: [Coord]
@@ -1185,3 +1207,50 @@ spec = describe "Pieces" $ do
 
     it "cannot have another piece move (pinned) if results in check" $ do
       pending
+
+{- GHCi Test Commands
+
+:set +m
+let
+    isOpponent :: Space -> Player -> Bool
+    isOpponent s player = (Data.Maybe.isJust $ spacePiece s)
+                   && (piecePlayer (Data.Maybe.fromJust $ spacePiece s) /= player)
+
+let
+    oppCoords :: Maybe Board -> Player -> [(Piece, Coord)]
+    oppCoords Nothing _ = []
+    oppCoords (Just Board{spacesMap = spsMap'}) pp =
+      Data.Foldable.foldr (\spc acc -> if isOpponent spc pp
+                         then (Data.Maybe.fromJust (spacePiece spc), spaceCoord spc) : acc
+                         else acc)
+                      []
+                      spsMap'
+
+let
+    buildTestPiece :: Int -> PieceType -> Int -> Direction -> Piece
+    buildTestPiece pId pType playerId playerDir =
+       buildPiece (PieceId pId)
+             pType
+             White
+             (Player { playerName = "dummy"
+                     , playerType = Human
+                     , playerId = playerId
+                     , playerDirection = playerDir
+                     })
+             Nothing
+
+let
+    emptyBoard = initBoard 8 8 defaultSpaceBuilder
+    originCoord = Coord 7 4
+    king = buildTestPiece 1 King 1 North
+    rook1 = buildTestPiece 2 Rook 1 North
+    rook2 = buildTestPiece 3 Rook 1 North
+    pawn1 = buildTestPiece 4 Pawn 2 South
+    pawn2 = buildTestPiece 5 Pawn 2 South
+    board = Just emptyBoard >>= addPieceToBoard king originCoord >>= addPieceToBoard rook1 (Coord 7 0) >>= addPieceToBoard rook2 (Coord 7 7) >>= addPieceToBoard pawn1 (Coord 6 0) >>= addPieceToBoard pawn2 (Coord 6 7)
+
+oppCoords board (piecePlayer king)
+validMoves (Data.Maybe.fromJust board) pawn1 (Coord 6 0)
+
+
+-}

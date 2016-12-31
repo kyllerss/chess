@@ -2,6 +2,7 @@ module Chess.Core.Moves
     ( move
     , validMoves
     , candidateMoves
+    , threatenedSpaces
     ) where
 
 import           Chess.Core.Domain
@@ -92,10 +93,11 @@ moveD (Coord row col) dir count
     | dir == West      = Coord row (col - count)
     | dir == NorthWest = Coord (row - count) (col - count)
 
+{- Returns list of spaces that threaten provided player. -}
 threatenedSpaces :: Maybe Board -> Player -> [Space]
 threatenedSpaces Nothing _ = []
 threatenedSpaces b player = map (\mv -> moveSpace mv) $ -- extract spaces
-                   filter (\mv -> moveIsConsumable mv) $ -- remove offensive moves
+                   filter (\mv -> moveIsConsumable mv) $ -- keep offensive moves
                    DL.foldl' (++) [] $ -- join list of valid coords
                    map (\(op, oc) -> validMoves (DM.fromJust b) op oc) $ -- calc opp valid moves
                    oppCoords b -- fetch opp coords
@@ -120,9 +122,8 @@ candidateMoves :: Piece -> Coord -> Board -> Direction -> [Move]
 -- pawn
 candidateMoves p@Piece{ pieceType = Pawn
                       , piecePlayer = pp@Player{ playerDirection = pd }
-                      , pieceId = pId
                       }
-               c@(Coord row col)
+               c
                b@Board{spacesMap = spsMap}
                d
     | d /= pd = []
@@ -137,7 +138,7 @@ candidateMoves p@Piece{ pieceType = Pawn
 
     diagonals :: [Move]
     diagonals = (pawnDiagonalMove $ M.lookup (moveD c (rotateLeft d) 1) spsMap)
-        ++ (pawnDiagonalMove $ M.lookup (moveD c (rotateRight d) 1) spsMap)
+                ++ (pawnDiagonalMove $ M.lookup (moveD c (rotateRight d) 1) spsMap)
 
     pawnDiagonalMove :: Maybe Space -> [Move]
     pawnDiagonalMove Nothing = []
@@ -235,7 +236,7 @@ specialCandidateMoves Piece{pieceType = Queen} _ _ _ = []
    Look right 4 spaces for non-moved rook
    Determine which slots threatened-}
 specialCandidateMoves p@Piece{pieceType = King, pieceMoved = True} c b d = []
-specialCandidateMoves p@Piece{pieceType = King, piecePlayer = Player{playerDirection = pd}} c b d
+specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDirection = pd}} c b d
   | d == cLeftDir = castleDir [moveD c cLeftDir 1
                               , moveD c cLeftDir 2
                               , moveD c cLeftDir 3]
@@ -262,6 +263,7 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = Player{playerDirec
       if (DM.isJust rookMoved)
          && not (DM.fromJust rookMoved)
          && spacesPassable
+         && not spacesThreatened
       then [
             buildMove p
                       b
@@ -281,6 +283,9 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = Player{playerDirec
 
         isObstructed :: Coord -> Bool
         isObstructed coord = maybe False (\s -> DM.isJust $ spacePiece s) $ fetchSpace coord b
+
+        spacesThreatened :: Bool
+        spacesThreatened = DL.any (\c -> isOverlapSpace c (threatenedSpaces (Just b) pp)) betweenCoords
 
         {-
            FIXME: Is there a better way? Too many contexts within contexts!
