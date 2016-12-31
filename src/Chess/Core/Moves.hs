@@ -311,7 +311,7 @@ directionalCandidateMoves' ds p@Piece{piecePlayer = cPlayer} c b@Board{spacesMap
     | otherwise = []
   where
     validSpace :: Bool
-    validSpace = if M.member nextCoord spsMap
+    validSpace = if M.member nextCoord spsMap 
                  then canOccupy cPlayer $ M.lookup nextCoord spsMap
                  else False
 
