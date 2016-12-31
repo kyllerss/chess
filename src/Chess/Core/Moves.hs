@@ -93,7 +93,16 @@ moveD (Coord row col) dir count
     | dir == West      = Coord row (col - count)
     | dir == NorthWest = Coord (row - count) (col - count)
 
-{- Returns list of spaces that threaten provided player. -}
+{-
+     Returns list of spaces that threaten provided player.
+  FIXME: Refactor algorithm to account for pawn's tendency to only threaten a space when an
+         opponent is present diagonally.
+
+  Suggested algorithm:
+      1) Find all valid moves for each piece of player
+      2) Move each player piece to that valid move spot
+      3) Check for any consumable actions.
+-}
 threatenedSpaces :: Maybe Board -> Player -> [Space]
 threatenedSpaces Nothing _ = []
 threatenedSpaces b player = map (\mv -> moveSpace mv) $ -- extract spaces
