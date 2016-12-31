@@ -94,14 +94,8 @@ moveD (Coord row col) dir count
     | dir == NorthWest = Coord (row - count) (col - count)
 
 {-
-     Returns list of spaces that threaten provided player.
-  FIXME: Refactor algorithm to account for pawn's tendency to only threaten a space when an
-         opponent is present diagonally.
-
-  Suggested algorithm:
-      1) Find all valid moves for each piece of player
-      2) Move each player piece to that valid move spot
-      3) Check for any consumable actions.
+     Returns list of spaces that threaten provided player
+     (Note: does not simulate what would happen if you moved onto a pawn's diagonal - FIXME).
 -}
 threatenedSpaces :: Maybe Board -> Player -> [Space]
 threatenedSpaces Nothing _ = []
@@ -298,7 +292,13 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
         isObstructed coord = maybe False (\s -> DM.isJust $ spacePiece s) $ fetchSpace coord b
 
         spacesThreatened :: Bool
-        spacesThreatened = DL.any (\c -> isOverlapSpace c (threatenedSpaces (Just b) pp)) betweenCoords
+        spacesThreatened = DL.any (\c -> isOverlapSpace c (threatenedSpaces (virtBoard b pp c) pp)) betweenCoords
+          where
+            virtBoard :: Board -> Player -> Coord -> Maybe Board
+            virtBoard b pp coord = addPieceToBoard (testPiece pp coord) coord b
+
+            testPiece :: Player -> Coord -> Piece
+            testPiece pp coord = buildPiece (PieceId (-1)) Pawn White pp (Just coord) 
 
         {-
            FIXME: Is there a better way? Too many contexts within contexts!
