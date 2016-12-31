@@ -131,10 +131,14 @@ candidateMoves p@Piece{ pieceType = Pawn
     | pieceMoved p == False = forwardTwo ++ diagonals -- piece not moved
   where
     forwardOne :: [Move]
-    forwardOne = (pawnForwardMove $ M.lookup (moveD c d 1) spsMap)
+    forwardOne
+      | isEmptySpace $ M.lookup (moveD c d 1) spsMap = (pawnForwardMove $ M.lookup (moveD c d 1) spsMap)
+      | otherwise = []
 
     forwardTwo :: [Move]
-    forwardTwo = forwardOne ++ (pawnForwardMove $ M.lookup (moveD c d 2) spsMap)
+    forwardTwo
+      | forwardOne == [] = []
+      | otherwise = forwardOne ++ (pawnForwardMove $ M.lookup (moveD c d 2) spsMap)
 
     diagonals :: [Move]
     diagonals = (pawnDiagonalMove $ M.lookup (moveD c (rotateLeft d) 1) spsMap)
@@ -335,15 +339,36 @@ directionalCandidateMoves' ds p@Piece{piecePlayer = cPlayer} c b@Board{spacesMap
 {- Returns true if space has opponent  -}
 hasOpponent :: Player -> Maybe Space -> Bool
 hasOpponent _ Nothing = False
+hasOpponent _ (Just (Void _)) = False
 hasOpponent _ (Just Space{spacePiece = Nothing}) = False
 hasOpponent cPlayer (Just (Space{spacePiece = Just (Piece{piecePlayer = pp})})) =
     cPlayer /= pp
 
+{- Returns true if space has a teammate. -}
+hasTeammate :: Player -> Maybe Space -> Bool
+hasTeammate _ Nothing = False
+hasTeammate _ (Just (Void _)) = False
+hasTeammate _ (Just Space{spacePiece = Nothing}) = True
+hasTeammate cPlayer (Just (Space{spacePiece = Just (Piece{piecePlayer = pp})})) =
+    cPlayer == pp
+
+{- Returns true if space has no opponent and no teammate. -}
+isEmptySpace :: Maybe Space -> Bool
+isEmptySpace Nothing = False
+isEmptySpace (Just (Void _)) = False
+isEmptySpace (Just Space{spacePiece = Nothing}) = True
+isEmptySpace (Just Space{spacePiece = Just _}) = False
+
 {- Returns true if piece can be occupied by given player. -}
 canOccupy :: Player -> Maybe Space -> Bool
 canOccupy _ Nothing = False
+canOccupy _ (Just (Void _)) = False
 canOccupy _ (Just Space{spacePiece = Nothing}) = True
-canOccupy p s = hasOpponent p s
+canOccupy p s
+  | isEmptySpace s = True
+  | hasTeammate p s = False 
+  | hasOpponent p s = True
+  | otherwise = False
 
 {- Determines if space is threatened by another piece. -}
 isOverlapSpace :: Coord -> [Space] -> Bool
