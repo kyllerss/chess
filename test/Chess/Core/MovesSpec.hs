@@ -1396,6 +1396,7 @@ let
                       []
                       spsMap'
 
+:set +m
 let
     buildTestPiece :: Int -> PieceType -> Int -> Direction -> Piece
     buildTestPiece pId pType playerId playerDir =
@@ -1410,17 +1411,19 @@ let
              Nothing
 
 let
-    emptyBoard = initBoard 8 8 defaultSpaceBuilder
-    originCoord = Coord 7 4
-    king = buildTestPiece 1 King 1 North
-    rook1 = buildTestPiece 2 Rook 1 North
-    rook2 = buildTestPiece 3 Rook 1 North
-    pawn1 = buildTestPiece 4 Pawn 2 South
-    pawn2 = buildTestPiece 5 Pawn 2 South
-    board = Just emptyBoard >>= addPieceToBoard king originCoord >>= addPieceToBoard rook1 (Coord 7 0) >>= addPieceToBoard rook2 (Coord 7 7) >>= addPieceToBoard pawn1 (Coord 6 0) >>= addPieceToBoard pawn2 (Coord 6 7)
+            emptyBoard = initBoard 4 3 defaultSpaceBuilder
+            originCoord = Coord 3 1
+            king = buildTestPiece 1 King 1 North
+            rook1 = buildTestPiece 2 Rook 1 North
+            rook2 = buildTestPiece 3 Rook 2 South
+            board = Just emptyBoard >>=
+                    addPieceToBoard king originCoord >>=
+                    addPieceToBoard rook1 (Coord 2 1) >>=
+                    addPieceToBoard rook2 (Coord 0 1)
 
-oppCoords board (piecePlayer king)
-validMoves (Data.Maybe.fromJust board) pawn1 (Coord 6 0)
-o
+
+threatenedSpaces (transfer (Data.Maybe.fromJust board) rook1 (fetchPieceSpace rook1 $ Data.Maybe.fromJust board) (fetchSpace (Coord 2 0) $ Data.Maybe.fromJust board)) (piecePlayer rook1)
+isOverlapSpace (Coord 2 0) $
+move rook1 (Coord 2 0) (Data.Maybe.fromJust board)
 
 -}

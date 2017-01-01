@@ -3,6 +3,7 @@ module Chess.Core.Moves
     , validMoves
     , candidateMoves
     , threatenedSpaces
+    , transfer
     ) where
 
 import           Chess.Core.Domain
@@ -11,15 +12,28 @@ import qualified Data.List         as DL
 import qualified Data.Maybe        as DM
 import qualified Debug.Trace       as T
 
+{- Determines if player is currently in check. -}
+playerInCheck :: Maybe Board -> Player -> Bool
+playerInCheck Nothing _ = False
+playerInCheck b pp = DL.any (\s -> ((piecePlayer <$> (spacePiece s)) == Just pp)
+                                   && ((pieceType <$> (spacePiece s)) == Just King)) $ threatenedSpaces b pp
+
 {- Moves piece from one space to the next. If requested move is invalid, returns nothing.  -}
 move :: Piece -> Coord -> Board -> Maybe Board
-move p destCoord b@Board{spacesMap = spsMap}
+move p@Piece{piecePlayer = pp} destCoord b@Board{spacesMap = spsMap}
+    | resultsInCheck = Nothing
     | targetCoordStandard originSpace = transfer b p originSpace destSpace
     | targetCoordSpecial originSpace = moveSpecial $ transfer b p originSpace destSpace
     | otherwise = Nothing
 
   where
 
+    resultsInCheck :: Bool
+    resultsInCheck = playerInCheck virtBoard pp
+      where
+        virtBoard :: Maybe Board
+        virtBoard = transfer b p originSpace destSpace
+    
     moveSpecial :: Maybe Board -> Maybe Board
     moveSpecial newB =
       foldl (\accB m ->
@@ -382,7 +396,7 @@ canOccupy p s
   | hasOpponent p s = True
   | otherwise = False
 
-{- Determines if space is threatened by another piece. -}
+{- Determines if coord within spaces. -}
 isOverlapSpace :: Coord -> [Space] -> Bool
 isOverlapSpace c [] = False
 isOverlapSpace c sps = c `elem` (map (\s -> spaceCoord s) sps)
