@@ -324,7 +324,7 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
         pieceTypeMoved b pCoord pType =
           if DM.isNothing (matchesPiece $ fetchSpace pCoord b)
           then Nothing
-          else Just (movedPiece $ DM.fromJust $ fetchSpace pCoord b)
+          else movedPiece <$> fetchSpace pCoord b
               where
                 matchesPiece :: Maybe Space -> Maybe Bool
                 matchesPiece Nothing = Nothing
@@ -334,8 +334,17 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
                 movedPiece :: Space -> Bool
                 movedPiece sp = pieceMoved $ DM.fromJust $ spacePiece sp 
 
-specialCandidateMoves p@Piece{pieceType = Pawn} c b d = []
+specialCandidateMoves p@Piece{pieceType = Pawn} c b d
+  | pawnNeighbour && jumpedOpenning = leftEnPassant ++ rightEnPassant
+  | otherwise = []
+    where 
+      pawnNeighbour, jumpedOpenning :: Bool
+      pawnNeighbour = False
+      jumpedOpenning = False
 
+      leftEnPassant, rightEnPassant :: [Move]
+      leftEnPassant = []
+      rightEnPassant = []
 
 {- Pieces that move directionally, returns candidate coordinates  -}
 directionalCandidateMoves' :: [Direction] -> Piece -> Coord -> Board -> Direction -> [Move]
