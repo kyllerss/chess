@@ -1149,22 +1149,22 @@ spec = describe "Pieces" $ do
 
         boardR `shouldBe` Nothing
 
-    it "cannot castle when spaces in between threatened" $ do
+    it "cannot castle when king's move spaces in between threatened" $ do
 
         let emptyBoard = initBoard 8 8 defaultSpaceBuilder
             originCoord = Coord 7 4
             king = buildTestPiece 1 King 1 North
             rook1 = buildTestPiece 2 Rook 1 North
             rook2 = buildTestPiece 3 Rook 1 North
-            pawn1 = buildTestPiece 4 Pawn 2 South
-            pawn2 = buildTestPiece 5 Pawn 2 South
+            rook3 = buildTestPiece 4 Rook 2 South
+            rook4 = buildTestPiece 5 Rook 2 South
         
             board = Just emptyBoard >>=
                     addPieceToBoard king originCoord >>= 
                     addPieceToBoard rook1 (Coord 7 0) >>= 
                     addPieceToBoard rook2 (Coord 7 7) >>=
-                    addPieceToBoard pawn1 (Coord 6 0) >>=
-                    addPieceToBoard pawn2 (Coord 6 7)
+                    addPieceToBoard rook3 (Coord 5 3) >>=
+                    addPieceToBoard rook4 (Coord 5 5)
 
         board `shouldNotBe` Nothing
         
@@ -1174,6 +1174,103 @@ spec = describe "Pieces" $ do
             --ms = T.traceShow (threatenedSpaces board $ piecePlayer king) $ validMoves (DM.fromJust board) king originCoord
             --ms = T.traceShow board $ validMoves (DM.fromJust board) king originCoord
             
+        length ms `shouldBe` 1
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 7 2) coords `shouldBe` False
+        elem (Coord 7 3) coords `shouldBe` False
+        elem (Coord 6 3) coords `shouldBe` False
+        elem (Coord 6 4) coords `shouldBe` True
+        elem (Coord 6 5) coords `shouldBe` False
+        elem (Coord 7 5) coords `shouldBe` False
+        elem (Coord 7 6) coords `shouldBe` False
+
+        -- verify move works (rook1)
+        let boardL :: Maybe Board
+            boardL = move king (Coord 2 7) (DM.fromJust board) 
+
+        boardL `shouldBe` Nothing
+
+        -- verify move works (rook2)
+        let boardR :: Maybe Board
+            boardR = move king (Coord 6 7) (DM.fromJust board) 
+
+        boardR `shouldBe` Nothing
+
+    it "can castle when rook's move spaces in between threatened" $ do
+
+        let emptyBoard = initBoard 8 8 defaultSpaceBuilder
+            originCoord = Coord 7 4
+            king = buildTestPiece 1 King 1 North
+            rook1 = buildTestPiece 2 Rook 1 North
+            rook2 = buildTestPiece 3 Rook 1 North
+            rook3 = buildTestPiece 4 Rook 2 South
+            rook4 = buildTestPiece 5 Rook 2 South
+        
+            board = Just emptyBoard >>=
+                    addPieceToBoard king originCoord >>= 
+                    addPieceToBoard rook1 (Coord 7 0) >>= 
+                    addPieceToBoard rook2 (Coord 7 7) >>=
+                    addPieceToBoard rook3 (Coord 5 1) >>=
+                    addPieceToBoard rook4 (Coord 5 7)
+
+        board `shouldNotBe` Nothing
+        
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) king originCoord
+            
+        length ms `shouldBe` 7
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 7 2) coords `shouldBe` True
+        elem (Coord 7 3) coords `shouldBe` True
+        elem (Coord 6 3) coords `shouldBe` True
+        elem (Coord 6 4) coords `shouldBe` True
+        elem (Coord 6 5) coords `shouldBe` True
+        elem (Coord 7 5) coords `shouldBe` True
+        elem (Coord 7 6) coords `shouldBe` True
+
+        -- verify move works (rook1)
+        let boardL :: Maybe Board
+            boardL = move king (Coord 7 2) (DM.fromJust board) 
+
+        boardL `shouldNotBe` Nothing
+
+        -- verify move works (rook2)
+        let boardR :: Maybe Board
+            boardR = move king (Coord 7 6) (DM.fromJust board) 
+
+        boardR `shouldNotBe` Nothing
+
+    it "cannot castle when result is check" $ do
+
+      {-
+        let emptyBoard = initBoard 8 8 defaultSpaceBuilder
+            originCoord = Coord 7 4
+            king = buildTestPiece 1 King 1 North
+            rook1 = buildTestPiece 2 Rook 1 North
+            rook2 = buildTestPiece 3 Rook 1 North
+            pawn1 = buildTestPiece 4 Pawn 1 North
+            pawn2 = buildTestPiece 5 Pawn 1 North
+        
+            board = Just emptyBoard >>=
+                    addPieceToBoard king originCoord >>= 
+                    addPieceToBoard rook1 (Coord 7 0) >>= 
+                    addPieceToBoard rook2 (Coord 7 7) >>=
+                    addPieceToBoard pawn1 (Coord 7 1) >>=
+                    addPieceToBoard pawn2 (Coord 7 6)
+
+        board `shouldNotBe` Nothing
+        
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) king originCoord
+
         length ms `shouldBe` 5
 
         let coords :: [Coord]
@@ -1198,10 +1295,8 @@ spec = describe "Pieces" $ do
             boardR = move king (Coord 7 6) (DM.fromJust board) 
 
         boardR `shouldBe` Nothing
-
-    it "cannot castle when result is check" $ do
+     -}
       pending
-
     it "cannot castle when pieces previously moved" $ do
       pending
 
@@ -1251,6 +1346,6 @@ let
 
 oppCoords board (piecePlayer king)
 validMoves (Data.Maybe.fromJust board) pawn1 (Coord 6 0)
-
+o
 
 -}

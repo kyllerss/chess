@@ -238,19 +238,20 @@ specialCandidateMoves Piece{pieceType = Knight} _ _ _ = []
 specialCandidateMoves Piece{pieceType = Bishop} _ _ _ = []
 specialCandidateMoves Piece{pieceType = Queen} _ _ _ = []
 
-{- Disqualify self if moved
-   Look left 5 spaces for non-moved rook
-   Look right 4 spaces for non-moved rook
-   Determine which slots threatened-}
+{- King castling moves. -}
 specialCandidateMoves p@Piece{pieceType = King, pieceMoved = True} c b d = []
 specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDirection = pd}} c b d
   | d == cLeftDir = castleDir [moveD c cLeftDir 1
                               , moveD c cLeftDir 2
                               , moveD c cLeftDir 3]
+                              [moveD c cLeftDir 1
+                              , moveD c cLeftDir 2]
                               (moveD c cLeftDir 4)
                               (moveD c cLeftDir 2)
                               (moveD c cLeftDir 1)
   | d == cRightDir = castleDir [moveD c cRightDir 1
+                               , moveD c cRightDir 2]
+                               [moveD c cRightDir 1
                                , moveD c cRightDir 2]
                                (moveD c cRightDir 3)
                                (moveD c cRightDir 2)
@@ -265,12 +266,12 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
     cRightDir :: Direction
     cRightDir = rotateRight . rotateRight $ pd
 
-    castleDir :: [Coord] -> Coord -> Coord -> Coord -> [Move]
-    castleDir betweenCoords rookCoord kingDestCoord rookDestCoord =
+    castleDir :: [Coord] -> [Coord] -> Coord -> Coord -> Coord -> [Move]
+    castleDir betweenCoords kingMoveCoords rookCoord kingDestCoord rookDestCoord =
       if (DM.isJust rookMoved)
          && not (DM.fromJust rookMoved)
-         && spacesPassable
-         && not spacesThreatened
+         && spacesPassable 
+         && not (spacesThreatened kingMoveCoords)
       then [
             buildMove p
                       b
@@ -286,13 +287,15 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
         rookMoved = pieceTypeMoved b rookCoord Rook
 
         spacesPassable :: Bool
-        spacesPassable = DL.all (\coord -> (isValid b coord) && (not $ isObstructed coord)) betweenCoords
+        spacesPassable =
+          DL.all (\coord -> (isValid b coord) && (not $ isObstructed coord)) betweenCoords
 
         isObstructed :: Coord -> Bool
         isObstructed coord = maybe False (\s -> DM.isJust $ spacePiece s) $ fetchSpace coord b
 
-        spacesThreatened :: Bool
-        spacesThreatened = DL.any (\c -> isOverlapSpace c (threatenedSpaces (virtBoard b pp c) pp)) betweenCoords
+        spacesThreatened :: [Coord] -> Bool
+        spacesThreatened kingMoveCoords =
+          DL.any (\c -> isOverlapSpace c (threatenedSpaces (virtBoard b pp c) pp)) kingMoveCoords
           where
             virtBoard :: Board -> Player -> Coord -> Maybe Board
             virtBoard b pp coord = addPieceToBoard (testPiece pp coord) coord b
