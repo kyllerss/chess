@@ -209,7 +209,30 @@ spec = describe "Pieces" $ do
 
     it "can do 'en passant'" $ do
 
-      pending
+        -- initial board setup
+        let emptyBoard = initBoard 4 3 defaultSpaceBuilder
+            vPawn = buildTestPiece 1 Pawn 1 South
+            aPawn = buildTestPiece 2 Pawn 2 North
+
+            board :: Maybe Board
+            board = Just emptyBoard >>=
+                    addPieceToBoard vPawn (Coord 0 0) >>=
+                    addPieceToBoard aPawn (Coord 3 1) >>=
+                    move aPawn (Coord 2 1) >>=
+                    move vPawn (Coord 2 0)
+
+        board `shouldNotBe` Nothing
+
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) aPawn (Coord 2 1)
+
+        length ms `shouldBe` 2
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 1 0) coords `shouldBe` True
+        elem (Coord 1 1) coords `shouldBe` True
 
   describe "Rook" $ do
 
