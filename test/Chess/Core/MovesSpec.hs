@@ -1344,8 +1344,40 @@ spec = describe "Pieces" $ do
         boardR `shouldBe` Nothing
       
     it "cannot have another piece move (pinned) if results in check" $ do
-      pending
 
+        let emptyBoard = initBoard 4 3 defaultSpaceBuilder
+            originCoord = Coord 3 1
+            king = buildTestPiece 1 King 1 North
+            rook1 = buildTestPiece 2 Rook 1 North
+            rook2 = buildTestPiece 3 Rook 2 South
+        
+            board = Just emptyBoard >>=
+                    addPieceToBoard king originCoord >>= 
+                    addPieceToBoard rook1 (Coord 2 1) >>= -- pinned 
+                    addPieceToBoard rook2 (Coord 0 1)     -- opponent
+
+        board `shouldNotBe` Nothing
+        
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) king originCoord
+
+        length ms `shouldBe` 4
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 3 0) coords `shouldBe` True
+        elem (Coord 3 2) coords `shouldBe` True
+        elem (Coord 2 0) coords `shouldBe` True
+        elem (Coord 2 2) coords `shouldBe` True
+
+        -- move pinned rook
+        let newBoard :: Maybe Board
+            newBoard = move rook1 (Coord 2 0) (DM.fromJust board)
+
+        newBoard `shouldBe` Nothing
+        
 {- GHCi Test Commands
 
 :set +m
