@@ -335,13 +335,18 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
                 movedPiece sp = pieceMoved $ DM.fromJust $ spacePiece sp 
 
 specialCandidateMoves p@Piece{pieceType = Pawn} c b d
-  | pawnNeighbour && jumpedOpenning = leftEnPassant ++ rightEnPassant
+  | neighbourIsPawn && jumpedOpenning = leftEnPassant ++ rightEnPassant
   | otherwise = []
-    where 
-      pawnNeighbour, jumpedOpenning :: Bool
-      pawnNeighbour = False
+    where
+
+      neighbourIsPawn, jumpedOpenning :: Bool
+      neighbourIsPawn = False
       jumpedOpenning = False
 
+      leftNeighbour, rightNeighbour :: Maybe Piece
+      leftNeighbour = Nothing
+      rightNeighbour = Nothing
+      
       leftEnPassant, rightEnPassant :: [Move]
       leftEnPassant = []
       rightEnPassant = []
