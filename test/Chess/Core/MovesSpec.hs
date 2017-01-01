@@ -1249,21 +1249,20 @@ spec = describe "Pieces" $ do
 
     it "cannot castle when result is check" $ do
 
-      {-
         let emptyBoard = initBoard 8 8 defaultSpaceBuilder
             originCoord = Coord 7 4
             king = buildTestPiece 1 King 1 North
             rook1 = buildTestPiece 2 Rook 1 North
             rook2 = buildTestPiece 3 Rook 1 North
-            pawn1 = buildTestPiece 4 Pawn 1 North
-            pawn2 = buildTestPiece 5 Pawn 1 North
+            rook3 = buildTestPiece 4 Rook 2 South
+            rook4 = buildTestPiece 5 Rook 2 South
         
             board = Just emptyBoard >>=
                     addPieceToBoard king originCoord >>= 
                     addPieceToBoard rook1 (Coord 7 0) >>= 
                     addPieceToBoard rook2 (Coord 7 7) >>=
-                    addPieceToBoard pawn1 (Coord 7 1) >>=
-                    addPieceToBoard pawn2 (Coord 7 6)
+                    addPieceToBoard rook3 (Coord 5 2) >>=
+                    addPieceToBoard rook4 (Coord 5 6)
 
         board `shouldNotBe` Nothing
         
@@ -1295,8 +1294,7 @@ spec = describe "Pieces" $ do
             boardR = move king (Coord 7 6) (DM.fromJust board) 
 
         boardR `shouldBe` Nothing
-     -}
-      pending
+     
     it "cannot castle when pieces previously moved" $ do
       pending
 
