@@ -18,12 +18,13 @@ library
   exposed-modules:     Chess.Core.Domain
                        Chess.Core.Serialization
                        Chess.Core.Moves
+                       Chess.TestUtils
   build-depends:       base >= 4.7 && < 5
                      , text
                      , aeson
                      , bytestring
                      , containers
-  default-language:    Haskell2010
+  default-language:   Haskell2010
   default-extensions: DuplicateRecordFields
                     , DeriveGeneric
                     , OverloadedStrings
@@ -40,7 +41,7 @@ executable chess-exe
                      , bytestring
                      , containers
                      , hspec >= 2.2
-  default-language:    Haskell2010
+  default-language:   Haskell2010
   default-extensions: DuplicateRecordFields
                     , DeriveGeneric
                     , OverloadedStrings

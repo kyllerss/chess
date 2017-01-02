@@ -1,6 +1,7 @@
 module Chess.Core.DomainSpec ( spec ) where
 
 import           Test.Hspec
+import           Chess.TestUtils
 import           Chess.Core.Domain
 import           Chess.Core.Moves
 import qualified Data.List         as DL
@@ -12,11 +13,11 @@ spec = describe "board" $ do
     describe "when created" $ do
       describe "when 1 x 1" $ do
         it "has right dimensions" $ do
-            let (Board spaces) = initBoard 1 1 defaultSpaceBuilder
+            let Board {spacesMap = spaces} = initBoard 1 1 defaultSpaceBuilder
             return (M.size spaces) >>=
                 (`shouldBe` (1 :: Int))
         it "has coordinate (1, 1)" $ do
-            let (Board spsMap) = initBoard 1 1 defaultSpaceBuilder
+            let Board {spacesMap = spsMap} = initBoard 1 1 defaultSpaceBuilder
                 space = M.lookup (Coord 0 0) spsMap
             space `shouldNotBe` Nothing
             spaceCoord (DM.fromJust space) `shouldSatisfy`
@@ -79,9 +80,8 @@ spec = describe "board" $ do
 
       describe "when 2 x 2" $ do
         it "has right dimensions" $ do
-            let (Board spaces) = initBoard 2 2 defaultSpaceBuilder
-            return (M.size spaces) >>=
-                (`shouldBe` (4 :: Int))
+            let Board {spacesMap = spaces} = initBoard 2 2 defaultSpaceBuilder
+            return (M.size spaces) >>= (`shouldBe` (4 :: Int))
         it "has alternating colors by rows" $ do
             let board = initBoard 2 2 defaultSpaceBuilder
                 coord1 = Coord 0 0
@@ -96,3 +96,19 @@ spec = describe "board" $ do
                 (\(Just s) -> (spaceColor (s :: Space)) == Black)
             (fetchSpace coord4 board) `shouldSatisfy`
                 (\(Just s) -> (spaceColor (s :: Space)) == White)
+                
+    it "records move history" $ do
+
+        let emptyBoard = initBoard 3 1 defaultSpaceBuilder
+            originCoord = Coord 0 0
+            king = buildTestPiece 1 King 1 South
+        
+            board = Just emptyBoard >>= addPieceToBoard king originCoord
+
+        boardMoves <$> board `shouldBe` Just []
+
+        let newBoard = board >>=
+                       move (pieceId king) (Coord 1 0) >>=
+                       move (pieceId king) (Coord 2 0)
+
+        boardMoves <$> newBoard `shouldBe` Just [((pieceId king), Coord 2 0), ((pieceId king), Coord 1 0)]

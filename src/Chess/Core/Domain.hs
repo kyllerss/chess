@@ -66,7 +66,9 @@ instance Ord Space where
     (Space{spaceCoord = c1}) `compare` (Space{spaceCoord = c2}) =
         c1 `compare` c2
 
-data Board = Board { spacesMap :: Map.Map Coord Space }
+data Board = Board { spacesMap  :: Map.Map Coord Space
+                   , boardMoves :: [(PieceId, Coord)]
+                   }
     deriving (Show, Generic, Eq)
 
 data Move = Move { movePieceId        :: PieceId
@@ -95,7 +97,13 @@ initBoard width height spaceBuilder =
 
 {- Builder function -}
 buildBoard :: Int -> Int -> [Space] -> Board
-buildBoard r c sps = Board { spacesMap = buildSpaceMap sps }
+buildBoard r c sps = Board { spacesMap = buildSpaceMap sps
+                           , boardMoves = []}
+
+{- Record history of board moves.  -}
+recordBoardMove :: PieceId -> Coord  -> Board -> Maybe Board
+recordBoardMoves _ _ Nothing = Nothing
+recordBoardMove pId coord b = Just b { boardMoves = (pId, coord) : boardMoves b } 
 
 buildSpaceMap :: [Space] -> Map.Map Coord Space
 buildSpaceMap sps = foldl (\m s -> Map.insert (spaceCoord s) s m) Map.empty sps

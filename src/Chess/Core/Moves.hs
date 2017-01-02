@@ -27,13 +27,16 @@ move pId c b = moveInner (fetchPieceById pId b) c b
 {- Internal implementation of 'move' with piece resolved. -}
 moveInner :: Maybe Piece -> Coord -> Board -> Maybe Board
 moveInner Nothing _ _ = Nothing
-moveInner (Just p@Piece{piecePlayer = pp}) destCoord b@Board{spacesMap = spsMap}
+moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b@Board{spacesMap = spsMap}
     | resultsInCheck = Nothing
-    | targetCoordStandard originSpace = transfer b p originSpace destSpace
-    | targetCoordSpecial originSpace = moveSpecial $ transfer b p originSpace destSpace
+    | targetCoordStandard originSpace = movedBoard
+    | targetCoordSpecial originSpace = movedBoard >>= applyCollateralMoves
     | otherwise = Nothing
 
   where
+
+    movedBoard :: Maybe Board
+    movedBoard = transfer b p originSpace destSpace >>= recordBoardMove pId destCoord 
 
     resultsInCheck :: Bool
     resultsInCheck = playerInCheck virtBoard pp
@@ -41,8 +44,8 @@ moveInner (Just p@Piece{piecePlayer = pp}) destCoord b@Board{spacesMap = spsMap}
         virtBoard :: Maybe Board
         virtBoard = transfer b p originSpace destSpace
     
-    moveSpecial :: Maybe Board -> Maybe Board
-    moveSpecial newB =
+    applyCollateralMoves :: Board -> Maybe Board
+    applyCollateralMoves newB =
       foldl (\accB m ->
                 let collateralPiece = DM.fromJust (fetchPieceById (movePieceId m) (DM.fromJust accB))
                     collateralDestSpace = Just (moveSpace m)
@@ -50,7 +53,7 @@ moveInner (Just p@Piece{piecePlayer = pp}) destCoord b@Board{spacesMap = spsMap}
                 in
                   transfer (DM.fromJust accB) collateralPiece collateralOriginSpace collateralDestSpace
             )
-            newB
+            (Just newB)
             (moveSideEffects $ targetSpecialMove)
 
     targetCoordStandard :: Maybe Space -> Bool

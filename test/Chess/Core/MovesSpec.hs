@@ -1,23 +1,11 @@
 module Chess.Core.MovesSpec ( spec ) where
 
 import           Test.Hspec
+import           Chess.TestUtils
 import           Chess.Core.Domain
 import           Chess.Core.Moves
 import qualified Data.Maybe        as DM
 import qualified Debug.Trace       as T
-
-buildTestPiece :: Int -> PieceType -> Int -> Direction -> Piece
-buildTestPiece pId pType playerId playerDir =
-  buildPiece (PieceId pId)
-             pType
-             White
-             (Player { playerName = "dummy"
-                     , playerType = Human
-                     , playerId = playerId
-                     , playerDirection = playerDir
-                     })
-             Nothing
-
 
 spec :: Spec
 spec = describe "Pieces" $ do
