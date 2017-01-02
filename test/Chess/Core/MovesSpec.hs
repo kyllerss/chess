@@ -1434,7 +1434,26 @@ spec = describe "Pieces" $ do
 
     it "is in check intially and move blocks check" $ do
 
-      pending
+        let emptyBoard = initBoard 4 3 defaultSpaceBuilder
+            originCoord = Coord 3 1
+            king = buildTestPiece 1 King 1 North
+            rook1 = buildTestPiece 2 Rook 1 North
+            rook2 = buildTestPiece 3 Rook 2 South
+        
+            board = Just emptyBoard >>=
+                    addPieceToBoard king originCoord >>= 
+                    addPieceToBoard rook1 (Coord 2 0) >>=
+                    addPieceToBoard rook2 (Coord 0 1)     -- opponent
+
+        board `shouldNotBe` Nothing
+        playerInCheck board (piecePlayer king) `shouldBe` True
+
+        -- move rook to block check
+        let newBoard :: Maybe Board
+            newBoard = move (pieceId rook1) (Coord 2 1) (DM.fromJust board)
+
+        newBoard `shouldNotBe` Nothing
+        playerInCheck newBoard (piecePlayer king) `shouldBe` False
       
 {- GHCi Test Commands
 

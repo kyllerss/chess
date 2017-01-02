@@ -4,6 +4,7 @@ module Chess.Core.Moves
     , candidateMoves
     , threatenedSpaces
     , transfer
+    , playerInCheck
     ) where
 
 import           Chess.Core.Domain
