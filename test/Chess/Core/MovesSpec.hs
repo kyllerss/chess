@@ -234,9 +234,32 @@ spec = describe "Pieces" $ do
         elem (Coord 1 0) coords `shouldBe` True
         elem (Coord 1 1) coords `shouldBe` True
 
-    it "can do left 'en passant'" $ do
+    it "can do right 'en passant'" $ do
 
-      pending
+        -- initial board setup
+        let emptyBoard = initBoard 4 3 defaultSpaceBuilder
+            vPawn = buildTestPiece 1 Pawn 1 South
+            aPawn = buildTestPiece 2 Pawn 2 North
+
+            board :: Maybe Board
+            board = Just emptyBoard >>=
+                    addPieceToBoard vPawn (Coord 0 2) >>=
+                    addPieceToBoard aPawn (Coord 3 1) >>=
+                    move (pieceId aPawn) (Coord 2 1) >>=
+                    move (pieceId vPawn) (Coord 2 2)
+
+        board `shouldNotBe` Nothing
+
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) (pieceId aPawn) (Coord 2 1)
+
+        length ms `shouldBe` 2
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 1 2) coords `shouldBe` True
+        elem (Coord 1 1) coords `shouldBe` True
     
     it "looses ability to do 'en passant' if not done immediately" $ do
 
