@@ -353,7 +353,7 @@ specialCandidateMoves p@Piece{pieceType = Pawn, piecePlayer = Player{playerDirec
     where
 
       bothQualify, leftQualifies, rightQualifies :: Bool
-      bothQualify = leftQualifies || rightQualifies 
+      bothQualify = leftQualifies && rightQualifies 
       leftQualifies = leftIsPawn && leftJumpedOpenning
       rightQualifies = rightIsPawn && rightJumpedOpenning
       
@@ -362,12 +362,15 @@ specialCandidateMoves p@Piece{pieceType = Pawn, piecePlayer = Player{playerDirec
       rightIsPawn = (pieceType <$> rightNeighbour) == Just Pawn
 
       leftJumpedOpenning, rightJumpedOpenning :: Bool
-      leftJumpedOpenning = isJump pd (join $  pieceOrigin <$> leftNeighbour) leftCoord
-      rightJumpedOpenning = isJump pd (join $  pieceOrigin <$> rightNeighbour) rightCoord
+      leftJumpedOpenning = isJump (playerDirection <$> piecePlayer <$> leftNeighbour)
+                                  (join $ pieceOrigin <$> leftNeighbour) leftCoord
+      rightJumpedOpenning = isJump (playerDirection <$> piecePlayer <$> rightNeighbour)
+                                   (join $ pieceOrigin <$> rightNeighbour) rightCoord
 
-      isJump :: Direction -> Maybe Coord -> Coord -> Bool
+      isJump :: Maybe Direction -> Maybe Coord -> Coord -> Bool
+      isJump Nothing _ _ = False
       isJump _ Nothing _ = False
-      isJump pd (Just oc) cc = (moveD oc pd 2) == cc
+      isJump (Just od) (Just oc) cc = (moveD oc od 2) == cc
 
       leftNeighbour, rightNeighbour :: Maybe Piece
       leftNeighbour = fetchPiece leftCoord b

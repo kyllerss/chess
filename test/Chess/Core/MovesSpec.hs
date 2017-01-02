@@ -224,12 +224,12 @@ spec = describe "Pieces" $ do
         board `shouldNotBe` Nothing
 
         let ms :: [Move]
-            ms = validMoves (T.traceShow board $ DM.fromJust board) (pieceId aPawn) (Coord 2 1)
+            ms = validMoves (DM.fromJust board) (pieceId aPawn) (Coord 2 1)
 
         length ms `shouldBe` 2
 
         let coords :: [Coord]
-            coords = T.traceShow ms $ map (\m -> spaceCoord $ moveSpace m) ms
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
 
         elem (Coord 1 0) coords `shouldBe` True
         elem (Coord 1 1) coords `shouldBe` True
