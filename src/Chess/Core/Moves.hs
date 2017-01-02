@@ -20,8 +20,13 @@ playerInCheck b pp = DL.any (\s -> ((piecePlayer <$> (spacePiece s)) == Just pp)
                                    && ((pieceType <$> (spacePiece s)) == Just King)) $ threatenedSpaces b pp
 
 {- Moves piece from one space to the next. If requested move is invalid, returns nothing.  -}
-move :: Piece -> Coord -> Board -> Maybe Board
-move p@Piece{piecePlayer = pp} destCoord b@Board{spacesMap = spsMap}
+move :: PieceId -> Coord -> Board -> Maybe Board
+move pId c b = moveInner (fetchPieceById pId b) c b
+
+{- Internal implementation of 'move' with piece resolved. -}
+moveInner :: Maybe Piece -> Coord -> Board -> Maybe Board
+moveInner Nothing _ _ = Nothing
+moveInner (Just p@Piece{piecePlayer = pp}) destCoord b@Board{spacesMap = spsMap}
     | resultsInCheck = Nothing
     | targetCoordStandard originSpace = transfer b p originSpace destSpace
     | targetCoordSpecial originSpace = moveSpecial $ transfer b p originSpace destSpace
@@ -84,8 +89,12 @@ transfer b@Board {spacesMap = spsMap} p (Just os) (Just ds) =
             M.insert (spaceCoord os) (removePiece os) spsMap
 
 {- Returns all valid moves for a given piece. -}
-validMoves :: Board -> Piece -> Coord -> [Move]
-validMoves b@Board{spacesMap = spsMap} p@Piece{pieceId = pId} originCoord =
+validMoves :: Board -> PieceId -> Coord -> [Move]
+validMoves b pId c = validMovesInner b (fetchPieceById pId b) c
+
+validMovesInner :: Board -> Maybe Piece -> Coord -> [Move]
+validMovesInner _ Nothing _ = []
+validMovesInner b@Board{spacesMap = spsMap} (Just p@Piece{pieceId = pId}) originCoord =
   validStandardMoves b p originCoord ++ validSpecialMoves b p originCoord 
   
 validStandardMoves :: Board -> Piece -> Coord -> [Move]
@@ -117,7 +126,7 @@ threatenedSpaces Nothing _ = []
 threatenedSpaces b player = map (\mv -> moveSpace mv) $ -- extract spaces
                    filter (\mv -> moveIsConsumable mv) $ -- keep offensive moves
                    DL.foldl' (++) [] $ -- join list of valid coords
-                   map (\(op, oc) -> validMoves (DM.fromJust b) op oc) $ -- calc opp valid moves
+                   map (\(op, oc) -> validMoves (DM.fromJust b) (pieceId op) oc) $ -- calc opp valid moves
                    oppCoords b -- fetch opp coords
   where
     oppCoords :: Maybe Board -> [(Piece, Coord)]

@@ -22,9 +22,9 @@ buildTestPiece pId pType playerId playerDir =
 spec :: Spec
 spec = describe "Pieces" $ do
   describe "Pawn" $ do
-  
+
     it "valid moves consists of forward two spots when unobstructed" $ do
-      
+
         -- initial board setup
         let emptyBoard = initBoard 3 3 defaultSpaceBuilder
             originCoord = Coord 0 1
@@ -36,7 +36,7 @@ spec = describe "Pieces" $ do
         board `shouldNotBe` Nothing
 
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) pawn originCoord
+            ms = validMoves (DM.fromJust board) (pieceId pawn) originCoord
 
         length ms `shouldBe` 2
 
@@ -47,7 +47,7 @@ spec = describe "Pieces" $ do
         elem (Coord 2 1) coords `shouldBe` True
 
     it "no valid moves when facing edge of board" $ do
-      
+
         -- initial board setup
         let emptyBoard = initBoard 3 3 defaultSpaceBuilder
             originCoord = Coord 0 1
@@ -59,7 +59,7 @@ spec = describe "Pieces" $ do
         board `shouldNotBe` Nothing
 
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) pawn originCoord
+            ms = validMoves (DM.fromJust board) (pieceId pawn) originCoord
 
         length ms `shouldBe` 0
 
@@ -77,7 +77,7 @@ spec = describe "Pieces" $ do
 
         -- move piece
         let destCoord = Coord 1 1
-            newBoard = move pawn destCoord (DM.fromJust board) 
+            newBoard = move (pieceId pawn) destCoord (DM.fromJust board) 
 
         newBoard `shouldNotBe` Nothing
 
@@ -112,7 +112,7 @@ spec = describe "Pieces" $ do
         -- move piece
         let destCoord = Coord 1 4
             pawn = DM.fromJust $ spacePiece $ DM.fromJust $ fetchSpace originCoord (DM.fromJust board)
-            newBoard = move pawn destCoord (DM.fromJust board) 
+            newBoard = move (pieceId pawn) destCoord (DM.fromJust board) 
 
         newBoard `shouldNotBe` Nothing
 
@@ -134,7 +134,7 @@ spec = describe "Pieces" $ do
         pieceMoved movedPawn `shouldBe` True
 
         let ms :: [Move]
-            ms = validMoves (DM.fromJust newBoard) movedPawn (spaceCoord destSpace')
+            ms = validMoves (DM.fromJust newBoard) (pieceId movedPawn) (spaceCoord destSpace')
 
         length ms `shouldBe` 1
         (spaceCoord . moveSpace) (ms !! 0) `shouldBe` Coord 2 4
@@ -155,7 +155,7 @@ spec = describe "Pieces" $ do
         board `shouldNotBe` Nothing
 
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) pawn originCoord
+            ms = validMoves (DM.fromJust board) (pieceId pawn) originCoord
 
         length ms `shouldBe` 0
 
@@ -177,7 +177,7 @@ spec = describe "Pieces" $ do
         board `shouldNotBe` Nothing
 
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) pawn originCoord
+            ms = validMoves (DM.fromJust board) (pieceId pawn) originCoord
 
         length ms `shouldBe` 4
 
@@ -203,7 +203,7 @@ spec = describe "Pieces" $ do
 
         -- move piece
         let destCoord = Coord 1 1
-            newBoard = move pawn destCoord (DM.fromJust board) 
+            newBoard = move (pieceId pawn) destCoord (DM.fromJust board) 
 
         newBoard `shouldBe` Nothing
 
@@ -218,13 +218,13 @@ spec = describe "Pieces" $ do
             board = Just emptyBoard >>=
                     addPieceToBoard vPawn (Coord 0 0) >>=
                     addPieceToBoard aPawn (Coord 3 1) >>=
-                    move aPawn (Coord 2 1) >>=
-                    move vPawn (Coord 2 0)
+                    move (pieceId aPawn) (Coord 2 1) >>=
+                    move (pieceId vPawn) (Coord 2 0)
 
         board `shouldNotBe` Nothing
 
         let ms :: [Move]
-            ms = validMoves (T.traceShow board $ DM.fromJust board) aPawn (Coord 2 1)
+            ms = validMoves (T.traceShow board $ DM.fromJust board) (pieceId aPawn) (Coord 2 1)
 
         length ms `shouldBe` 2
 
@@ -257,7 +257,7 @@ spec = describe "Pieces" $ do
 
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) rook originCoord
+            ms = validMoves (DM.fromJust board) (pieceId rook) originCoord
 
         length ms `shouldBe` 16
 
@@ -303,7 +303,7 @@ spec = describe "Pieces" $ do
 
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) rook originCoord
+            ms = validMoves (DM.fromJust board) (pieceId rook) originCoord
 
         length ms `shouldBe` 8
 
@@ -348,7 +348,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) rook originCoord
+            ms = validMoves (DM.fromJust board) (pieceId rook) originCoord
 
         length ms `shouldBe` 12
 
@@ -387,7 +387,7 @@ spec = describe "Pieces" $ do
 
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) bishop originCoord
+            ms = validMoves (DM.fromJust board) (pieceId bishop) originCoord
 
         length ms `shouldBe` 16
 
@@ -433,7 +433,7 @@ spec = describe "Pieces" $ do
 
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) bishop originCoord
+            ms = validMoves (DM.fromJust board) (pieceId bishop) originCoord
 
         length ms `shouldBe` 4
 
@@ -478,7 +478,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) bishop originCoord
+            ms = validMoves (DM.fromJust board) (pieceId bishop) originCoord
 
         length ms `shouldBe` 8
 
@@ -517,7 +517,7 @@ spec = describe "Pieces" $ do
 
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) queen originCoord
+            ms = validMoves (DM.fromJust board) (pieceId queen) originCoord
 
         length ms `shouldBe` 32
 
@@ -590,7 +590,7 @@ spec = describe "Pieces" $ do
 
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) queen originCoord
+            ms = validMoves (DM.fromJust board) (pieceId queen) originCoord
 
         length ms `shouldBe` 12
 
@@ -662,7 +662,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) queen originCoord
+            ms = validMoves (DM.fromJust board) (pieceId queen) originCoord
 
         length ms `shouldBe` 20
 
@@ -720,7 +720,7 @@ spec = describe "Pieces" $ do
 
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) knight originCoord
+            ms = validMoves (DM.fromJust board) (pieceId knight) originCoord
 
         length ms `shouldBe` 8
 
@@ -758,7 +758,7 @@ spec = describe "Pieces" $ do
 
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) knight originCoord
+            ms = validMoves (DM.fromJust board) (pieceId knight) originCoord
 
         length ms `shouldBe` 4
 
@@ -795,7 +795,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) knight originCoord
+            ms = validMoves (DM.fromJust board) (pieceId knight) originCoord
 
         length ms `shouldBe` 8
 
@@ -826,7 +826,7 @@ spec = describe "Pieces" $ do
 
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) (pieceId king) originCoord
 
         length ms `shouldBe` 8
 
@@ -864,7 +864,7 @@ spec = describe "Pieces" $ do
 
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) (pieceId king) originCoord
 
         length ms `shouldBe` 4
 
@@ -901,7 +901,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) (pieceId king) originCoord
 
         length ms `shouldBe` 5
 
@@ -934,7 +934,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) (pieceId king) originCoord
 
         length ms `shouldBe` 6
 
@@ -967,7 +967,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) (pieceId king) originCoord
 
         length ms `shouldBe` 5
 
@@ -1007,7 +1007,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) (pieceId king) originCoord
 
         length ms `shouldBe` 7
 
@@ -1024,7 +1024,7 @@ spec = describe "Pieces" $ do
 
         -- verify move works (rook1)
         let boardL :: Maybe Board
-            boardL = move king (Coord 7 2) (DM.fromJust board) 
+            boardL = move (pieceId king) (Coord 7 2) (DM.fromJust board) 
 
         boardL `shouldNotBe` Nothing
 
@@ -1047,7 +1047,7 @@ spec = describe "Pieces" $ do
         
         -- verify move works (rook2)
         let boardR :: Maybe Board
-            boardR = move king (Coord 7 6) (DM.fromJust board) 
+            boardR = move (pieceId king) (Coord 7 6) (DM.fromJust board) 
 
         boardR `shouldNotBe` Nothing
 
@@ -1078,7 +1078,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) (pieceId king) originCoord
 
         length ms `shouldBe` 7
 
@@ -1095,7 +1095,7 @@ spec = describe "Pieces" $ do
 
         -- verify move works (rook1)
         let boardL :: Maybe Board
-            boardL = move king (Coord 2 7) (DM.fromJust board) 
+            boardL = move (pieceId king) (Coord 2 7) (DM.fromJust board) 
 
         boardL `shouldNotBe` Nothing
 
@@ -1118,7 +1118,7 @@ spec = describe "Pieces" $ do
         
         -- verify move works (rook2)
         let boardR :: Maybe Board
-            boardR = move king (Coord 6 7) (DM.fromJust board) 
+            boardR = move (pieceId king) (Coord 6 7) (DM.fromJust board) 
 
         boardR `shouldNotBe` Nothing
 
@@ -1153,7 +1153,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) (pieceId king) originCoord
 
         length ms `shouldBe` 5
 
@@ -1170,13 +1170,13 @@ spec = describe "Pieces" $ do
 
         -- verify move works (rook1)
         let boardL :: Maybe Board
-            boardL = move king (Coord 7 2) (DM.fromJust board) 
+            boardL = move (pieceId king) (Coord 7 2) (DM.fromJust board) 
 
         boardL `shouldBe` Nothing
 
         -- verify move works (rook2)
         let boardR :: Maybe Board
-            boardR = move king (Coord 7 6) (DM.fromJust board) 
+            boardR = move (pieceId king) (Coord 7 6) (DM.fromJust board) 
 
         boardR `shouldBe` Nothing
 
@@ -1201,7 +1201,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) (pieceId king) originCoord
             --ms = T.traceShow (threatenedSpaces board $ piecePlayer king) $ validMoves (DM.fromJust board) king originCoord
             --ms = T.traceShow board $ validMoves (DM.fromJust board) king originCoord
             
@@ -1220,13 +1220,13 @@ spec = describe "Pieces" $ do
 
         -- verify move works (rook1)
         let boardL :: Maybe Board
-            boardL = move king (Coord 2 7) (DM.fromJust board) 
+            boardL = move (pieceId king) (Coord 2 7) (DM.fromJust board) 
 
         boardL `shouldBe` Nothing
 
         -- verify move works (rook2)
         let boardR :: Maybe Board
-            boardR = move king (Coord 6 7) (DM.fromJust board) 
+            boardR = move (pieceId king) (Coord 6 7) (DM.fromJust board) 
 
         boardR `shouldBe` Nothing
 
@@ -1251,7 +1251,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) (pieceId king) originCoord
             
         length ms `shouldBe` 7
 
@@ -1268,13 +1268,13 @@ spec = describe "Pieces" $ do
 
         -- verify move works (rook1)
         let boardL :: Maybe Board
-            boardL = move king (Coord 7 2) (DM.fromJust board) 
+            boardL = move (pieceId king) (Coord 7 2) (DM.fromJust board) 
 
         boardL `shouldNotBe` Nothing
 
         -- verify move works (rook2)
         let boardR :: Maybe Board
-            boardR = move king (Coord 7 6) (DM.fromJust board) 
+            boardR = move (pieceId king) (Coord 7 6) (DM.fromJust board) 
 
         boardR `shouldNotBe` Nothing
 
@@ -1299,7 +1299,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) (pieceId king) originCoord
 
         length ms `shouldBe` 5
 
@@ -1316,13 +1316,13 @@ spec = describe "Pieces" $ do
 
         -- verify move works (rook1)
         let boardL :: Maybe Board
-            boardL = move king (Coord 7 2) (DM.fromJust board) 
+            boardL = move (pieceId king) (Coord 7 2) (DM.fromJust board) 
 
         boardL `shouldBe` Nothing
 
         -- verify move works (rook2)
         let boardR :: Maybe Board
-            boardR = move king (Coord 7 6) (DM.fromJust board) 
+            boardR = move (pieceId king) (Coord 7 6) (DM.fromJust board) 
 
         boardR `shouldBe` Nothing
      
@@ -1338,16 +1338,16 @@ spec = describe "Pieces" $ do
                     addPieceToBoard king originCoord >>= 
                     addPieceToBoard rook1 (Coord 7 0) >>= 
                     addPieceToBoard rook2 (Coord 7 7) >>=
-                    move rook1 (Coord 6 0) >>=
-                    move rook1 (Coord 7 0) >>=
-                    move rook2 (Coord 6 7) >>=
-                    move rook2 (Coord 7 7) 
+                    move (pieceId rook1) (Coord 6 0) >>=
+                    move (pieceId rook1) (Coord 7 0) >>=
+                    move (pieceId rook2) (Coord 6 7) >>=
+                    move (pieceId rook2) (Coord 7 7) 
 
         board `shouldNotBe` Nothing
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) (pieceId king) originCoord
 
         length ms `shouldBe` 5
 
@@ -1364,13 +1364,13 @@ spec = describe "Pieces" $ do
 
         -- verify move doesn't work (castle left)
         let boardL :: Maybe Board
-            boardL = move king (Coord 7 2) (DM.fromJust board) 
+            boardL = move (pieceId king) (Coord 7 2) (DM.fromJust board) 
 
         boardL `shouldBe` Nothing
 
         -- verify move doesn't work (castle right)
         let boardR :: Maybe Board
-            boardR = move king (Coord 7 6) (DM.fromJust board) 
+            boardR = move (pieceId king) (Coord 7 6) (DM.fromJust board) 
 
         boardR `shouldBe` Nothing
       
@@ -1391,7 +1391,7 @@ spec = describe "Pieces" $ do
         
         -- fetch moves
         let ms :: [Move]
-            ms = validMoves (DM.fromJust board) king originCoord
+            ms = validMoves (DM.fromJust board) (pieceId king) originCoord
 
         length ms `shouldBe` 4
 
@@ -1405,7 +1405,7 @@ spec = describe "Pieces" $ do
 
         -- move pinned rook
         let newBoard :: Maybe Board
-            newBoard = move rook1 (Coord 2 0) (DM.fromJust board)
+            newBoard = move (pieceId rook1) (Coord 2 0) (DM.fromJust board)
 
         newBoard `shouldBe` Nothing
 
