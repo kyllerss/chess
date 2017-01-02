@@ -11,6 +11,7 @@ import qualified Data.Map          as M
 import qualified Data.List         as DL
 import qualified Data.Maybe        as DM
 import qualified Debug.Trace       as T
+import           Control.Monad
 
 {- Determines if player is currently in check. -}
 playerInCheck :: Maybe Board -> Player -> Bool
@@ -334,22 +335,46 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
                 movedPiece :: Space -> Bool
                 movedPiece sp = pieceMoved $ DM.fromJust $ spacePiece sp 
 
-specialCandidateMoves p@Piece{pieceType = Pawn} c b d
-  | neighbourIsPawn && jumpedOpenning = leftEnPassant ++ rightEnPassant
+specialCandidateMoves p@Piece{pieceType = Pawn, piecePlayer = Player{playerDirection = pd}} c b d
+  | d /= pd = []
+  | bothQualify = leftEnPassant ++ rightEnPassant
+  | leftQualifies = leftEnPassant
+  | rightQualifies = rightEnPassant
   | otherwise = []
     where
 
-      neighbourIsPawn, jumpedOpenning :: Bool
-      neighbourIsPawn = False
-      jumpedOpenning = False
+      bothQualify, leftQualifies, rightQualifies :: Bool
+      bothQualify = leftQualifies || rightQualifies 
+      leftQualifies = leftIsPawn && leftJumpedOpenning
+      rightQualifies = rightIsPawn && rightJumpedOpenning
+      
+      leftIsPawn, rightIsPawn :: Bool
+      leftIsPawn = (pieceType <$> leftNeighbour) == Just Pawn
+      rightIsPawn = (pieceType <$> rightNeighbour) == Just Pawn
+
+      leftJumpedOpenning, rightJumpedOpenning :: Bool
+      leftJumpedOpenning = isJump pd (join $  pieceOrigin <$> leftNeighbour) leftCoord
+      rightJumpedOpenning = isJump pd (join $  pieceOrigin <$> rightNeighbour) rightCoord
+
+      isJump :: Direction -> Maybe Coord -> Coord -> Bool
+      isJump _ Nothing _ = False
+      isJump pd (Just oc) cc = (moveD oc pd 2) == cc
 
       leftNeighbour, rightNeighbour :: Maybe Piece
-      leftNeighbour = Nothing
-      rightNeighbour = Nothing
+      leftNeighbour = fetchPiece leftCoord b
+      rightNeighbour = fetchPiece rightCoord b
+
+      leftCoord, rightCoord :: Coord
+      leftCoord = moveD c (rotateLeft . rotateLeft $ pd) 1
+      rightCoord = moveD c (rotateRight . rotateRight $ pd) 1
+
+      leftEnPassantCoord, rightEnPassantCoord :: Coord
+      leftEnPassantCoord = moveD leftCoord pd 1
+      rightEnPassantCoord = moveD rightCoord pd 1
       
       leftEnPassant, rightEnPassant :: [Move]
-      leftEnPassant = []
-      rightEnPassant = []
+      leftEnPassant = [buildMove p b leftEnPassantCoord True []]
+      rightEnPassant = [buildMove p b rightEnPassantCoord True []]
 
 {- Pieces that move directionally, returns candidate coordinates  -}
 directionalCandidateMoves' :: [Direction] -> Piece -> Coord -> Board -> Direction -> [Move]
