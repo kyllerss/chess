@@ -358,8 +358,16 @@ specialCandidateMoves p@Piece{pieceType = Pawn, piecePlayer = Player{playerDirec
 
       bothQualify, leftQualifies, rightQualifies :: Bool
       bothQualify = leftQualifies && rightQualifies 
-      leftQualifies = leftIsPawn && leftJumpedOpenning
-      rightQualifies = rightIsPawn && rightJumpedOpenning
+      leftQualifies = leftIsPawn && leftJumpedOpenning && turnOnLeftNotMissed
+      rightQualifies = rightIsPawn && rightJumpedOpenning && turnOnRightNotMissed
+
+      turnOnLeftNotMissed, turnOnRightNotMissed :: Bool
+      turnOnLeftNotMissed = length (movesSince leftNeighbour) == 0
+      turnOnRightNotMissed = length (movesSince rightNeighbour) == 0
+
+      movesSince :: Maybe Piece -> [(PieceId, Coord)]
+      movesSince Nothing = []
+      movesSince Just Piece{piecePlayer = pl} = undefined
       
       leftIsPawn, rightIsPawn :: Bool
       leftIsPawn = (pieceType <$> leftNeighbour) == Just Pawn

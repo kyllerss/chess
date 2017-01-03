@@ -222,6 +222,8 @@ spec = describe "Pieces" $ do
         elem (Coord 1 0) coords `shouldBe` True
         elem (Coord 1 1) coords `shouldBe` True
 
+        -- TODO: Actually do the move and verify other pawn taken.
+
     it "can do right 'en passant'" $ do
 
         -- initial board setup
@@ -249,10 +251,57 @@ spec = describe "Pieces" $ do
         elem (Coord 1 2) coords `shouldBe` True
         elem (Coord 1 1) coords `shouldBe` True
     
+        -- TODO: Actually do the move and verify other pawn taken.
+
     it "looses ability to do 'en passant' if not done immediately" $ do
 
-      pending
+        -- initial board setup
+        let emptyBoard = initBoard 4 4 defaultSpaceBuilder
+            victim = buildTestPiece 1 Pawn 1 South
+            attacker = buildTestPiece 2 Pawn 2 North
+            attackerR = buildTestPiece 3 Rook 2 North
+            otherPlayer = buildTestPiece 4 Rook 3 East
+        
+            board :: Maybe Board
+            board = Just emptyBoard >>=
+                    addPieceToBoard otherPlayer (Coord 0 0) >>=
+                    addPieceToBoard victim (Coord 0 2) >>=
+                    addPieceToBoard attacker (Coord 3 3) >>=
+                    addPieceToBoard attackerR (Coord 3 0) >>=
+                    move (pieceId attacker) (Coord 2 3) >>=
+                    move (pieceId victim) (Coord 2 2) >>=
+                    move (pieceId otherPlayer) (Coord 1 0)
 
+        board `shouldNotBe` Nothing
+
+        let ms :: [Move]
+            ms = validMoves (DM.fromJust board) (pieceId attacker) (Coord 2 3)
+
+        length ms `shouldBe` 2
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 1 3) coords `shouldBe` True
+        elem (Coord 1 2) coords `shouldBe` True
+
+        -- move same player (but don't en-pass)
+        let newBoard = board >>=
+                       move (pieceId otherPlayer) (Coord 0 0) >>=
+                       move (pieceId attackerR) (Coord 2 0)
+
+        newBoard `shouldNotBe` Nothing
+
+        let ms' = validMoves (DM.fromJust newBoard) (pieceId attacker) (Coord 2 3)
+
+        length ms' `shouldBe` 1
+
+        let coords' :: [Coord]
+            coords' = map (\m -> spaceCoord $ moveSpace m) ms'
+
+        elem (Coord 1 3) coords' `shouldBe` True
+        elem (Coord 1 2) coords' `shouldBe` False
+        
   describe "Rook" $ do
 
     it "has valid moves when unobstructed" $ do
