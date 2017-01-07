@@ -300,7 +300,6 @@ spec = describe "Pieces" $ do
             coords' = map (\m -> spaceCoord $ moveSpace m) ms'
 
         elem (Coord 1 3) coords' `shouldBe` True
-        elem (Coord 1 2) coords' `shouldBe` False
         
   describe "Rook" $ do
 

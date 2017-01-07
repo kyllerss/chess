@@ -348,7 +348,7 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
                 movedPiece :: Space -> Bool
                 movedPiece sp = pieceMoved $ DM.fromJust $ spacePiece sp 
 
-specialCandidateMoves p@Piece{pieceType = Pawn, piecePlayer = Player{playerDirection = pd}} c b d
+specialCandidateMoves p@Piece{pieceType = Pawn, piecePlayer = Player{playerId = plId, playerDirection = pd}} c b d
   | d /= pd = []
   | bothQualify = leftEnPassant ++ rightEnPassant
   | leftQualifies = leftEnPassant
@@ -367,7 +367,15 @@ specialCandidateMoves p@Piece{pieceType = Pawn, piecePlayer = Player{playerDirec
 
       movesSince :: Maybe Piece -> [(PieceId, Coord)]
       movesSince Nothing = []
-      movesSince Just Piece{piecePlayer = pl} = undefined
+      movesSince (Just Piece{pieceId = pId}) =
+        filter matchesPlayer $ takeWhile notMatchesPiece (boardMoves b)
+
+        where
+          notMatchesPiece :: (PieceId, Coord) -> Bool
+          notMatchesPiece (mPieceId, _) = mPieceId /= pId
+
+          matchesPlayer :: (PieceId, Coord) -> Bool
+          matchesPlayer (mPieceId, _) = (Just plId) == (playerId <$> piecePlayer <$> (fetchPieceById mPieceId b))
       
       leftIsPawn, rightIsPawn :: Bool
       leftIsPawn = (pieceType <$> leftNeighbour) == Just Pawn

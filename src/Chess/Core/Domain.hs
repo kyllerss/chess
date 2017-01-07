@@ -99,7 +99,6 @@ initBoard width height spaceBuilder =
 buildBoard :: Int -> Int -> [Space] -> Board
 buildBoard r c sps = Board { spacesMap = buildSpaceMap sps
                            , boardMoves = []}
-
 {- Record history of board moves.  -}
 recordBoardMove :: PieceId -> Coord  -> Board -> Maybe Board
 recordBoardMoves _ _ Nothing = Nothing
