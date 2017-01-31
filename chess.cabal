@@ -88,7 +88,7 @@ library
                  , case-insensitive
                  , wai
 
-executable         chess-website
+executable         chess
     if flag(library-only)
         Buildable: False
 

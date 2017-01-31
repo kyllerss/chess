@@ -1,5 +1,5 @@
 {-# LANGUAGE PackageImports #-}
-import "chess-website" Application (develMain)
+import "chess" Application (develMain)
 import Prelude (IO)
 
 main :: IO ()
