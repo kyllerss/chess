@@ -1,7 +1,7 @@
 module Chess.TestUtils where
 
+import Import
 import           Chess.Core.Domain
-import qualified Data.Maybe        as DM
 
 buildTestPiece :: Int -> PieceType -> Int -> Direction -> Piece
 buildTestPiece pId pType playerId playerDir =

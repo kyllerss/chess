@@ -1,19 +1,33 @@
 module Chess.Core.Domain where
 
+import Import
 import qualified Data.List      as DL
 import qualified Data.Text.Lazy as T
-import           GHC.Generics
 import qualified Data.Map       as Map
 import qualified Data.Maybe     as DM
 
 data Color = Black | White
     deriving (Show, Eq)
 
+instance ToJSON Color where
+    toJSON Black = toJSON ("b" :: Text)
+    toJSON White = toJSON ("w" :: Text)
+
 data PieceType = Pawn | Rook | Knight | Bishop | King | Queen
     deriving (Show, Eq)
 
+instance ToJSON PieceType where
+    toJSON Pawn = toJSON ("p" :: Text)
+    toJSON Rook = toJSON ("r" :: Text)
+    toJSON Knight = toJSON ("n" :: Text)
+    toJSON Bishop = toJSON ("b" :: Text)
+    toJSON King = toJSON ("k" :: Text)
+    toJSON Queen = toJSON ("q" :: Text)
+
 data PieceId = PieceId Int
     deriving (Show, Generic, Eq)
+
+instance ToJSON PieceId
 
 data Piece = Piece { pieceColor   :: Color
                    , pieceType    :: PieceType
@@ -23,6 +37,8 @@ data Piece = Piece { pieceColor   :: Color
                    , pieceMoved   :: Bool
                    }
     deriving (Show, Generic)
+
+instance ToJSON Piece
 
 instance Eq Piece where
     (==) (Piece{pieceId = a}) (Piece{pieceId = b}) =
@@ -48,8 +64,15 @@ data Player = Player { playerName      :: T.Text
                      }
     deriving (Show, Eq)
 
+instance ToJSON Player where
+    toJSON (Player{playerName = pName,playerId = pId}) =
+        object [ "name" .= pName, "id" .= pId ]
+
 data Coord = Coord Int Int
     deriving (Show, Generic, Eq)
+
+instance ToJSON Coord where
+    toJSON (Coord x y) = toJSON $ [ x, y ]
 
 instance Ord Coord where
     (Coord x1 y1) `compare` (Coord x2 y2) =
@@ -62,14 +85,68 @@ data Space = Space { spacePiece :: Maybe Piece
            | Void Coord
     deriving (Show, Generic, Eq)
 
+instance ToJSON Space
+
 instance Ord Space where
     (Space{spaceCoord = c1}) `compare` (Space{spaceCoord = c2}) =
         c1 `compare` c2
+    (Space{spaceCoord = c1}) `compare` (Void c2) = c1 `compare` c2
+    (Void c1) `compare` (Space{spaceCoord = c2}) = c1 `compare` c2
+    (Void c1) `compare` (Void c2) = c1 `compare` c2
 
 data Board = Board { spacesMap  :: Map.Map Coord Space
                    , boardMoves :: [(PieceId, Coord)]
                    }
     deriving (Show, Generic, Eq)
+
+instance ToJSON Board where
+    toJSON (Board{spacesMap = spMap}) =
+        toJSON $ encode . toColor . shape . sortSpaces $ foldr (:) [] spMap
+      where
+        multimap :: (a -> b) -> [[a]] -> [[b]]
+        multimap f ss = map (\xs -> map f xs) ss
+
+        -- group by row
+        shape :: [Space] -> [[Space]]
+        shape vs = DL.groupBy (\a -> (\b -> (extractRow a) == (extractRow b)))
+                              vs
+          where
+            extractRow :: Space -> Int
+            extractRow (Void (Coord row _)) = row 
+            extractRow (Space{spaceCoord = Coord row _}) = row
+
+        encode :: [[Color]] -> [[Value]]
+        encode sp = multimap (\x -> toJSON x) sp
+
+        toColor :: [[Space]] -> [[Color]]
+        toColor sp = multimap (\s -> spaceColor (s :: Space)) sp
+
+        sortSpaces :: [Space] -> [Space]
+        sortSpaces sp = DL.sortBy orderByColumnAndRow sp
+
+        orderByColumnAndRow :: Space -> Space -> Ordering
+        orderByColumnAndRow a b =
+            case (a, b) of
+                (Void (Coord a1 b1), Void (Coord a2 b2))
+                    | a1 > a2 -> GT
+                    | a2 > a1 -> LT
+                    | a1 == a2 -> if (b1 > b2) then GT else LT
+                    | otherwise -> EQ
+                (Void (Coord a1 b1), Space{spaceCoord = (Coord a2 b2)})
+                    | a1 > a2 -> GT
+                    | a2 > a1 -> LT
+                    | a1 == a2 -> if (b1 > b2) then GT else LT
+                    | otherwise -> EQ
+                (Space{spaceCoord = (Coord a1 b1)}, Void (Coord a2 b2))
+                    | a1 > a2 -> GT
+                    | a2 > a1 -> LT
+                    | a1 == a2 -> if (b1 > b2) then GT else LT
+                    | otherwise -> EQ
+                (Space{spaceCoord = (Coord a1 b1)}, Space{spaceCoord = (Coord a2 b2)})
+                    | a1 > a2 -> GT
+                    | a2 > a1 -> LT
+                    | a1 == a2 -> if (b1 > b2) then GT else LT
+                    | otherwise -> EQ
 
 data Move = Move { movePieceId        :: PieceId
                  , moveSpace          :: Space
@@ -86,6 +163,33 @@ data GameState = GameState { board      :: Board
                            }
     deriving Show
 
+instance ToJSON GameState where
+    toJSON GameState{board = b} =
+        object [ "board" .= b, "pieces" .= (renderPieces b) ]
+      where
+        renderPieces :: Board -> Map Text Value
+        renderPieces Board{spacesMap = sp} =
+            foldl' appendPiece Map.empty sp
+
+        appendPiece :: Map Text Value -> Space -> Map Text Value
+        appendPiece m (Void _) = m
+        appendPiece m (Space{spacePiece = Nothing}) = m
+        appendPiece m (Space{spaceCoord = c, spacePiece = Just p}) =
+            Map.insert (pack $ show $ pieceId p) (renderPiece p c) m
+
+        {-
+            map (\(Space{coord = c, piece = Just p}) ->
+                     object [ (Tpack (show (pieceId p))) .= (renderPiece p c) ])
+                sp
+
+        -}
+        renderPiece :: Piece -> Coord -> Value
+        renderPiece p c = object [ "t" .= (pieceType p)
+                                 , "c" .= (pieceColor (p :: Piece))
+                                 , "p" .= (playerId $ piecePlayer p)
+                                 , "xy" .= c
+                                 ]
+
 {- Generate a new board.  -}
 initBoard :: Int -> Int -> (Coord -> Space) -> Board
 initBoard width height spaceBuilder =
@@ -97,15 +201,14 @@ initBoard width height spaceBuilder =
 
 {- Builder function -}
 buildBoard :: Int -> Int -> [Space] -> Board
-buildBoard r c sps = Board { spacesMap = buildSpaceMap sps
+buildBoard _ _ sps = Board { spacesMap = buildSpaceMap sps
                            , boardMoves = []}
 {- Record history of board moves.  -}
 recordBoardMove :: PieceId -> Coord  -> Board -> Maybe Board
-recordBoardMoves _ _ Nothing = Nothing
 recordBoardMove pId coord b = Just b { boardMoves = (pId, coord) : boardMoves b } 
 
 buildSpaceMap :: [Space] -> Map.Map Coord Space
-buildSpaceMap sps = foldl (\m s -> Map.insert (spaceCoord s) s m) Map.empty sps
+buildSpaceMap sps = DL.foldl (\m s -> Map.insert (spaceCoord s) s m) Map.empty sps
 
 {- Create a new board.  -}
 initGame :: Int -> Int -> GameState
@@ -218,7 +321,7 @@ fetchPieceSpace p Board {spacesMap = spsMap} =
         fetchSpace' :: [(Coord, Space)] -> Maybe Space
         fetchSpace' [] = Nothing
         fetchSpace' [ (_, spc) ] = Just spc
-        fetchSpace' ((_, spc) : sps) = Nothing
+        fetchSpace' ((_, _) : _) = error "Piece was found more than once on board!"
 
         evalPiece :: Maybe Piece -> Bool
         evalPiece Nothing = False

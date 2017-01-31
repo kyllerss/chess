@@ -1,12 +1,12 @@
 module Chess.Core.DomainSpec ( spec ) where
 
+import Import
 import           Test.Hspec
 import           Chess.TestUtils
 import           Chess.Core.Domain
 import           Chess.Core.Moves
-import qualified Data.List         as DL
-import qualified Data.Maybe        as DM
-import qualified Data.Map          as M
+import Data.Map (size)
+import Data.Maybe (fromJust)
 
 spec :: Spec
 spec = describe "board" $ do
@@ -14,19 +14,19 @@ spec = describe "board" $ do
       describe "when 1 x 1" $ do
         it "has right dimensions" $ do
             let Board {spacesMap = spaces} = initBoard 1 1 defaultSpaceBuilder
-            return (M.size spaces) >>=
+            return (size spaces) >>=
                 (`shouldBe` (1 :: Int))
         it "has coordinate (1, 1)" $ do
             let Board {spacesMap = spsMap} = initBoard 1 1 defaultSpaceBuilder
-                space = M.lookup (Coord 0 0) spsMap
+                space = lookup (Coord 0 0) spsMap
             space `shouldNotBe` Nothing
-            spaceCoord (DM.fromJust space) `shouldSatisfy`
+            spaceCoord (fromJust space) `shouldSatisfy`
                 (\(Coord x y) -> x == 0 && y == 0)
         it "has no pieces" $ do
             let board = initBoard 1 1 defaultSpaceBuilder
                 coord = Coord 0 0
             (fetchSpace coord board) `shouldSatisfy`
-                (\(Just s) -> DM.isNothing $ spacePiece (s :: Space))
+                (\(Just s) -> isNothing $ spacePiece (s :: Space))
         it "can have piece added" $ do
 
             -- initial empty board setup
@@ -47,7 +47,7 @@ spec = describe "board" $ do
 
             -- verify target space empty
             let space' :: Space
-                space' = DM.fromJust space
+                space' = fromJust space
                 piece :: Maybe Piece
                 piece = spacePiece $ space'
 
@@ -61,27 +61,27 @@ spec = describe "board" $ do
 
             -- verify target space no longer empty
             let newSpace :: Maybe Space
-                newSpace = fetchSpace coord (DM.fromJust newBoard)
+                newSpace = fetchSpace coord (fromJust newBoard)
 
             newSpace `shouldNotBe` Nothing
 
             -- verify space's piece
             let piece' :: Maybe Piece
-                piece' = spacePiece $ DM.fromJust newSpace
+                piece' = spacePiece $ fromJust newSpace
 
             piece' `shouldNotBe` Nothing
-            pieceId (DM.fromJust piece') `shouldBe` pieceId pawn
+            pieceId (fromJust piece') `shouldBe` pieceId pawn
 
             let po :: Maybe Coord
-                po = pieceOrigin (DM.fromJust piece') 
+                po = pieceOrigin (fromJust piece') 
 
             po `shouldNotBe` Nothing
-            DM.fromJust po `shouldBe` coord
+            fromJust po `shouldBe` coord
 
       describe "when 2 x 2" $ do
         it "has right dimensions" $ do
             let Board {spacesMap = spaces} = initBoard 2 2 defaultSpaceBuilder
-            return (M.size spaces) >>= (`shouldBe` (4 :: Int))
+            return (size spaces) >>= (`shouldBe` (4 :: Int))
         it "has alternating colors by rows" $ do
             let board = initBoard 2 2 defaultSpaceBuilder
                 coord1 = Coord 0 0
