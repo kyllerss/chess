@@ -1,3 +1,5 @@
 *~
 .stack-work/
 TAGS
+static/tmp/*
+yesod-devel/
