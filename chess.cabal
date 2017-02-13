@@ -21,7 +21,7 @@ library
                      Settings.StaticFiles
                      Handler.Common
                      Handler.Home
-                     Handler.Comment
+                     Handler.NewGame
                      Chess.Core.Domain
                      Chess.Core.Moves
                      Chess.TestUtils
