@@ -1,2 +1,1 @@
-<div>
-  Hello World! #{myCount} 
+<div #c-main-board>

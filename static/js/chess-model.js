@@ -72,63 +72,18 @@ var ChessModel = function () {
         return _pieceMapping[type];
     };
 
-    function _initState() {
+    function _initState(onDoneCallback) {
 
-        _rawState = {
+        _rawState = null;
 
-            // board layout
-            board : [['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
-                     ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w'],
-                     ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
-                     ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w'],
-                     ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
-                     ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w'],
-                     ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
-                     ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']],
-
-            // t -> type, c -> color, p -> player id
-            pieces: {
-                // player 1
-                1: {t: 'r', c: 'b', p: 1, xy: [0,0]},
-                2: {t: 'n', c: 'b', p: 1, xy: [0,1]},
-                3: {t: 'b', c: 'b', p: 1, xy: [0,2]},
-                4: {t: 'q', c: 'b', p: 1, xy: [0,3]},
-                5: {t: 'k', c: 'b', p: 1, xy: [0,4]},
-                6: {t: 'b', c: 'b', p: 1, xy: [0,5]},
-                7: {t: 'k', c: 'b', p: 1, xy: [0,6]},
-                8: {t: 'r', c: 'b', p: 1, xy: [0,7]},
-                9: {t: 'p', c: 'b', p: 1, xy: [1,0]},
-                10: {t: 'p', c: 'b', p: 1, xy: [1,1]},
-                11: {t: 'p', c: 'b', p: 1, xy: [1,2]},
-                12: {t: 'p', c: 'b', p: 1, xy: [1,3]},
-                13: {t: 'p', c: 'b', p: 1, xy: [1,4]},
-                14: {t: 'p', c: 'b', p: 1, xy: [1,5]},
-                15: {t: 'p', c: 'b', p: 1, xy: [1,6]},
-                16: {t: 'p', c: 'b', p: 1, xy: [1,7]},
-
-                // player 2
-                17: {t: 'p', c: 'w', p: 2, xy: [6,0]},
-                18: {t: 'p', c: 'w', p: 2, xy: [6,1]},
-                19: {t: 'p', c: 'w', p: 2, xy: [6,2]},
-                20: {t: 'p', c: 'w', p: 2, xy: [6,3]},
-                21: {t: 'p', c: 'w', p: 2, xy: [6,4]},
-                22: {t: 'p', c: 'w', p: 2, xy: [6,5]},
-                23: {t: 'p', c: 'w', p: 2, xy: [6,6]},
-                24: {t: 'p', c: 'w', p: 2, xy: [6,7]},
-                25: {t: 'r', c: 'w', p: 2, xy: [7,0]},
-                26: {t: 'n', c: 'w', p: 2, xy: [7,1]},
-                27: {t: 'b', c: 'w', p: 2, xy: [7,2]},
-                28: {t: 'q', c: 'w', p: 2, xy: [7,3]},
-                29: {t: 'k', c: 'w', p: 2, xy: [7,4]},
-                30: {t: 'b', c: 'w', p: 2, xy: [7,5]},
-                31: {t: 'n', c: 'w', p: 2, xy: [7,6]},
-                32: {t: 'r', c: 'w', p: 2, xy: [7,7]}
-            },
-
-            // possible moves
-            moves: {17: [[5,0], [5,1]],
-                    18: [[5,0], [5,1], [5,2]]}
-        };
+        $.ajax({
+            url: "/game/new",
+            dataType: "json",
+            method: "GET"
+        })
+            .done(function(data) {
+                console.log("Received response: " + data);
+                _rawState = data;
 
         // layout initial board
         _board = [];
@@ -184,6 +139,67 @@ var ChessModel = function () {
                 _moveablePieces[pId] = true;
             }
         }
+            });
+
+        console.log("Sent request...");
+
+        /*
+            {
+            // board layout
+            board : [['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
+                     ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w'],
+                     ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
+                     ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w'],
+                     ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
+                     ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w'],
+                     ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
+                     ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']],
+
+            // t -> type, c -> color, p -> player id
+            pieces: {
+                // player 1
+                1: {t: 'r', c: 'b', p: 1, xy: [0,0]},
+                2: {t: 'n', c: 'b', p: 1, xy: [0,1]},
+                3: {t: 'b', c: 'b', p: 1, xy: [0,2]},
+                4: {t: 'q', c: 'b', p: 1, xy: [0,3]},
+                5: {t: 'k', c: 'b', p: 1, xy: [0,4]},
+                6: {t: 'b', c: 'b', p: 1, xy: [0,5]},
+                7: {t: 'k', c: 'b', p: 1, xy: [0,6]},
+                8: {t: 'r', c: 'b', p: 1, xy: [0,7]},
+                9: {t: 'p', c: 'b', p: 1, xy: [1,0]},
+                10: {t: 'p', c: 'b', p: 1, xy: [1,1]},
+                11: {t: 'p', c: 'b', p: 1, xy: [1,2]},
+                12: {t: 'p', c: 'b', p: 1, xy: [1,3]},
+                13: {t: 'p', c: 'b', p: 1, xy: [1,4]},
+                14: {t: 'p', c: 'b', p: 1, xy: [1,5]},
+                15: {t: 'p', c: 'b', p: 1, xy: [1,6]},
+                16: {t: 'p', c: 'b', p: 1, xy: [1,7]},
+
+                // player 2
+                17: {t: 'p', c: 'w', p: 2, xy: [6,0]},
+                18: {t: 'p', c: 'w', p: 2, xy: [6,1]},
+                19: {t: 'p', c: 'w', p: 2, xy: [6,2]},
+                20: {t: 'p', c: 'w', p: 2, xy: [6,3]},
+                21: {t: 'p', c: 'w', p: 2, xy: [6,4]},
+                22: {t: 'p', c: 'w', p: 2, xy: [6,5]},
+                23: {t: 'p', c: 'w', p: 2, xy: [6,6]},
+                24: {t: 'p', c: 'w', p: 2, xy: [6,7]},
+                25: {t: 'r', c: 'w', p: 2, xy: [7,0]},
+                26: {t: 'n', c: 'w', p: 2, xy: [7,1]},
+                27: {t: 'b', c: 'w', p: 2, xy: [7,2]},
+                28: {t: 'q', c: 'w', p: 2, xy: [7,3]},
+                29: {t: 'k', c: 'w', p: 2, xy: [7,4]},
+                30: {t: 'b', c: 'w', p: 2, xy: [7,5]},
+                31: {t: 'n', c: 'w', p: 2, xy: [7,6]},
+                32: {t: 'r', c: 'w', p: 2, xy: [7,7]}
+            },
+
+            // possible moves
+            moves: {17: [[5,0], [5,1]],
+                    18: [[5,0], [5,1], [5,2]]}
+        };
+        */
+
     };
 
     function _fetchBoard() {

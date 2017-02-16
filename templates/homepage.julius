@@ -1,0 +1,5 @@
+ChessModel.initBoard();
+ReactDOM.render(
+    React.createElement(Board),
+    document.getElementById("c-main-board")
+);
