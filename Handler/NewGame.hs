@@ -17,14 +17,8 @@ getNewGameR = do
                      , playerType = Human
                      , playerDirection = South
                      }
-    board :: Board
-    board = initStandardBoard player1 player2
     gameState :: GameState
-    gameState = GameState{ board = board
-                         , moves = []
-                         , players = [player1, player2]
-                         , playerTurn = player1
-                         , token = "" }
+    gameState = initGame Standard [player1, player2] 
   return $ toJSON gameState
       
  

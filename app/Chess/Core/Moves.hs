@@ -91,6 +91,14 @@ transfer b@Board {spacesMap = spsMap} p (Just os) (Just ds) =
                               (addPiece ds p{pieceMoved = True}) $
             M.insert (spaceCoord os) (removePiece os) spsMap
 
+{- Returns all valid moves for each piece of a given player in a given board  -}
+allValidMoves :: Board -> Player -> [Move]
+allValidMoves b@Board{spacesMap = spsMap} pl =
+  M.foldl'
+      (\acc spc@Space{spaceCoord = sCoord, spacePiece = Piece{pieceId = pId, piecePlayer = ppl}} ->
+              if (ppl == pl) then ((validMoves b pId sCoord) ++ acc) else (acc) )
+      spsMap
+
 {- Returns all valid moves for a given piece. -}
 validMoves :: Board -> PieceId -> Coord -> [Move]
 validMoves b pId c = validMovesInner b (fetchPieceById pId b) c
