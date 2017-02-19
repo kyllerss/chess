@@ -3,8 +3,13 @@ module Chess.Core.MovesSpec ( spec ) where
 import Import
 import           Test.Hspec
 import           Chess.TestUtils
-import           Chess.Core.Domain
-import           Chess.Core.Moves
+import           Chess.Core.Domain.Base
+import           Chess.Core.Domain.Board
+import           Chess.Core.Domain.Coord
+import           Chess.Core.Domain.Move
+import           Chess.Core.Domain.Piece
+import           Chess.Core.Domain.Space
+import           Chess.Core.Logic.Moves
 import Data.Maybe (fromJust)
 import Data.List ((!!))
 

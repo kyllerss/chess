@@ -1,7 +1,10 @@
 module Handler.NewGame where
 
 import Import
-import Chess.Core.Domain
+import           Chess.Core.Domain.Base
+import           Chess.Core.Domain.GameState
+import           Chess.Core.Domain.Player
+import qualified Data.Maybe as DM
 
 getNewGameR :: Handler Value
 getNewGameR = do
@@ -17,8 +20,8 @@ getNewGameR = do
                      , playerType = Human
                      , playerDirection = South
                      }
-    gameState :: GameState
+    gameState :: Maybe GameState
     gameState = initGame Standard [player1, player2] 
-  return $ toJSON gameState
+  return $ toJSON $ DM.fromJust gameState
       
  

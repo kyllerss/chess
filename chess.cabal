@@ -22,8 +22,15 @@ library
                      Handler.Common
                      Handler.Home
                      Handler.NewGame
-                     Chess.Core.Domain
-                     Chess.Core.Moves
+                     Chess.Core.Domain.Base
+                     Chess.Core.Domain.Board
+                     Chess.Core.Domain.Coord
+                     Chess.Core.Domain.GameState
+                     Chess.Core.Domain.Move
+                     Chess.Core.Domain.Piece
+                     Chess.Core.Domain.Player
+                     Chess.Core.Domain.Space
+                     Chess.Core.Logic.Moves
                      Chess.TestUtils
 
     if flag(dev) || flag(library-only)
@@ -122,6 +129,7 @@ test-suite test
     main-is:           Spec.hs
     other-modules:     Handler.CommonSpec
                        Handler.HomeSpec
+                       Handler.NewGameSpec
                        TestImport
                        Chess.Core.DomainSpec
                        Chess.Core.MovesSpec

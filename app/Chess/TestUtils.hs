@@ -1,7 +1,9 @@
 module Chess.TestUtils where
 
 import Import
-import           Chess.Core.Domain
+import           Chess.Core.Domain.Base
+import           Chess.Core.Domain.Piece
+import           Chess.Core.Domain.Player
 
 buildTestPiece :: Int -> PieceType -> Int -> Direction -> Piece
 buildTestPiece pId pType playerId playerDir =

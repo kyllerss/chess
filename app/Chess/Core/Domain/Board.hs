@@ -1,99 +1,14 @@
-module Chess.Core.Domain where
+module Chess.Core.Domain.Board where
 
 import Import
-import qualified Data.List      as DL
-import qualified Data.Text.Lazy as T
-import qualified Data.Map       as Map
-import qualified Data.Maybe     as DM
-
-data Color = Black | White
-    deriving (Show, Eq)
-
-instance ToJSON Color where
-    toJSON Black = toJSON ("b" :: Text)
-    toJSON White = toJSON ("w" :: Text)
-
-data PieceType = Pawn | Rook | Knight | Bishop | King | Queen
-    deriving (Show, Eq)
-
-instance ToJSON PieceType where
-    toJSON Pawn = toJSON ("p" :: Text)
-    toJSON Rook = toJSON ("r" :: Text)
-    toJSON Knight = toJSON ("n" :: Text)
-    toJSON Bishop = toJSON ("b" :: Text)
-    toJSON King = toJSON ("k" :: Text)
-    toJSON Queen = toJSON ("q" :: Text)
-
-data PieceId = PieceId {pieceIdValue :: Int}
-    deriving (Show, Generic, Eq)
-
-instance ToJSON PieceId where
-    toJSON (PieceId indx) = toJSON (indx :: Int)
-
-data Piece = Piece { pieceColor   :: Color
-                   , pieceType    :: PieceType
-                   , piecePlayer  :: Player
-                   , pieceId      :: PieceId
-                   , pieceOrigin  :: Maybe Coord
-                   , pieceMoved   :: Bool
-                   }
-    deriving (Show, Generic)
-
-instance ToJSON Piece
-
-instance Eq Piece where
-    (==) (Piece{pieceId = a}) (Piece{pieceId = b}) =
-        a == b
-
-data Direction = North
-               | NorthEast
-               | East
-               | SouthEast
-               | South
-               | SouthWest
-               | West
-               | NorthWest
-    deriving (Show, Eq, Ord, Enum, Bounded)
-
-data PlayerType = Human | Computer
-    deriving (Show, Eq)
-
-data Player = Player { playerName      :: T.Text
-                     , playerId        :: Int
-                     , playerType      :: PlayerType
-                     , playerDirection :: Direction
-                     }
-    deriving (Show, Eq)
-
-instance ToJSON Player where
-    toJSON (Player{playerName = pName,playerId = pId}) =
-        object [ "name" .= pName, "id" .= pId ]
-
-data Coord = Coord Int Int
-    deriving (Show, Generic, Eq)
-
-instance ToJSON Coord where
-    toJSON (Coord x y) = toJSON $ [ x, y ]
-
-instance Ord Coord where
-    (Coord x1 y1) `compare` (Coord x2 y2) =
-        (show x1 ++ " -- " ++ show y1) `compare` (show x2 ++ " -- " ++ show y2)
-
-data Space = Space { spacePiece :: Maybe Piece
-                   , spaceColor :: Color
-                   , spaceCoord :: Coord
-                   }
-           | Void Coord
-    deriving (Show, Generic, Eq)
-
-instance ToJSON Space
-
-instance Ord Space where
-    (Space{spaceCoord = c1}) `compare` (Space{spaceCoord = c2}) =
-        c1 `compare` c2
-    (Space{spaceCoord = c1}) `compare` (Void c2) = c1 `compare` c2
-    (Void c1) `compare` (Space{spaceCoord = c2}) = c1 `compare` c2
-    (Void c1) `compare` (Void c2) = c1 `compare` c2
+import Chess.Core.Domain.Base
+import Chess.Core.Domain.Coord
+import Chess.Core.Domain.Piece
+import Chess.Core.Domain.Player
+import Chess.Core.Domain.Space
+import qualified Data.Map as Map
+import qualified Data.List as DL
+import qualified Data.Maybe as DM
 
 data Board = Board { spacesMap  :: Map.Map Coord Space
                    , boardMoves :: [(PieceId, Coord)]
@@ -149,80 +64,6 @@ instance ToJSON Board where
                     | a1 == a2 -> if (b1 > b2) then GT else LT
                     | otherwise -> EQ
 
-data Move = Move { movePieceId        :: PieceId
-                 , moveSpace          :: Space
-                 , moveIsConsumable   :: Bool
-                 , moveSideEffects    :: [Move]
-                 }
-    deriving (Show, Eq)
-
-data GameState = GameState { board      :: Board
-                           , moves      :: [Move]
-                           , players    :: [Player]
-                           , playerTurn :: Player
-                           , token      :: T.Text
-                           }
-    deriving Show
-
-instance ToJSON GameState where
-    toJSON GameState{board = b, playerTurn = pl} =
-        object [ "board" .= b, "pieces" .= (renderPieces b), "moves" .= (renderMoves b) ]
-      where
-        
-        renderKeyValueMap :: Board -> (Space -> Maybe (Text, Value)) -> Map Text Value
-        renderKeyValueMap Board{spacesMap = spsMap} valueExtractor =
-            foldl' (\acc spc -> insertElement spc valueExtractor acc) Map.empty spsMap
-
-        insertElement :: Space -> (Space -> Maybe (Text, Value)) -> Map Text Value -> Map Text Value  
-        insertElement spc valueExtractor acc =
-          let pair = valueExtractor spc
-          in if DM.isNothing pair
-             then acc
-             else Map.insert (fst $ DM.fromJust pair) (snd $ DM.fromJust pair) acc 
-        
-        renderPieces :: Board -> Map Text Value
-        renderPieces b' = renderKeyValueMap b' appendPiece
-
-        appendPiece :: Space -> Maybe (Text, Value)
-        appendPiece (Void _) = Nothing
-        appendPiece (Space{spacePiece = Nothing}) = Nothing
-        appendPiece (Space{spaceCoord = c, spacePiece = Just p}) =
-            Just (pack $ show $ pieceIdValue $ pieceId p, renderPiece p c)
-
-        renderPiece :: Piece -> Coord -> Value
-        renderPiece p c = object [ "t" .= (pieceType p)
-                                 , "c" .= (pieceColor (p :: Piece))
-                                 , "p" .= (playerId $ piecePlayer p)
-                                 , "xy" .= c
-                                 ]
-
-        renderMoves :: Board -> Map Text Value
-        renderMoves b' = renderKeyValueMap b' appendMove
-
-        appendMove :: Space -> Maybe (Text, Value)
-        appendMove (Void _) = Nothing
-        appendMove Space{spacePiece = Nothing} = Nothing
-        appendMove Space{spaceCoord = c, spacePiece = Just p@Piece{pieceId = pId, piecePlayer = ppl}}
-          | ppl /= pl = Nothing
-          | otherwise =
-              let pMoves = validMoves b pId c
-              in Just (pack $ show $ pieceIdValue $ pieceId p, toJSON pMoves)
-
-data GameType = Standard
-
-{- Builds a new game state.  -}
-initGame :: GameType -> [Player] -> Maybe GameState
-initGame Standard (p1:p2:[]) =
-    Just GameState{ board = board
-                         , moves = allMoves
-                         , players = [p1, p2]
-                         , playerTurn = p1
-                         , token = "" }
-    where
-      board = initStandardBoard p1 p2
-      allMoves = []
-initGame Standard _ = Nothing
-
 {- Generate a new board.  -}
 initBoard :: Int -> Int -> (Coord -> Space) -> Board
 initBoard width height spaceBuilder =
@@ -236,38 +77,10 @@ initBoard width height spaceBuilder =
 buildBoard :: Int -> Int -> [Space] -> Board
 buildBoard _ _ sps = Board { spacesMap = buildSpaceMap sps
                            , boardMoves = []}
+
 {- Record history of board moves.  -}
 recordBoardMove :: PieceId -> Coord  -> Board -> Maybe Board
 recordBoardMove pId coord b = Just b { boardMoves = (pId, coord) : boardMoves b } 
-
-buildSpaceMap :: [Space] -> Map.Map Coord Space
-buildSpaceMap sps = DL.foldl (\m s -> Map.insert (spaceCoord s) s m) Map.empty sps
-
-{- Create a new board.  -}
-initGameEmpty :: Int -> Int -> GameState
-initGameEmpty width height = GameState { board = initBoard width
-                                                      height
-                                                      defaultSpaceBuilder
-                                  , moves = []
-                                  , players = [ human1, ai1 ]
-                                  , playerTurn = human1
-                                  , token = T.pack "abc"
-                                  }
-  where
-    human1 = Player { playerName = T.pack "Kyle"
-                    , playerId = 1
-                    , playerType = Human
-                    , playerDirection = North
-                    }
-    ai1 = Player { playerName = T.pack "Bot 1"
-                 , playerId = 2
-                 , playerType = Computer
-                 , playerDirection = South
-                 }
-
-{- default space builder -}
-defaultSpaceBuilder :: Coord -> Space
-defaultSpaceBuilder = \c@(Coord x y) -> buildSpace x y $ calcSpaceColor $ c
 
 {- fetch space with given coordinates -}
 fetchSpace :: Coord -> Board -> Maybe Space
@@ -285,42 +98,6 @@ fetchPieceById pId Board {spacesMap = spsMap} =
              )
              Nothing
              spsMap 
-  
-{- alternates piece color -}
-calcSpaceColor :: Coord -> Color
-calcSpaceColor (Coord x y) =
-    if (even (x + y)) then White else Black
-
-{- space builder -}
-buildSpace :: Int -> Int -> Color -> Space
-buildSpace x y c = Space { spacePiece = Nothing
-                         , spaceColor = c
-                         , spaceCoord = Coord x y
-                         }
-
-{- piece builder -}
-buildPiece :: PieceId -> PieceType -> Color -> Player -> Maybe Coord -> Piece
-buildPiece pId pt color player initCoord =
-    Piece { pieceColor = color
-          , pieceType = pt
-          , piecePlayer = player
-          , pieceId = pId
-          , pieceOrigin = initCoord
-          , pieceMoved = False
-          }
-
-{- PieceId builder -}
-buildPieceId :: Coord -> PieceId
-buildPieceId (Coord x y) =
-    PieceId ((x + 1) * (y + 1) + (y + 1))
-
-{- Remove a piece from a given space.  -}
-removePiece :: Space -> Space
-removePiece srem = srem { spacePiece = Nothing }
-
-{- Add a piece to a given space.  -}
-addPiece :: Space -> Piece -> Space
-addPiece sadd padd = sadd { spacePiece = Just padd }
 
 {- Add a piece to board -}
 addPieceToBoard :: Piece -> Coord -> Board -> Maybe Board
@@ -333,17 +110,6 @@ addPieceToBoard p c b@Board{spacesMap = spsMap} =
         b { spacesMap = Map.insert c spaceWPiece spsMap }
             where spaceWPiece :: Space
                   spaceWPiece = addPiece s p{pieceOrigin = Just c, pieceMoved = False}
-
-{- Increment diagonal -}
-rotateRight :: (Bounded a, Enum a, Eq a) => a -> a 
-rotateRight d
-  | d == maxBound = minBound
-  | otherwise = succ d
-
-rotateLeft :: (Bounded a, Enum a, Eq a) => a -> a 
-rotateLeft d
-  | d == minBound = maxBound
-  | otherwise = pred d
 
 {- Fetches space containing specified piece. -}
 fetchPieceSpace :: Piece -> Board -> Maybe Space
@@ -359,15 +125,6 @@ fetchPieceSpace p Board {spacesMap = spsMap} =
         evalPiece :: Maybe Piece -> Bool
         evalPiece Nothing = False
         evalPiece (Just p') = p' == p
-
-{- Convenience builder for Move -}
-buildMove :: Piece -> Board -> Coord -> Bool -> [Move] -> Move
-buildMove p b c offensive sideEffects =
-  Move { movePieceId = pieceId p
-       , moveSpace = DM.fromJust $ fetchSpace c b
-       , moveIsConsumable = offensive
-       , moveSideEffects = sideEffects
-       }
 
 {- Builds standard board. -}
 initStandardBoard :: Player -> Player -> Board

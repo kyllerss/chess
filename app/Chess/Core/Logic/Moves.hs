@@ -1,4 +1,4 @@
-module Chess.Core.Moves
+module Chess.Core.Logic.Moves
     ( move
     , validMoves
     , candidateMoves
@@ -7,8 +7,14 @@ module Chess.Core.Moves
     , playerInCheck
     ) where
 
-import Import
-import           Chess.Core.Domain
+import           Import
+import           Chess.Core.Domain.Base
+import           Chess.Core.Domain.Coord
+import           Chess.Core.Domain.Board
+import           Chess.Core.Domain.Move
+import           Chess.Core.Domain.Piece
+import           Chess.Core.Domain.Player
+import           Chess.Core.Domain.Space
 import qualified Data.Map          as M
 import qualified Data.List         as DL
 import           Data.Maybe
@@ -91,13 +97,14 @@ transfer b@Board {spacesMap = spsMap} p (Just os) (Just ds) =
                               (addPiece ds p{pieceMoved = True}) $
             M.insert (spaceCoord os) (removePiece os) spsMap
 
-{- Returns all valid moves for each piece of a given player in a given board  -}
+{- Returns all valid moves for each piece of a given player in a given board
 allValidMoves :: Board -> Player -> [Move]
 allValidMoves b@Board{spacesMap = spsMap} pl =
   M.foldl'
       (\acc spc@Space{spaceCoord = sCoord, spacePiece = Piece{pieceId = pId, piecePlayer = ppl}} ->
               if (ppl == pl) then ((validMoves b pId sCoord) ++ acc) else (acc) )
       spsMap
+  -}
 
 {- Returns all valid moves for a given piece. -}
 validMoves :: Board -> PieceId -> Coord -> [Move]
