@@ -11,6 +11,7 @@ import Chess.Core.Domain.Space
 import Chess.Core.Logic.Moves
 import qualified Data.Maybe as DM
 import qualified Data.Map as Map
+import Data.List ((!!))
 
 data GameState = GameState { board      :: Board
                            , moves      :: [Move]
@@ -68,16 +69,17 @@ data GameType = Standard
 
 {- Builds a new game state.  -}
 initGame :: GameType -> [Player] -> Maybe GameState
-initGame Standard (p1:p2:[]) =
+initGame Standard pls =
     Just GameState{ board = board
-                         , moves = allMoves
-                         , players = [p1, p2]
-                         , playerTurn = p1
-                         , token = "" }
+                  , moves = allMoves
+                  , players = [player1, player2]
+                  , playerTurn = player1
+                  , token = "" }
     where
-      board = initStandardBoard p1 p2
+      board = initStandardBoard player1 player2
       allMoves = []
-initGame Standard _ = Nothing
+      player1 = pls !! 0
+      player2 = pls !! 1
 
 {- Create a new board.  -}
 initGameEmpty :: Int -> Int -> GameState

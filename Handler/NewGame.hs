@@ -22,6 +22,6 @@ getNewGameR = do
                      }
     gameState :: Maybe GameState
     gameState = initGame Standard [player1, player2] 
-  return $ toJSON $ DM.fromJust gameState
+  return $ toJSON $ DM.fromJust $ traceShow gameState gameState
       
  
