@@ -129,7 +129,7 @@ fetchPieceSpace p Board {spacesMap = spsMap} =
 initStandardBoard :: Player -> Player -> Board
 initStandardBoard player1 player2 = DM.fromJust board
   where 
-      emptyBoard = initBoard 9 9 defaultSpaceBuilder
+      emptyBoard = initBoard 8 8 defaultSpaceBuilder
       
       pawnA1 = buildPiece (buildPieceId (Coord 1 0)) Pawn Black player2 (Just (Coord 1 0))
       pawnA2 = buildPiece (buildPieceId (Coord 1 1)) Pawn Black player2 (Just (Coord 1 1))
@@ -148,22 +148,22 @@ initStandardBoard player1 player2 = DM.fromJust board
       queenA = buildPiece (buildPieceId (Coord 0 3)) Queen Black player2 (Just (Coord 0 3))
       kingA = buildPiece (buildPieceId (Coord 0 4)) King Black player2 (Just (Coord 0 4))
       
-      pawnB1 = buildPiece (buildPieceId (Coord 6 0)) Pawn Black player1 (Just (Coord 6 0))
-      pawnB2 = buildPiece (buildPieceId (Coord 6 1)) Pawn Black player1 (Just (Coord 6 1))
-      pawnB3 = buildPiece (buildPieceId (Coord 6 2)) Pawn Black player1 (Just (Coord 6 2))
-      pawnB4 = buildPiece (buildPieceId (Coord 6 3)) Pawn Black player1 (Just (Coord 6 3))
-      pawnB5 = buildPiece (buildPieceId (Coord 6 4)) Pawn Black player1 (Just (Coord 6 4))
-      pawnB6 = buildPiece (buildPieceId (Coord 6 5)) Pawn Black player1 (Just (Coord 6 5))
-      pawnB7 = buildPiece (buildPieceId (Coord 6 6)) Pawn Black player1 (Just (Coord 6 6))
-      pawnB8 = buildPiece (buildPieceId (Coord 6 7)) Pawn Black player1 (Just (Coord 6 7))
-      rookB1 = buildPiece (buildPieceId (Coord 7 0)) Rook Black player1 (Just (Coord 7 0))
-      rookB2 = buildPiece (buildPieceId (Coord 7 7)) Rook Black player1 (Just (Coord 7 7))
-      knightB1 = buildPiece (buildPieceId (Coord 7 1)) Knight Black player1 (Just (Coord 7 1))
-      knightB2 = buildPiece (buildPieceId (Coord 7 6)) Knight Black player1 (Just (Coord 7 6))
-      bishopB1 = buildPiece (buildPieceId (Coord 7 2)) Bishop Black player1 (Just (Coord 7 2))
-      bishopB2 = buildPiece (buildPieceId (Coord 7 5)) Bishop Black player1 (Just (Coord 7 5))
-      queenB = buildPiece (buildPieceId (Coord 7 3)) Queen Black player1 (Just (Coord 7 3))
-      kingB = buildPiece (buildPieceId (Coord 7 4)) King Black player1 (Just (Coord 7 4))
+      pawnB1 = buildPiece (buildPieceId (Coord 6 0)) Pawn White player1 (Just (Coord 6 0))
+      pawnB2 = buildPiece (buildPieceId (Coord 6 1)) Pawn White player1 (Just (Coord 6 1))
+      pawnB3 = buildPiece (buildPieceId (Coord 6 2)) Pawn White player1 (Just (Coord 6 2))
+      pawnB4 = buildPiece (buildPieceId (Coord 6 3)) Pawn White player1 (Just (Coord 6 3))
+      pawnB5 = buildPiece (buildPieceId (Coord 6 4)) Pawn White player1 (Just (Coord 6 4))
+      pawnB6 = buildPiece (buildPieceId (Coord 6 5)) Pawn White player1 (Just (Coord 6 5))
+      pawnB7 = buildPiece (buildPieceId (Coord 6 6)) Pawn White player1 (Just (Coord 6 6))
+      pawnB8 = buildPiece (buildPieceId (Coord 6 7)) Pawn White player1 (Just (Coord 6 7))
+      rookB1 = buildPiece (buildPieceId (Coord 7 0)) Rook White player1 (Just (Coord 7 0))
+      rookB2 = buildPiece (buildPieceId (Coord 7 7)) Rook White player1 (Just (Coord 7 7))
+      knightB1 = buildPiece (buildPieceId (Coord 7 1)) Knight White player1 (Just (Coord 7 1))
+      knightB2 = buildPiece (buildPieceId (Coord 7 6)) Knight White player1 (Just (Coord 7 6))
+      bishopB1 = buildPiece (buildPieceId (Coord 7 2)) Bishop White player1 (Just (Coord 7 2))
+      bishopB2 = buildPiece (buildPieceId (Coord 7 5)) Bishop White player1 (Just (Coord 7 5))
+      queenB = buildPiece (buildPieceId (Coord 7 3)) Queen White player1 (Just (Coord 7 3))
+      kingB = buildPiece (buildPieceId (Coord 7 4)) King White player1 (Just (Coord 7 4))
 
       board :: Maybe Board
       board = Just emptyBoard >>=

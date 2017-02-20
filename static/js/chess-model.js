@@ -74,16 +74,19 @@ var ChessModel = function () {
 
     function _initState(onDoneCallback) {
 
-        _rawState = null;
-
+        var state = null;
         $.ajax({
             url: "/game/new",
             dataType: "json",
+            async: false,
             method: "GET"
         })
-            .done(function(data) {
-                console.log("Received response: " + data);
-                _rawState = data;
+        .done(function(data) {
+                  console.log("Received response: " + data);
+                  state = data;
+        });
+
+        _rawState = state;
 
         // layout initial board
         _board = [];
@@ -139,7 +142,6 @@ var ChessModel = function () {
                 _moveablePieces[pId] = true;
             }
         }
-            });
 
         console.log("Sent request...");
 
