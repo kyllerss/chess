@@ -195,14 +195,14 @@ candidateMoves p@Piece{ pieceType = Pawn
     pawnDiagonalMove Nothing = []
     pawnDiagonalMove (Just (Void(_))) = []
     pawnDiagonalMove s@(Just Space{spaceCoord = coord})
-        | hasOpponent pp s = [ buildMove p b coord True []]
+        | hasOpponent pp s = maybeToList $ buildMove p b coord True []
         | otherwise = []
 
     pawnForwardMove :: Maybe Space -> [Move]
     pawnForwardMove Nothing = []
     pawnForwardMove (Just (Void(_))) = []
     pawnForwardMove s@(Just Space{spaceCoord = coord})
-        | canOccupy pp s = [ buildMove p b coord False []]
+        | canOccupy pp s = maybeToList $ buildMove p b coord False []
         | otherwise = []
 
 -- king
@@ -213,7 +213,7 @@ candidateMoves p@Piece{ pieceType = Pawn
 -}
 candidateMoves p@Piece{pieceType = King,piecePlayer = pp} c b@Board{spacesMap = spsMap} d
     | canOccupy pp (M.lookup nextCoord spsMap) && (isThreatenedSpace == False)
-        = [ buildMove p b nextCoord True []]
+        = maybeToList $ buildMove p b nextCoord True []
     | otherwise = []
   where
     nextCoord :: Coord
@@ -235,18 +235,18 @@ candidateMoves p@Piece{pieceType = Knight,piecePlayer = pp} (Coord row col) b@Bo
                                canOccupy pp $ M.lookup crd spsMap) $ fetchDirMoves d
   where
     fetchDirMoves :: Direction -> [Move]
-    fetchDirMoves North = [ buildMove p b (Coord (row - 2) (col + 1)) True []
-                          , buildMove p b (Coord (row - 2) (col - 1)) True []
-                          ]
-    fetchDirMoves East = [ buildMove p b (Coord (row - 1) (col + 2)) True []
-                         , buildMove p b (Coord (row + 1) (col + 2)) True []
-                         ]
-    fetchDirMoves South = [ buildMove p b (Coord (row + 2) (col - 1)) True []
-                          , buildMove p b (Coord (row + 2) (col + 1)) True []
-                          ]
-    fetchDirMoves West = [ buildMove p b (Coord (row - 1) (col - 2)) True []
-                         , buildMove p b (Coord (row + 1) (col - 2)) True []
-                         ]
+    fetchDirMoves North = (maybeToList $ buildMove p b (Coord (row - 2) (col + 1)) True [])
+                          ++
+                          (maybeToList $ buildMove p b (Coord (row - 2) (col - 1)) True [])
+    fetchDirMoves East = (maybeToList $ buildMove p b (Coord (row - 1) (col + 2)) True [])
+                         ++
+                         (maybeToList $ buildMove p b (Coord (row + 1) (col + 2)) True [])
+    fetchDirMoves South = (maybeToList $ buildMove p b (Coord (row + 2) (col - 1)) True [])
+                          ++
+                          (maybeToList $ buildMove p b (Coord (row + 2) (col + 1)) True [])
+    fetchDirMoves West = (maybeToList $ buildMove p b (Coord (row - 1) (col - 2)) True [])
+                         ++ 
+                         (maybeToList $ buildMove p b (Coord (row + 1) (col - 2)) True [])
     fetchDirMoves _ = []
 
 -- rook
@@ -318,17 +318,15 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
          && not (fromJust rookMoved)
          && spacesPassable 
          && not (spacesThreatened kingMoveCoords)
-      then [
-            buildMove p
-                      b
-                      kingDestCoord
-                      False
-                      [buildMove (fromJust $ fetchPiece rookCoord b) b rookDestCoord False []]
-           ]
+      then maybeToList kingMove
       else []
 
       where
 
+        kingMove, rookMove :: Maybe Move
+        kingMove = buildMove p b kingDestCoord False (maybeToList rookMove)
+        rookMove = buildMove (fromJust $ fetchPiece rookCoord b) b rookDestCoord False []
+        
         rookMoved :: Maybe Bool
         rookMoved = pieceTypeMoved b rookCoord Rook
 
@@ -424,15 +422,15 @@ specialCandidateMoves p@Piece{pieceType = Pawn, piecePlayer = Player{playerId = 
       rightEnPassantCoord = moveD rightCoord pd 1
       
       leftEnPassant, rightEnPassant :: [Move]
-      leftEnPassant = [buildMove p b leftEnPassantCoord True []]
-      rightEnPassant = [buildMove p b rightEnPassantCoord True []]
+      leftEnPassant = maybeToList $ buildMove p b leftEnPassantCoord True []
+      rightEnPassant = maybeToList $ buildMove p b rightEnPassantCoord True []
 
 {- Pieces that move directionally, returns candidate coordinates  -}
 directionalCandidateMoves' :: [Direction] -> Piece -> Coord -> Board -> Direction -> [Move]
 directionalCandidateMoves' ds p@Piece{piecePlayer = cPlayer} c b@Board{spacesMap = spsMap} d
     | d `DL.notElem` ds = []
-    | validSpaceWithOpp = [ buildMove p b (spaceCoord cSpace) True []]
-    | validSpace = buildMove p b (spaceCoord cSpace) True [] : candidateMoves p nextCoord b d
+    | validSpaceWithOpp = maybeToList $ buildMove p b (spaceCoord cSpace) True []
+    | validSpace = maybeToList (buildMove p b (spaceCoord cSpace) True []) ++ candidateMoves p nextCoord b d
     | otherwise = []
   where
     validSpace :: Bool

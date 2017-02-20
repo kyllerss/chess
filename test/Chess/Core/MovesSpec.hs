@@ -801,6 +801,31 @@ spec = describe "Pieces" $ do
         elem (Coord 3 2) coords `shouldBe` True
         elem (Coord 5 2) coords `shouldBe` True
 
+    it "has partial valid moves when edge of board" $ do
+
+        let emptyBoard = initBoard 9 9 defaultSpaceBuilder
+            originCoord = Coord 0 4
+            knight = buildTestPiece 1 Knight 1 South
+
+            board :: Maybe Board
+            board = addPieceToBoard knight originCoord emptyBoard
+
+        board `shouldNotBe` Nothing
+
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (fromJust board) (pieceId knight) originCoord
+
+        length ms `shouldBe` 4
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 1 2) coords `shouldBe` True
+        elem (Coord 1 6) coords `shouldBe` True
+        elem (Coord 2 3) coords `shouldBe` True
+        elem (Coord 2 5) coords `shouldBe` True
+
     it "has valid moves when obstructed by own pieces" $ do
 
         let emptyBoard = initBoard 9 9 defaultSpaceBuilder

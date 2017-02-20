@@ -68,13 +68,13 @@ instance ToJSON GameState where
 data GameType = Standard
 
 {- Builds a new game state.  -}
-initGame :: GameType -> [Player] -> Maybe GameState
+initGame :: GameType -> [Player] -> GameState
 initGame Standard pls =
-    Just GameState{ board = board
-                  , moves = allMoves
-                  , players = [player1, player2]
-                  , playerTurn = player1
-                  , token = "" }
+    GameState{ board = board
+             , moves = allMoves
+             , players = [player1, player2]
+             , playerTurn = player1
+             , token = "" }
     where
       board = initStandardBoard player1 player2
       allMoves = []

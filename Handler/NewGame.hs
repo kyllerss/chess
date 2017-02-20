@@ -4,11 +4,11 @@ import Import
 import           Chess.Core.Domain.Base
 import           Chess.Core.Domain.GameState
 import           Chess.Core.Domain.Player
-import qualified Data.Maybe as DM
-
+  
 getNewGameR :: Handler Value
 getNewGameR = do
-  let
+  return $ traceShow (board gameState) $ toJSON gameState
+  where 
     player1, player2 :: Player
     player1 = Player { playerName = pack "Player 1"
                      , playerId = 1
@@ -20,8 +20,8 @@ getNewGameR = do
                      , playerType = Human
                      , playerDirection = South
                      }
-    gameState :: Maybe GameState
+    gameState :: GameState
     gameState = initGame Standard [player1, player2] 
-  return $ toJSON $ DM.fromJust $ traceShow gameState gameState
+
       
  

@@ -19,10 +19,11 @@ instance ToJSON Move where
     toJSON (Move{moveSpace = Void (Coord x y)}) = toJSON $ [ x, y ]
 
 {- Convenience builder for Move -}
-buildMove :: Piece -> Board -> Coord -> Bool -> [Move] -> Move
-buildMove p b c offensive sideEffects =
-  Move { movePieceId = pieceId p
-       , moveSpace = DM.fromJust $ fetchSpace c b
-       , moveIsConsumable = offensive
-       , moveSideEffects = sideEffects
-       }
+buildMove :: Piece -> Board -> Coord -> Bool -> [Move] -> Maybe Move
+buildMove p b c offensive sideEffects
+  | fetchSpace c b == Nothing = Nothing
+  | otherwise = Just Move { movePieceId = pieceId p
+                          , moveSpace = DM.fromJust $ fetchSpace c b
+                          , moveIsConsumable = offensive
+                          , moveSideEffects = sideEffects
+                          }

@@ -133,7 +133,7 @@ test-suite test
                        Chess.Core.DomainSpec
                        Chess.Core.MovesSpec
     hs-source-dirs:    test
-    ghc-options:       -Wall
+    ghc-options:       -Wall -threaded -rtsopts -with-rtsopts=-N
 
     extensions: TemplateHaskell
                 QuasiQuotes
