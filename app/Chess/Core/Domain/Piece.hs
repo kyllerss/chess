@@ -51,5 +51,5 @@ buildPiece pId pt color player initCoord =
 {- PieceId builder -}
 buildPieceId :: Coord -> PieceId
 buildPieceId (Coord x y) =
-    PieceId ((x + 1) * (y + 1) + (y + 1))
+    PieceId (((x + 1) * 7) * ((y + 1) * 11) + (y + 1))
 
