@@ -12,7 +12,7 @@ data Move = Move { movePieceId        :: PieceId
                  , moveIsConsumable   :: Bool
                  , moveSideEffects    :: [Move]
                  }
-    deriving (Show, Eq)
+    deriving (Show, Read, Eq)
 
 instance ToJSON Move where
     toJSON (Move{moveSpace = Space{spaceCoord = Coord x y}}) = toJSON $ [ x, y ]

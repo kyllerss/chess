@@ -13,7 +13,7 @@ import qualified Data.Maybe as DM
 data Board = Board { spacesMap  :: Map.Map Coord Space
                    , boardMoves :: [(PieceId, Coord)]
                    }
-    deriving (Show, Generic, Eq)
+    deriving (Show, Generic, Eq, Read)
 
 instance ToJSON Board where
     toJSON (Board{spacesMap = spMap}) =

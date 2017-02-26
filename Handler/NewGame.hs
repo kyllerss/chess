@@ -4,23 +4,13 @@ import Import
 import           Chess.Core.Domain.Base
 import           Chess.Core.Domain.GameState
 import           Chess.Core.Domain.Player
-import Database.Redis as R
+import Chess.Core.Logic.GameStatePersistence
 
-storeNewGame :: GameState -> IO (Either Reply R.Status) 
-storeNewGame gameState = do
-  conn <- R.checkedConnect R.defaultConnectInfo
-  R.runRedis conn $ do
-     R.set "hello" (fromString . show $ gameState)
-     
-     --R.set "world" "world"
-     --hello <- get "hello"
-     --world <- get "world"
-     --liftIO $ print (hello,world)
-    
 getNewGameR :: Handler Value
 getNewGameR = do
   result <- liftIO $ storeNewGame gameState
   liftIO $ print result
+  liftIO $ print $ "Created new game w/ id: " ++ (show $ gameId gameState)
   return $ toJSON gameState
   where 
     player1, player2 :: Player

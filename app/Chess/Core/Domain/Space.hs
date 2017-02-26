@@ -12,7 +12,7 @@ data Space = Space { spacePiece :: Maybe Piece
                    , spaceCoord :: Coord
                    }
            | Void Coord
-    deriving (Show, Generic, Eq)
+    deriving (Show, Read, Generic, Eq)
 
 instance ToJSON Space
 

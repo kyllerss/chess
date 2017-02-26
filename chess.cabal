@@ -22,6 +22,7 @@ library
                      Handler.Common
                      Handler.Home
                      Handler.NewGame
+                     Handler.Move
                      Chess.Core.Domain.Base
                      Chess.Core.Domain.Board
                      Chess.Core.Domain.Coord
@@ -30,6 +31,7 @@ library
                      Chess.Core.Domain.Piece
                      Chess.Core.Domain.Player
                      Chess.Core.Domain.Space
+                     Chess.Core.Logic.GameStatePersistence
                      Chess.Core.Logic.Moves
                      Chess.TestUtils
 

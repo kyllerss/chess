@@ -3,7 +3,7 @@ module Chess.Core.Domain.Base where
 import Import
 
 data Color = Black | White
-    deriving (Show, Eq)
+    deriving (Show, Eq, Read)
 
 instance ToJSON Color where
     toJSON Black = toJSON ("b" :: Text)
@@ -17,7 +17,7 @@ data Direction = North
                | SouthWest
                | West
                | NorthWest
-    deriving (Show, Eq, Ord, Enum, Bounded)
+    deriving (Show, Read, Eq, Ord, Enum, Bounded)
 
 {- Increment diagonal -}
 rotateRight :: (Bounded a, Enum a, Eq a) => a -> a 

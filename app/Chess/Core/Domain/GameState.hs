@@ -18,12 +18,16 @@ data GameState = GameState { board      :: Board
                            , players    :: [Player]
                            , playerTurn :: Player
                            , token      :: Text
+                           , gameId     :: GameId
                            }
-    deriving Show
+    deriving (Show, Read)
 
 instance ToJSON GameState where
-    toJSON GameState{board = b, playerTurn = pl} =
-        object [ "board" .= b, "pieces" .= (renderPieces b), "moves" .= (renderMoves b) ]
+    toJSON GameState{board = b, playerTurn = pl, gameId = gId} =
+        object [ "board" .= b
+               , "pieces" .= (renderPieces b)
+               , "moves" .= (renderMoves b)
+               , "gameId" .= (renderGameId gId) ]
       where
         
         renderKeyValueMap :: Board -> (Space -> Maybe (Text, Value)) -> Map Text Value
@@ -65,6 +69,9 @@ instance ToJSON GameState where
               let pMoves = validMoves b pId c
               in Just (pack $ show $ pieceIdValue $ pieceId p, toJSON pMoves)
 
+        renderGameId :: GameId -> Value
+        renderGameId (GameId gid) = toJSON gid
+
 data GameType = Standard
 
 {- Builds a new game state.  -}
@@ -74,7 +81,8 @@ initGame Standard pls =
              , moves = allMoves
              , players = [player1, player2]
              , playerTurn = player1
-             , token = "" }
+             , token = ""
+             , gameId = GameId "12345ABCDE"}
     where
       board = initStandardBoard player1 player2
       allMoves = []
@@ -83,14 +91,13 @@ initGame Standard pls =
 
 {- Create a new board.  -}
 initGameEmpty :: Int -> Int -> GameState
-initGameEmpty width height = GameState { board = initBoard width
-                                                      height
-                                                      defaultSpaceBuilder
-                                  , moves = []
-                                  , players = [ human1, ai1 ]
-                                  , playerTurn = human1
-                                  , token = pack "abc"
-                                  }
+initGameEmpty width height = GameState { board = initBoard width height defaultSpaceBuilder
+                                       , moves = []
+                                       , players = [ human1, ai1 ]
+                                       , playerTurn = human1
+                                       , token = pack "abc"
+                                       , gameId = GameId "ABCDE12345"
+                                       }
   where
     human1 = Player { playerName = pack "Kyle"
                     , playerId = 1
@@ -102,3 +109,12 @@ initGameEmpty width height = GameState { board = initBoard width
                  , playerType = Computer
                  , playerDirection = South
                  }
+
+{- Apply move. -}
+applyMove :: PieceId -> Coord -> GameState -> Maybe GameState
+applyMove pId coord gs
+  | newBoard == Nothing = Nothing
+  | otherwise = Just gs{board = DM.fromJust newBoard}
+  where
+    newBoard :: Maybe Board
+    newBoard = move pId coord (board gs)
