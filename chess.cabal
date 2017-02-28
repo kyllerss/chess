@@ -97,6 +97,7 @@ library
                 , case-insensitive
                 , wai
                 , hedis
+                , string-conversions
 
 executable         chess
     if flag(library-only)

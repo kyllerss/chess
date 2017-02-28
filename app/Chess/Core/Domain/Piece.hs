@@ -22,6 +22,17 @@ data PieceId = PieceId {pieceIdValue :: Int}
 instance ToJSON PieceId where
     toJSON (PieceId indx) = toJSON (indx :: Int)
 
+instance FromJSON PieceId where
+  parseJSON value = do
+    idx <- parseJSON value
+    return $ PieceId idx
+
+{-
+import Data.Aeson
+let c = encode $ Coord 1 2
+(decode c) :: Maybe Coord
+-}
+
 data Piece = Piece { pieceColor   :: Color
                    , pieceType    :: PieceType
                    , piecePlayer  :: Player
