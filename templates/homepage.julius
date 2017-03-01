@@ -1,5 +1,7 @@
-ChessModel.initBoard();
-ReactDOM.render(
-    React.createElement(Board),
-    document.getElementById("c-main-board")
-);
+var renderCallback = function() {
+    ReactDOM.render(
+      React.createElement(Board),
+      document.getElementById("c-main-board")
+    );
+};
+ChessModel.initBoard(renderCallback);
