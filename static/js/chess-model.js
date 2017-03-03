@@ -52,7 +52,7 @@ var ChessModel = function () {
         .done(function(data) {
 
             console.log("Received response move command: " + data);
-            _rawState = data;
+            _updateState(data);
 
             // Notify of new board state.
             nerve.send({
@@ -100,128 +100,127 @@ var ChessModel = function () {
         return _pieceMapping[type];
     };
 
-    function _initState(onDoneCallback) {
-
-        var innerCallback = function(newState) {
-
-            console.log("Received from server new state: " + newState);
+    function _updateState(newState) {
+        
+        console.log("Received from server new state: " + newState);
             
-            _gameId = newState.gameId;
-            _rawState = newState;
+        _gameId = newState.gameId;
+        _rawState = newState;
 
-            // layout initial board
-            _board = [];
-            for (var rowId = 0; rowId < _rawState.board.length; rowId++) {
-
-                var rawRow = _rawState.board[rowId];
-
-                var rowState = [];
-                for (var colId = 0; colId < rawRow.length; colId++) {
-
-                    var color = _calculateColor(rawRow[colId]);
-                    var space = {color: color};
-
-                    rowState.push(space);
-                }
-
-                _board.push(rowState);
+        // layout initial board
+        _board = [];
+        for (var rowId = 0; rowId < _rawState.board.length; rowId++) {
+            
+            var rawRow = _rawState.board[rowId];
+            
+            var rowState = [];
+            for (var colId = 0; colId < rawRow.length; colId++) {
+                
+                var color = _calculateColor(rawRow[colId]);
+                var space = {color: color};
+                
+                rowState.push(space);
             }
-
-            // place pieces
-            var pId, row, col;
-            for (pId in _rawState.pieces) {
-
-                var rawPiece = _rawState.pieces[pId];
-
-                var rowCoord = rawPiece.xy[0];
-                var colCoord = rawPiece.xy[1];
-
-                var spaceState = _board[rowCoord][colCoord];
-                spaceState.pieceType = _calculatePieceType(rawPiece.t);
-                spaceState.pieceColor = _calculateColor(rawPiece.c);
-                spaceState.pieceId = pId;
+            
+            _board.push(rowState);
+        }
+        
+        // place pieces
+        var pId, row, col;
+        for (pId in _rawState.pieces) {
+            
+            var rawPiece = _rawState.pieces[pId];
+            
+            var rowCoord = rawPiece.xy[0];
+            var colCoord = rawPiece.xy[1];
+            
+            var spaceState = _board[rowCoord][colCoord];
+            spaceState.pieceType = _calculatePieceType(rawPiece.t);
+            spaceState.pieceColor = _calculateColor(rawPiece.c);
+            spaceState.pieceId = pId;
+        }
+        
+        // decompose valid moves
+        var moves;
+        _validMoves = {};
+        for (pId in _rawState.moves) {
+            
+            moves = _rawState.moves[pId];
+            for (var i = 0; i < moves.length; i++) {
+                
+                var move = moves[i];
+                _addValidMove(pId, move);
             }
-
-            // decompose valid moves
-            var moves;
-            _validMoves = {};
-            for (pId in _rawState.moves) {
-
-                moves = _rawState.moves[pId];
-                for (var i = 0; i < moves.length; i++) {
-
-                    var move = moves[i];
-                    _addValidMove(pId, move);
-                }
+        }
+        
+        _moveablePieces = {};
+        for (pId in _rawState.moves) {
+            
+            moves = _rawState.moves[pId];
+            if (moves && moves.length > 0) {
+                _moveablePieces[pId] = true;
             }
-
-            _moveablePieces = {};
-            for (pId in _rawState.moves) {
-
-                moves = _rawState.moves[pId];
-                if (moves && moves.length > 0) {
-                    _moveablePieces[pId] = true;
-                }
-            }
-
-            /*
-             {
-             // board layout
-             board : [['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
-             ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w'],
-             ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
-             ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w'],
-             ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
-             ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w'],
-             ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
-             ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']],
-
-             // t -> type, c -> color, p -> player id
-             pieces: {
-             // player 1
-             1: {t: 'r', c: 'b', p: 1, xy: [0,0]},
-             2: {t: 'n', c: 'b', p: 1, xy: [0,1]},
-             3: {t: 'b', c: 'b', p: 1, xy: [0,2]},
-             4: {t: 'q', c: 'b', p: 1, xy: [0,3]},
-             5: {t: 'k', c: 'b', p: 1, xy: [0,4]},
-             6: {t: 'b', c: 'b', p: 1, xy: [0,5]},
-             7: {t: 'k', c: 'b', p: 1, xy: [0,6]},
-             8: {t: 'r', c: 'b', p: 1, xy: [0,7]},
-             9: {t: 'p', c: 'b', p: 1, xy: [1,0]},
-             10: {t: 'p', c: 'b', p: 1, xy: [1,1]},
-             11: {t: 'p', c: 'b', p: 1, xy: [1,2]},
-             12: {t: 'p', c: 'b', p: 1, xy: [1,3]},
-             13: {t: 'p', c: 'b', p: 1, xy: [1,4]},
-             14: {t: 'p', c: 'b', p: 1, xy: [1,5]},
-             15: {t: 'p', c: 'b', p: 1, xy: [1,6]},
-             16: {t: 'p', c: 'b', p: 1, xy: [1,7]},
-
-             // player 2
-             17: {t: 'p', c: 'w', p: 2, xy: [6,0]},
-             18: {t: 'p', c: 'w', p: 2, xy: [6,1]},
-             19: {t: 'p', c: 'w', p: 2, xy: [6,2]},
-             20: {t: 'p', c: 'w', p: 2, xy: [6,3]},
-             21: {t: 'p', c: 'w', p: 2, xy: [6,4]},
-             22: {t: 'p', c: 'w', p: 2, xy: [6,5]},
-             23: {t: 'p', c: 'w', p: 2, xy: [6,6]},
-             24: {t: 'p', c: 'w', p: 2, xy: [6,7]},
-             25: {t: 'r', c: 'w', p: 2, xy: [7,0]},
-             26: {t: 'n', c: 'w', p: 2, xy: [7,1]},
-             27: {t: 'b', c: 'w', p: 2, xy: [7,2]},
-             28: {t: 'q', c: 'w', p: 2, xy: [7,3]},
-             29: {t: 'k', c: 'w', p: 2, xy: [7,4]},
-             30: {t: 'b', c: 'w', p: 2, xy: [7,5]},
-             31: {t: 'n', c: 'w', p: 2, xy: [7,6]},
-             32: {t: 'r', c: 'w', p: 2, xy: [7,7]}
-             },
-
-             // possible moves
-             moves: {17: [[5,0], [5,1]],
-             18: [[5,0], [5,1], [5,2]]}
-             };
-             */
-
-        };
+        }
+        
+        /*
+         {
+         // board layout
+         board : [['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
+         ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w'],
+         ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
+         ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w'],
+         ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
+         ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w'],
+         ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b'],
+         ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']],
+         
+         // t -> type, c -> color, p -> player id
+         pieces: {
+         // player 1
+         1: {t: 'r', c: 'b', p: 1, xy: [0,0]},
+         2: {t: 'n', c: 'b', p: 1, xy: [0,1]},
+         3: {t: 'b', c: 'b', p: 1, xy: [0,2]},
+         4: {t: 'q', c: 'b', p: 1, xy: [0,3]},
+         5: {t: 'k', c: 'b', p: 1, xy: [0,4]},
+         6: {t: 'b', c: 'b', p: 1, xy: [0,5]},
+         7: {t: 'k', c: 'b', p: 1, xy: [0,6]},
+         8: {t: 'r', c: 'b', p: 1, xy: [0,7]},
+         9: {t: 'p', c: 'b', p: 1, xy: [1,0]},
+         10: {t: 'p', c: 'b', p: 1, xy: [1,1]},
+         11: {t: 'p', c: 'b', p: 1, xy: [1,2]},
+         12: {t: 'p', c: 'b', p: 1, xy: [1,3]},
+         13: {t: 'p', c: 'b', p: 1, xy: [1,4]},
+         14: {t: 'p', c: 'b', p: 1, xy: [1,5]},
+         15: {t: 'p', c: 'b', p: 1, xy: [1,6]},
+         16: {t: 'p', c: 'b', p: 1, xy: [1,7]},
+         
+         // player 2
+         17: {t: 'p', c: 'w', p: 2, xy: [6,0]},
+         18: {t: 'p', c: 'w', p: 2, xy: [6,1]},
+         19: {t: 'p', c: 'w', p: 2, xy: [6,2]},
+         20: {t: 'p', c: 'w', p: 2, xy: [6,3]},
+         21: {t: 'p', c: 'w', p: 2, xy: [6,4]},
+         22: {t: 'p', c: 'w', p: 2, xy: [6,5]},
+         23: {t: 'p', c: 'w', p: 2, xy: [6,6]},
+         24: {t: 'p', c: 'w', p: 2, xy: [6,7]},
+         25: {t: 'r', c: 'w', p: 2, xy: [7,0]},
+         26: {t: 'n', c: 'w', p: 2, xy: [7,1]},
+         27: {t: 'b', c: 'w', p: 2, xy: [7,2]},
+         28: {t: 'q', c: 'w', p: 2, xy: [7,3]},
+         29: {t: 'k', c: 'w', p: 2, xy: [7,4]},
+         30: {t: 'b', c: 'w', p: 2, xy: [7,5]},
+         31: {t: 'n', c: 'w', p: 2, xy: [7,6]},
+         32: {t: 'r', c: 'w', p: 2, xy: [7,7]}
+         },
+         
+         // possible moves
+         moves: {17: [[5,0], [5,1]],
+         18: [[5,0], [5,1], [5,2]]}
+         };
+         */
+    }
+    
+    function _initState(onDoneCallback) {
 
         var state = null;
         $.ajax({
@@ -231,7 +230,7 @@ var ChessModel = function () {
         })
         .done(function(data) {
             console.log("Received response: " + data);
-            innerCallback(data);
+            _updateState(data);
             onDoneCallback();
         });
     };
