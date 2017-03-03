@@ -1,6 +1,7 @@
 module Chess.Core.Logic.Moves
     ( move
     , validMoves
+    , allValidMoves
     , candidateMoves
     , threatenedSpaces
     , transfer
@@ -97,14 +98,18 @@ transfer b@Board {spacesMap = spsMap} p (Just os) (Just ds) =
                               (addPiece ds p{pieceMoved = True}) $
             M.insert (spaceCoord os) (removePiece os) spsMap
 
-{- Returns all valid moves for each piece of a given player in a given board
-allValidMoves :: Board -> Player -> [Move]
-allValidMoves b@Board{spacesMap = spsMap} pl =
-  M.foldl'
-      (\acc spc@Space{spaceCoord = sCoord, spacePiece = Piece{pieceId = pId, piecePlayer = ppl}} ->
-              if (ppl == pl) then ((validMoves b pId sCoord) ++ acc) else (acc) )
-      spsMap
-  -}
+{- Returns all valid moves for each piece of a given player in a given board -}
+allValidMoves :: Maybe Board -> Player -> [Move]
+allValidMoves Nothing _ = []
+allValidMoves (Just b@Board{spacesMap = spsMap}) pl =
+  M.foldl' accumulator [] spsMap
+  where
+    accumulator :: [Move] -> Space -> [Move]
+    accumulator acc Space{spacePiece = Nothing} = acc
+    accumulator acc (Void _) = acc
+    accumulator acc Space{spaceCoord = sCoord, spacePiece = Just Piece{pieceId = pId, piecePlayer = ppl}}
+      | ppl == pl = (validMoves b pId sCoord) ++ acc
+      | otherwise = acc
 
 {- Returns all valid moves for a given piece. -}
 validMoves :: Board -> PieceId -> Coord -> [Move]

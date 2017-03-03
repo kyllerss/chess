@@ -39,18 +39,20 @@ var ChessModel = function () {
         var moveUrl = "/game/" + _gameId + "/move";
         var moveData = {
             pieceId: pId,
-            coord: newCoord
+            coord: "[" + newCoord[0] + "," + newCoord[1] + "]"
         };
 
         $.ajax({
             url: moveUrl,
             dataType: "json",
             method: "POST",
-            data: moveData
+            data: moveData,
+            traditional: true
         })
         .done(function(data) {
 
             console.log("Received response move command: " + data);
+            _rawState = data;
 
             // Notify of new board state.
             nerve.send({

@@ -11,7 +11,8 @@ import Chess.Core.Domain.Space
 import Chess.Core.Logic.Moves
 import qualified Data.Maybe as DM
 import qualified Data.Map as Map
-import Data.List ((!!))
+import Data.List ((!!), elemIndex)
+import qualified Data.List as DL 
 
 data GameState = GameState { board      :: Board
                            , moves      :: [Move]
@@ -112,9 +113,20 @@ initGameEmpty width height = GameState { board = initBoard width height defaultS
 
 {- Apply move. -}
 applyMove :: PieceId -> Coord -> GameState -> Maybe GameState
-applyMove pId coord gs
+applyMove pId coord gs@GameState {playerTurn = cpl, players = pls}
   | newBoard == Nothing = Nothing
-  | otherwise = Just gs{board = DM.fromJust newBoard}
+  | otherwise = Just gs{board = DM.fromJust newBoard, playerTurn = nextPlayer, moves = allValidMoves newBoard nextPlayer}
   where
     newBoard :: Maybe Board
     newBoard = move pId coord (board gs)
+
+    currentPlayerIndex :: Int
+    currentPlayerIndex = DM.fromJust $ elemIndex cpl pls 
+  
+    nextPlayer :: Player
+    nextPlayer
+      | currentPlayerIndex == (length pls - 1) = DL.head pls
+      | otherwise = pls !! (currentPlayerIndex + 1)
+    
+    
+    

@@ -21,12 +21,17 @@ missingValidInput = jsonError "Missing valid inputs"
 invalidMove :: PieceId -> Coord -> Value
 invalidMove pieceId coord = jsonError $ "Move is invalid: " ++ show pieceId ++ " -> " ++ show coord
 
-postMoveR :: GameId -> Handler Value
+unableToPersistState :: Value
+unableToPersistState = jsonError $ "Unable to persist state."
+
+postMoveR :: String -> Handler Value
 postMoveR gId = do
 
+  liftIO $ print $ "Handling move request for game " ++ show gId
+  
   -- fetch/validate game
-  game <- liftIO $ fetchGame gId
-  when (isNothing game) (sendResponse $ unknownGame gId)
+  game <- liftIO $ fetchGame $ GameId gId
+  when (isNothing game) (sendResponse $ unknownGame $ GameId gId)
 
   -- fetch/validate parameters
   pIdS <- runInputPost $ ireq textField "pieceId" --runlookupPostParam "pieceId"
@@ -48,4 +53,9 @@ postMoveR gId = do
   
   -- apply/store move
   liftIO $ print $ "Applied move " ++ show pId ++ " -> " ++ show coord ++ " to game " ++ (show $ gameId $ DM.fromJust updatedGameState)
+  liftIO $ print $ "New player turn: " ++ (show $ playerTurn $ DM.fromJust updatedGameState)
+  liftIO $ print $ "Moves: " ++ (show $ moves $ DM.fromJust updatedGameState)
+  response <- liftIO $ updateGame (DM.fromJust updatedGameState)
+  liftIO $ print $ "Response: " ++ (show response)
+  --FIXME: when (E.isLeft <$> response) (sendResponse $ unableToPersistState)
   return $ toJSON updatedGameState

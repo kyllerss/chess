@@ -6,4 +6,4 @@
 / HomeR GET
 
 /game/new NewGameR GET
-/game/#GameId/move MoveR POST
+/game/#String/move MoveR POST
