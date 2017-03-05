@@ -22,21 +22,24 @@ buildTestPiece pId pType playerId playerDir =
                      })
              Nothing
 
-buildBoardProfileMap :: GameState -> Map.Map Player (Map.Map PieceType [Piece])
+type PlayerBoardProfile = Map.Map PieceType [Piece]
+type BoardProfile = Map.Map Player PlayerBoardProfile
+
+buildBoardProfileMap :: GameState -> BoardProfile
 buildBoardProfileMap GameState{board = Board{spacesMap = spsMap}} =
   foldl' collect Map.empty spsMap
   where
-    collect :: Map.Map Player (Map.Map PieceType [Piece]) -> Space -> Map.Map Player (Map.Map PieceType [Piece])
+    collect :: BoardProfile -> Space -> BoardProfile
     collect acc (Void _) = acc
     collect acc (Space{spacePiece = Nothing}) = acc
     collect acc (Space{spacePiece = Just p@Piece{piecePlayer = ppl, pieceType = pt}}) =
       Map.insert ppl updatedPlayerMap acc
       where
-        currentPlayerMap :: Map.Map PieceType [Piece]
+        currentPlayerMap :: PlayerBoardProfile
         currentPlayerMap = DM.fromMaybe Map.empty $ Map.lookup ppl acc
 
         --pieces :: [Piece]
         --pieces = DM.fromMaybe [] $ Map.lookup pt currentPlayerMap
         
-        updatedPlayerMap :: Map.Map PieceType [Piece]
+        updatedPlayerMap :: PlayerBoardProfile
         updatedPlayerMap = Map.insertWith (++) pt [p] currentPlayerMap 

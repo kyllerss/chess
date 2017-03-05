@@ -21,7 +21,7 @@ data GameState = GameState { board      :: Board
                            , token      :: Text
                            , gameId     :: GameId
                            }
-    deriving (Show, Read)
+    deriving (Show, Read, Eq)
 
 instance ToJSON GameState where
     toJSON GameState{board = b, playerTurn = pl, gameId = gId} =
@@ -111,7 +111,9 @@ initGameEmpty width height = GameState { board = initBoard width height defaultS
                  , playerDirection = South
                  }
 
-{- Apply move. -}
+{- Apply move.
+TODO: Add player turn validation
+-}
 applyMove :: PieceId -> Coord -> GameState -> Maybe GameState
 applyMove pId coord gs@GameState {playerTurn = cpl, players = pls}
   | newBoard == Nothing = Nothing
