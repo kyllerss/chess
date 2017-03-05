@@ -112,8 +112,31 @@ spec = describe "Game" $ do
 
       gameStateMaybe' `shouldNotBe` Nothing
 
-      
-      
+    it "should not crash when king move enabled" $ do
+      let coord1 = Coord 6 4
+          pawn1Maybe = fetchPiece coord1 (board gameState)
+
+      pawn1Maybe `shouldNotBe` Nothing
+
+      let pawn1 = fromJust pawn1Maybe
+          dir1 = playerDirection player1
+          nextCoord1 = moveD coord1 dir1 1
+          gameStateMaybe = applyMove (pieceId pawn1) nextCoord1 gameState
+
+      gameStateMaybe `shouldNotBe` Nothing
+
+      let gameState' = fromJust gameStateMaybe
+          coord2 = Coord 1 4
+          pawn2Maybe = fetchPiece coord2 (board gameState')
+
+      pawn2Maybe `shouldNotBe` Nothing
+
+      let pawn2 = fromJust pawn2Maybe
+          dir2 = playerDirection player2
+          nextCoord2 = moveD coord2 dir2 1
+          gameStateMaybe' = applyMove (pieceId pawn2) nextCoord2 gameState'
+
+      gameStateMaybe' `shouldNotBe` Nothing
 
       
         
