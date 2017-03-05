@@ -48,6 +48,7 @@ postMoveR gId = do
       coord = DM.fromJust maybeCoord
   
   -- validate move
+  liftIO $ print $ "Applying move " ++ show pId ++ " -> " ++ show coord ++ " to game " ++ (show gId)
   let updatedGameState = applyMove pId coord (DM.fromJust game)
   when (isNothing $ updatedGameState) (sendResponse $ invalidMove pId coord)
   

@@ -6,7 +6,7 @@ import Chess.Core.Domain.Coord
 import Chess.Core.Domain.Player
 
 data PieceType = Pawn | Rook | Knight | Bishop | King | Queen
-    deriving (Show, Read, Eq)
+    deriving (Show, Read, Eq, Ord)
 
 instance ToJSON PieceType where
     toJSON Pawn = toJSON ("p" :: Text)

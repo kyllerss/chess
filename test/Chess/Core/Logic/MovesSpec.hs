@@ -1,4 +1,4 @@
-module Chess.Core.MovesSpec ( spec ) where
+module Chess.Core.Logic.MovesSpec ( spec ) where
 
 import Import
 import           Test.Hspec

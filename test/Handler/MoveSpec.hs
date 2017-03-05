@@ -6,5 +6,8 @@ spec :: Spec
 spec = withApp $ do
 
     describe "postMoveR" $ do
-        error "Spec not implemented: postMoveR"
+      it "is dummy" $ do
+        get RobotsR
+        statusIs 200
+        --error "Spec not implemented: postMoveR"
 

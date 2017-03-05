@@ -13,6 +13,9 @@ data Player = Player { playerName      :: Text
                      }
     deriving (Show, Read, Eq)
 
+instance Ord Player where
+  Player{playerId = pId1} `compare` Player{playerId = pId2} = pId1 `compare` pId2
+
 instance ToJSON Player where
     toJSON (Player{playerName = pName,playerId = pId}) =
         object [ "name" .= pName, "id" .= pId ]

@@ -5,7 +5,7 @@ import Import
 getHomeR :: Handler Html
 getHomeR = do
     defaultLayout $ do
-      addScript $ StaticR js_lib_nerve_min_js
+      addScript $ StaticR js_lib_nerve_js
       addScriptRemote "https://unpkg.com/react@15.3.2/dist/react-with-addons.js"
       addScriptRemote "https://unpkg.com/react-dom@15.3.2/dist/react-dom.js"
       addScript $ StaticR js_chess_controller_js

@@ -1,4 +1,4 @@
-module Chess.Core.DomainSpec ( spec ) where
+module Chess.Core.Domain.DomainSpec ( spec ) where
 
 import Import
 import           Test.Hspec
