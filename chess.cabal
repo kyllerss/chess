@@ -98,6 +98,7 @@ library
                 , wai
                 , hedis
                 , string-conversions
+                , hspec                         >= 2.4.1
 
 executable         chess
     if flag(library-only)
@@ -107,6 +108,7 @@ executable         chess
     hs-source-dirs:    app
     build-depends:     base
                      , chess
+                     , hspec >= 2.4.1
 
     ghc-options:       -threaded -rtsopts -with-rtsopts=-N
 
@@ -159,13 +161,13 @@ test-suite test
                 RecordWildCards
                 CPP
 
-    build-depends: base
+    build-depends: aeson
+                 , base
                  , chess
-                 , yesod-test >= 1.5.2
-                 , yesod-core
-                 , yesod
-                 , hspec >= 2.0.0
                  , classy-prelude
                  , classy-prelude-yesod
-                 , aeson
                  , containers
+                 , hspec >= 2.4.1
+                 , yesod
+                 , yesod-core
+                 , yesod-test >= 1.5.2

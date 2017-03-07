@@ -113,7 +113,7 @@ allValidMoves (Just b@Board{spacesMap = spsMap}) pl =
 
 {- Returns all valid moves for a given piece. -}
 validMoves :: Board -> PieceId -> Coord -> [Move]
-validMoves b pId c = validMovesInner b (fetchPieceById pId b) c
+validMoves b pId c = traceShow ("Transfer -> " ++ show pId ++ " -> " ++ show c) $ validMovesInner b (fetchPieceById pId b) c
 
 validMovesInner :: Board -> Maybe Piece -> Coord -> [Move]
 validMovesInner _ Nothing _ = []
