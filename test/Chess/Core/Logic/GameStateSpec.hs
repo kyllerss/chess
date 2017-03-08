@@ -7,13 +7,10 @@ import           Chess.Core.Domain.Base
 import           Chess.Core.Domain.Board
 import           Chess.Core.Domain.Coord
 import           Chess.Core.Domain.GameState
-import           Chess.Core.Domain.Move
 import           Chess.Core.Domain.Piece
 import           Chess.Core.Domain.Player
 import           Chess.Core.Domain.Space
-import           Chess.Core.Logic.Moves
 import Data.Maybe (fromJust)
-import Data.List ((!!))
 import qualified Data.List as DL
 import qualified Data.Map as Map
 
