@@ -113,7 +113,7 @@ spec = describe "board" $ do
         boardMoves <$> board `shouldBe` Just []
 
         let newBoard = board >>=
-                       move (pieceId king) (Coord 1 0) >>=
-                       move (pieceId king) (Coord 2 0)
+                       move (pieceId king) (Coord 0 1) >>=
+                       move (pieceId king) (Coord 0 2)
 
-        boardMoves <$> newBoard `shouldBe` Just [((pieceId king), Coord 2 0), ((pieceId king), Coord 1 0)]
+        boardMoves <$> newBoard `shouldBe` Just [((pieceId king), Coord 0 2), ((pieceId king), Coord 0 1)]

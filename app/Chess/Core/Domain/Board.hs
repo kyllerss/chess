@@ -68,10 +68,7 @@ instance ToJSON Board where
 initBoard :: Int -> Int -> (Coord -> Space) -> Board
 initBoard width height spaceBuilder =
     buildBoard width height $
-        map spaceBuilder
-            [ Coord i j
-            | i <- [0 .. (width - 1)]
-            , j <- [0 .. (height - 1)] ]
+        map spaceBuilder [ Coord j i | i <- [0 .. (width - 1)], j <- [0 .. (height - 1)] ]
 
 {- Builder function -}
 buildBoard :: Int -> Int -> [Space] -> Board
@@ -82,7 +79,7 @@ buildBoard _ _ sps = Board { spacesMap = buildSpaceMap sps
 recordBoardMove :: PieceId -> Coord  -> Board -> Maybe Board
 recordBoardMove pId coord b = Just b { boardMoves = (pId, coord) : boardMoves b } 
 
-{- fetch space with given coordinates -}
+{- fetch space with given coordinatesx -}
 fetchSpace :: Coord -> Board -> Maybe Space
 fetchSpace c Board{spacesMap = m} = Map.lookup c m
 

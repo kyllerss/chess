@@ -204,7 +204,7 @@ spec = describe "Pieces" $ do
     it "can do left 'en passant'" $ do
 
         -- initial board setup
-        let emptyBoard = initBoard 4 3 defaultSpaceBuilder
+        let emptyBoard = initBoard 3 4 defaultSpaceBuilder
             vPawn = buildTestPiece 1 Pawn 1 South
             aPawn = buildTestPiece 2 Pawn 2 North
 
@@ -233,7 +233,7 @@ spec = describe "Pieces" $ do
     it "can do right 'en passant'" $ do
 
         -- initial board setup
-        let emptyBoard = initBoard 4 3 defaultSpaceBuilder
+        let emptyBoard = initBoard 3 4 defaultSpaceBuilder
             vPawn = buildTestPiece 1 Pawn 1 South
             aPawn = buildTestPiece 2 Pawn 2 North
 
@@ -1466,7 +1466,7 @@ spec = describe "Pieces" $ do
       
     it "cannot have another piece move (pinned) if results in check" $ do
 
-        let emptyBoard = initBoard 4 3 defaultSpaceBuilder
+        let emptyBoard = initBoard 3 4 defaultSpaceBuilder
             originCoord = Coord 3 1
             king = buildTestPiece 1 King 1 North
             rook1 = buildTestPiece 2 Rook 1 North
@@ -1501,7 +1501,7 @@ spec = describe "Pieces" $ do
 
     it "is in check intially and move blocks check" $ do
 
-        let emptyBoard = initBoard 4 3 defaultSpaceBuilder
+        let emptyBoard = initBoard 3 4 defaultSpaceBuilder
             originCoord = Coord 3 1
             king = buildTestPiece 1 King 1 North
             rook1 = buildTestPiece 2 Rook 1 North

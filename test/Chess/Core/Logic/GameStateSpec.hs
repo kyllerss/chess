@@ -110,8 +110,29 @@ spec = describe "Game" $ do
       gameStateMaybe' `shouldNotBe` Nothing
 
     it "should not crash when two players move" $ do
-      
-      let emptyGame = initGameEmpty 3 6 [player1, player2] player2
+
+      let emptyGame = initGameEmpty 1 6 [player1, player2] player1
+          pawnA = buildTestPiece 1 Pawn 1 North
+          kingA = buildTestPiece 4 King 1 North
+          pawnB = buildTestPiece 11 Pawn 2 South
+          kingB = buildTestPiece 14 King 2 South
+          
+          initialGame :: Maybe GameState
+          initialGame = traceShow emptyGame $ Just emptyGame >>=
+                      addPiece kingB (Coord 0 0) >>=
+                      addPiece pawnB (Coord 0 1) >>=
+                      addPiece kingA (Coord 0 5) >>=
+                      addPiece pawnA (Coord 0 4) 
+
+      initialGame `shouldNotBe` Nothing
+
+      let newGame = initialGame >>=
+                    applyMove (pieceId pawnA) (Coord 0 3) >>=
+                    applyMove (pieceId pawnB) (Coord 0 2)
+
+      newGame `shouldNotBe` Nothing
+      {-
+      let emptyGame = initGameEmpty 3 6 [player1, player2] player1
           pawnA1 = buildTestPiece 1 Pawn 1 North
           pawnA2 = buildTestPiece 2 Pawn 1 North
           pawnA3 = buildTestPiece 3 Pawn 1 North
@@ -139,7 +160,7 @@ spec = describe "Game" $ do
                     applyMove (pieceId pawnB2) (Coord 1 2)
 
       newGame `shouldNotBe` Nothing
-      
+      -}
     {-
     it "should not crash when king move enabled" $ do
       let coord1 = Coord 6 4

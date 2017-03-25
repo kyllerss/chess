@@ -7,12 +7,12 @@ data Coord = Coord Int Int
     deriving (Show, Read, Generic, Eq, NFData)
 
 instance ToJSON Coord where
-    toJSON (Coord x y) = toJSON $ [ x, y ]
+    toJSON (Coord row col) = toJSON $ [ row, col ]
 
 instance FromJSON Coord where
   parseJSON value = do
-    [x, y] <- parseJSON value
-    return $ Coord x y
+    [row, col] <- parseJSON value
+    return $ Coord row col
 
 {-
 import Data.Aeson
@@ -21,8 +21,8 @@ let c = encode $ Coord 1 2
 -}
 
 instance Ord Coord where
-    (Coord x1 y1) `compare` (Coord x2 y2) =
-        (show x1 ++ " -- " ++ show y1) `compare` (show x2 ++ " -- " ++ show y2)
+    (Coord row1 col1) `compare` (Coord row2 col2) =
+        (show row1 ++ " -- " ++ show col1) `compare` (show row2 ++ " -- " ++ show col2)
 
 {- Utility function for incrementing space based on direction. -}
 moveD :: Coord -> Direction -> Int -> Coord
