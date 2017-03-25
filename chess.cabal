@@ -34,6 +34,7 @@ library
                      Chess.Core.Logic.GameStatePersistence
                      Chess.Core.Logic.Moves
                      Chess.TestUtils
+                     Chess.Core.DebugUtils
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
@@ -59,6 +60,8 @@ library
                 RecordWildCards
                 CPP
                 DeriveGeneric
+                BangPatterns
+                DeriveAnyClass
 
     build-depends:
                    -- Due to a bug in GHC 8.0.1, we block its usage
@@ -99,6 +102,7 @@ library
                 , hedis
                 , string-conversions
                 , hspec                         >= 2.4.1
+                , deepseq >= 1.4
 
 executable         chess
     if flag(library-only)
@@ -129,6 +133,7 @@ executable         chess
                 TupleSections
                 RecordWildCards
                 CPP
+                BangPatterns
 
 test-suite test
     type:              exitcode-stdio-1.0

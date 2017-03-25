@@ -6,7 +6,7 @@ import Chess.Core.Domain.Coord
 import Chess.Core.Domain.Player
 
 data PieceType = Pawn | Rook | Knight | Bishop | King | Queen
-    deriving (Show, Read, Eq, Ord)
+    deriving (Show, Read, Eq, Ord, Generic, NFData)
 
 instance ToJSON PieceType where
     toJSON Pawn = toJSON ("p" :: Text)
@@ -17,7 +17,7 @@ instance ToJSON PieceType where
     toJSON Queen = toJSON ("q" :: Text)
 
 data PieceId = PieceId {pieceIdValue :: Int}
-    deriving (Show, Read, Generic, Eq)
+    deriving (Show, Read, Generic, Eq, NFData)
 
 instance ToJSON PieceId where
     toJSON (PieceId indx) = toJSON (indx :: Int)
@@ -40,7 +40,7 @@ data Piece = Piece { pieceColor   :: Color
                    , pieceOrigin  :: Maybe Coord
                    , pieceMoved   :: Bool
                    }
-    deriving (Show, Read, Generic)
+    deriving (Show, Read, Generic, NFData)
 
 instance ToJSON Piece
 

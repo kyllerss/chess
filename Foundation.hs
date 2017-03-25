@@ -31,7 +31,7 @@ data MenuTypes
     | NavbarRight MenuItem
 
 data GameId = GameId String
-  deriving (Show, Read, Eq)
+  deriving (Show, Read, Eq, Generic, NFData)
 
 instance PathPiece GameId where
     toPathPiece = tshow

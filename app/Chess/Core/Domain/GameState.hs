@@ -13,6 +13,7 @@ import qualified Data.Maybe as DM
 import qualified Data.Map as Map
 import Data.List ((!!), elemIndex)
 import qualified Data.List as DL 
+import Chess.Core.DebugUtils
 
 data GameState = GameState { board      :: Board
                            , moves      :: [Move]
@@ -21,7 +22,7 @@ data GameState = GameState { board      :: Board
                            , token      :: Text
                            , gameId     :: GameId
                            }
-    deriving (Show, Read, Eq)
+    deriving (Show, Read, Eq, Generic, NFData)
 
 instance ToJSON GameState where
     toJSON GameState{board = b, playerTurn = pl, gameId = gId} =
@@ -91,36 +92,37 @@ initGame Standard pls =
       player2 = pls !! 1
 
 {- Create a new board.  -}
-initGameEmpty :: Int -> Int -> GameState
-initGameEmpty width height = GameState { board = initBoard width height defaultSpaceBuilder
+initGameEmpty :: Int -> Int -> [Player] -> Player -> GameState
+initGameEmpty width height pls plTurn = GameState { board = initBoard width height defaultSpaceBuilder
                                        , moves = []
-                                       , players = [ human1, ai1 ]
-                                       , playerTurn = human1
+                                       , players = pls
+                                       , playerTurn = plTurn
                                        , token = pack "abc"
                                        , gameId = GameId "ABCDE12345"
                                        }
+  
+addPiece :: Piece -> Coord -> GameState -> Maybe GameState
+addPiece p c g@GameState{board = currentBoard}
+  | newBoard == Nothing = Nothing
+  | otherwise = Just g{board = DM.fromJust newBoard}
+
   where
-    human1 = Player { playerName = pack "Kyle"
-                    , playerId = 1
-                    , playerType = Human
-                    , playerDirection = North
-                    }
-    ai1 = Player { playerName = pack "Bot 1"
-                 , playerId = 2
-                 , playerType = Computer
-                 , playerDirection = South
-                 }
+    newBoard :: Maybe Board
+    newBoard = addPieceToBoard p c currentBoard
 
 {- Apply move.
 TODO: Add player turn validation
 -}
 applyMove :: PieceId -> Coord -> GameState -> Maybe GameState
-applyMove pId coord gs@GameState {playerTurn = cpl, players = pls}
-  | newBoard == Nothing = Nothing
-  | otherwise = Just gs{board = DM.fromJust newBoard, playerTurn = nextPlayer, moves = allValidMoves newBoard nextPlayer}
+applyMove pId coord gs@GameState {playerTurn = cpl, players = pls, board = b}
+  | newBoard == Nothing = traceShow ("applyMove -> invalid move " ++ show pId ++ " -- " ++ show coord) Nothing
+  | otherwise = traceShow ("applyMove -> valid move" ++ generateDebugInfo (fetchPieceById pId b)) $ Just gs{board = DM.fromJust newBoard, playerTurn = nextPlayer, moves = newBoardMoves}
   where
     newBoard :: Maybe Board
-    newBoard = traceShow ("applyMove: [" ++ (show pId) ++ "], [" ++ (show coord) ++ "]") $ move pId coord (board gs)
+    newBoard = traceShow ("newBoard (applyMove): [" ++ (show pId) ++ "], [" ++ (show coord) ++ "]") $ move pId coord (board gs)
+
+    newBoardMoves :: [Move]
+    newBoardMoves = allValidMoves newBoard nextPlayer
 
     currentPlayerIndex :: Int
     currentPlayerIndex = DM.fromJust $ elemIndex cpl pls 

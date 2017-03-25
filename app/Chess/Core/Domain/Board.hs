@@ -13,7 +13,7 @@ import qualified Data.Maybe as DM
 data Board = Board { spacesMap  :: Map.Map Coord Space
                    , boardMoves :: [(PieceId, Coord)]
                    }
-    deriving (Show, Generic, Eq, Read)
+    deriving (Show, Generic, Eq, Read, NFData)
 
 instance ToJSON Board where
     toJSON (Board{spacesMap = spMap}) =
@@ -61,7 +61,8 @@ instance ToJSON Board where
                 (Space{spaceCoord = (Coord a1 b1)}, Space{spaceCoord = (Coord a2 b2)})
                     | a1 > a2 -> GT
                     | a2 > a1 -> LT
-                    | a1 == a2 -> if (b1 > b2) then GT else LT                    | otherwise -> EQ
+                    | a1 == a2 -> if (b1 > b2) then GT else LT
+                    | otherwise -> EQ
 
 {- Generate a new board.  -}
 initBoard :: Int -> Int -> (Coord -> Space) -> Board

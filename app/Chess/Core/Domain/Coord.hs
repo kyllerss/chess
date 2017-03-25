@@ -4,7 +4,7 @@ import Import
 import Chess.Core.Domain.Base
 
 data Coord = Coord Int Int
-    deriving (Show, Read, Generic, Eq)
+    deriving (Show, Read, Generic, Eq, NFData)
 
 instance ToJSON Coord where
     toJSON (Coord x y) = toJSON $ [ x, y ]

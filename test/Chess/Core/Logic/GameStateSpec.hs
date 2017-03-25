@@ -9,7 +9,7 @@ import           Chess.Core.Domain.Coord
 import           Chess.Core.Domain.GameState
 import           Chess.Core.Domain.Piece
 import           Chess.Core.Domain.Player
-import           Chess.Core.Domain.Space
+import qualified Chess.Core.Domain.Space as S
 import Data.Maybe (fromJust)
 import qualified Data.List as DL
 import qualified Data.Map as Map
@@ -76,7 +76,7 @@ spec = describe "Game" $ do
 
       space1 `shouldNotBe` Nothing
 
-      let coord1 = fromJust $ spaceCoord <$> space1
+      let coord1 = fromJust $ S.spaceCoord <$> space1
           dir1 = playerDirection player1
           nextCoord1 = moveD coord1 dir1 1 
           gameState' = applyMove (pieceId pawn1) nextCoord1 gameState
@@ -89,7 +89,7 @@ spec = describe "Game" $ do
 
       space1 `shouldNotBe` Nothing
 
-      let coord1 = fromJust $ spaceCoord <$> space1
+      let coord1 = fromJust $ S.spaceCoord <$> space1
           dir1 = playerDirection player1
           nextCoord1 = moveD coord1 dir1 1 
           gameStateMaybe = applyMove (pieceId pawn1) nextCoord1 gameState
@@ -102,13 +102,45 @@ spec = describe "Game" $ do
 
       space2 `shouldNotBe` Nothing
 
-      let coord2 = fromJust $ spaceCoord <$> space2
+      let coord2 = fromJust $ S.spaceCoord <$> space2
           dir2 = playerDirection player2
           nextCoord2 = moveD coord2 dir2 1 
           gameStateMaybe' = applyMove (pieceId pawn2) nextCoord2 gameState'
 
       gameStateMaybe' `shouldNotBe` Nothing
 
+    it "should not crash when two players move" $ do
+      
+      let emptyGame = initGameEmpty 3 6 [player1, player2] player2
+          pawnA1 = buildTestPiece 1 Pawn 1 North
+          pawnA2 = buildTestPiece 2 Pawn 1 North
+          pawnA3 = buildTestPiece 3 Pawn 1 North
+          kingA = buildTestPiece 4 King 1 North
+          pawnB1 = buildTestPiece 11 Pawn 2 South
+          pawnB2 = buildTestPiece 12 Pawn 2 South
+          pawnB3 = buildTestPiece 13 Pawn 2 South
+          kingB = buildTestPiece 14 King 2 South
+          
+          initialGame :: Maybe GameState
+          initialGame = Just emptyGame >>=
+                      addPiece kingB (Coord 1 0) >>=
+                      addPiece pawnB1 (Coord 0 1) >>=
+                      addPiece pawnB2 (Coord 1 1) >>=
+                      addPiece pawnB3 (Coord 2 1) >>=
+                      addPiece kingA (Coord 1 5) >>=
+                      addPiece pawnA1 (Coord 0 4) >>=
+                      addPiece pawnA2 (Coord 1 4) >>=
+                      addPiece pawnA3 (Coord 2 4)
+
+      initialGame `shouldNotBe` Nothing
+
+      let newGame = initialGame >>=
+                    applyMove (pieceId pawnA2) (Coord 1 3) >>=
+                    applyMove (pieceId pawnB2) (Coord 1 2)
+
+      newGame `shouldNotBe` Nothing
+      
+    {-
     it "should not crash when king move enabled" $ do
       let coord1 = Coord 6 4
           pawn1Maybe = fetchPiece coord1 (board gameState)
@@ -134,6 +166,4 @@ spec = describe "Game" $ do
           gameStateMaybe' = applyMove (pieceId pawn2) nextCoord2 gameState'
 
       gameStateMaybe' `shouldNotBe` Nothing
-
-      
-        
+      -}

@@ -19,6 +19,7 @@ import           Chess.Core.Domain.Space
 import qualified Data.Map          as M
 import qualified Data.List         as DL
 import           Data.Maybe
+import           Chess.Core.DebugUtils
 
 {- Determines if player is currently in check. -}
 playerInCheck :: Maybe Board -> Player -> Bool
@@ -28,15 +29,15 @@ playerInCheck b pp = DL.any (\s -> ((piecePlayer <$> (spacePiece s)) == Just pp)
 
 {- Moves piece from one space to the next. If requested move is invalid, returns nothing.  -}
 move :: PieceId -> Coord -> Board -> Maybe Board
-move pId c b = moveInner (fetchPieceById pId b) c b
+move pId c !b = force $ moveInner (fetchPieceById pId b) c b
 
 {- Internal implementation of 'move' with piece resolved. -}
 moveInner :: Maybe Piece -> Coord -> Board -> Maybe Board
 moveInner Nothing _ _ = Nothing
 moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
-    | resultsInCheck = Nothing
-    | targetCoordStandard originSpace = movedBoard
-    | targetCoordSpecial originSpace = movedBoard >>= applyCollateralMoves
+    | resultsInCheck = traceShow ("Player in check! " ++ show pp) Nothing
+    | targetCoordStandard originSpace = force $ traceShow ("Standard moves: " ++ show pId ++ ", " ++ show pp) movedBoard
+    | targetCoordSpecial originSpace = force $ traceShow ("Special moves: " ++ show pId ++ ", " ++ show pp) $ movedBoard >>= applyCollateralMoves
     | otherwise = Nothing
 
   where
@@ -45,7 +46,7 @@ moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
     movedBoard = transfer b p originSpace destSpace >>= recordBoardMove pId destCoord
 
     resultsInCheck :: Bool
-    resultsInCheck = playerInCheck virtBoard pp
+    resultsInCheck = force $ traceShow ("Determining 'results in check': " ++ show p ++ "? --> " ++ show (playerInCheck virtBoard pp)) $ playerInCheck virtBoard pp
       where
         virtBoard :: Maybe Board
         virtBoard = transfer b p originSpace destSpace
@@ -57,18 +58,20 @@ moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
                     collateralDestSpace = Just (moveSpace m)
                     collateralOriginSpace = fetchPieceSpace collateralPiece (fromJust accB)
                 in
-                  transfer (fromJust accB) collateralPiece collateralOriginSpace collateralDestSpace
+                  force $ traceShow ("applyCollateralMoves: " ++ show m) $ transfer (fromJust accB) collateralPiece collateralOriginSpace collateralDestSpace
             )
             (Just newB)
-            (moveSideEffects $ targetSpecialMove)
+            (moveSideEffects targetSpecialMove)
 
+    {- Returns true if target coordinate implies a standard move (ie. no side-effects) -}
     targetCoordStandard :: Maybe Space -> Bool
     targetCoordStandard Nothing = False
-    targetCoordStandard (Just s) = movesChecker s destCoord standardMoves
+    targetCoordStandard (Just s) = force $ traceShow ("targetCoordStandard: " ++ show s) $ movesChecker s destCoord standardMoves
 
+    {- Returns true if target coordinate implies special move (ie. with side-effects) -}
     targetCoordSpecial :: Maybe Space -> Bool
     targetCoordSpecial Nothing = False
-    targetCoordSpecial (Just s) = movesChecker s destCoord specialMoves
+    targetCoordSpecial (Just s) = force $ traceShow ("targetCoordSpecial: " ++ show s) $ movesChecker s destCoord specialMoves
 
     standardMoves, specialMoves :: [Move]
     standardMoves = validStandardMoves b p (spaceCoord $ fromJust originSpace)
@@ -90,7 +93,7 @@ moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
 transfer :: Board -> Piece -> Maybe Space -> Maybe Space -> Maybe Board
 transfer _ _ Nothing _ = Nothing
 transfer _ _ _ Nothing = Nothing
-transfer b@Board {spacesMap = spsMap} p (Just os) (Just ds) =
+transfer !b@Board {spacesMap = spsMap} p (Just os) (Just ds) =
         Just $ b { spacesMap = updatedMap }
       where
         updatedMap :: M.Map Coord Space
@@ -113,8 +116,8 @@ allValidMoves (Just b@Board{spacesMap = spsMap}) pl =
 
 {- Returns all valid moves for a given piece. -}
 validMoves :: Board -> PieceId -> Coord -> [Move]
-validMoves b pId c = traceShow ("Transfer -> " ++ show pId ++ " -> " ++ show c) $ validMovesInner b (fetchPieceById pId b) c
-
+validMoves !b pId c = force $ traceShow ("validMoves -> " ++ generateDebugInfo (fetchPieceById pId b) ++ " -> " ++ show c) $ validMovesInner b (fetchPieceById pId b) c
+  
 validMovesInner :: Board -> Maybe Piece -> Coord -> [Move]
 validMovesInner _ Nothing _ = []
 validMovesInner b (Just p) originCoord =
@@ -122,10 +125,12 @@ validMovesInner b (Just p) originCoord =
   
 validStandardMoves :: Board -> Piece -> Coord -> [Move]
 validStandardMoves b p originCoord =
+  force $ traceShow ("valid standard moves " ++ generateDebugInfo (Just p)) $ 
       (DL.foldl' (DL.++) [] $ DL.map (\d -> candidateMoves p originCoord b d) [minBound .. maxBound])
 
 validSpecialMoves :: Board -> Piece -> Coord -> [Move]
 validSpecialMoves b p originCoord =
+  force $ traceShow ("valid special moves " ++ generateDebugInfo (Just p)) $
     (DL.foldl' (DL.++) [] $ DL.map (\d -> specialCandidateMoves p originCoord b d) [minBound .. maxBound])
     
 {-
