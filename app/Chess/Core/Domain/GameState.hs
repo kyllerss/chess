@@ -122,7 +122,7 @@ applyMove pId coord gs@GameState {playerTurn = cpl, players = pls, board = b}
     newBoard = traceShow ("newBoard (applyMove): [" ++ (show pId) ++ "], [" ++ (show coord) ++ "]") $ move pId coord (board gs)
 
     newBoardMoves :: [Move]
-    newBoardMoves = allValidMoves newBoard nextPlayer
+    newBoardMoves = [] --allValidMoves newBoard nextPlayer
 
     currentPlayerIndex :: Int
     currentPlayerIndex = DM.fromJust $ elemIndex cpl pls 

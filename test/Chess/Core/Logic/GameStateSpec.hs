@@ -120,15 +120,15 @@ spec = describe "Game" $ do
           initialGame :: Maybe GameState
           initialGame = traceShow emptyGame $ Just emptyGame >>=
                       addPiece kingB (Coord 0 0) >>=
-                      addPiece pawnB (Coord 0 1) >>=
-                      addPiece kingA (Coord 0 5) >>=
-                      addPiece pawnA (Coord 0 4) 
+                      addPiece pawnB (Coord 1 0) >>=
+                      addPiece kingA (Coord 5 0) >>=
+                      addPiece pawnA (Coord 4 0) 
 
       initialGame `shouldNotBe` Nothing
 
       let newGame = initialGame >>=
-                    applyMove (pieceId pawnA) (Coord 0 3) >>=
-                    applyMove (pieceId pawnB) (Coord 0 2)
+                    applyMove (pieceId pawnA) (Coord 3 0) >>=
+                    applyMove (pieceId pawnB) (Coord 2 0)
 
       newGame `shouldNotBe` Nothing
       {-
