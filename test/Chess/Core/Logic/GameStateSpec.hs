@@ -109,7 +109,7 @@ spec = describe "Game" $ do
 
       gameStateMaybe' `shouldNotBe` Nothing
 
-    it "should not crash when two players move" $ do
+    it "should not crash when two players move exposing king (minimal board)" $ do
 
       let emptyGame = initGameEmpty 1 6 [player1, player2] player1
           pawnA = buildTestPiece 1 Pawn 1 North
@@ -118,7 +118,7 @@ spec = describe "Game" $ do
           kingB = buildTestPiece 14 King 2 South
           
           initialGame :: Maybe GameState
-          initialGame = traceShow emptyGame $ Just emptyGame >>=
+          initialGame = Just emptyGame >>=
                       addPiece kingB (Coord 0 0) >>=
                       addPiece pawnB (Coord 1 0) >>=
                       addPiece kingA (Coord 5 0) >>=
@@ -131,7 +131,9 @@ spec = describe "Game" $ do
                     applyMove (pieceId pawnB) (Coord 2 0)
 
       newGame `shouldNotBe` Nothing
-      {-
+      
+    it "should not crash when two players move exposing king (standard board)" $ do
+    
       let emptyGame = initGameEmpty 3 6 [player1, player2] player1
           pawnA1 = buildTestPiece 1 Pawn 1 North
           pawnA2 = buildTestPiece 2 Pawn 1 North
@@ -144,23 +146,23 @@ spec = describe "Game" $ do
           
           initialGame :: Maybe GameState
           initialGame = Just emptyGame >>=
-                      addPiece kingB (Coord 1 0) >>=
-                      addPiece pawnB1 (Coord 0 1) >>=
+                      addPiece kingB (Coord 0 1) >>=
+                      addPiece pawnB1 (Coord 1 0) >>=
                       addPiece pawnB2 (Coord 1 1) >>=
-                      addPiece pawnB3 (Coord 2 1) >>=
-                      addPiece kingA (Coord 1 5) >>=
-                      addPiece pawnA1 (Coord 0 4) >>=
-                      addPiece pawnA2 (Coord 1 4) >>=
-                      addPiece pawnA3 (Coord 2 4)
+                      addPiece pawnB3 (Coord 1 2) >>=
+                      addPiece kingA (Coord 5 1) >>=
+                      addPiece pawnA1 (Coord 4 0) >>=
+                      addPiece pawnA2 (Coord 4 1) >>=
+                      addPiece pawnA3 (Coord 4 2)
 
       initialGame `shouldNotBe` Nothing
 
       let newGame = initialGame >>=
-                    applyMove (pieceId pawnA2) (Coord 1 3) >>=
-                    applyMove (pieceId pawnB2) (Coord 1 2)
+                    applyMove (pieceId pawnA2) (Coord 3 1) >>=
+                    applyMove (pieceId pawnB2) (Coord 2 1)
 
       newGame `shouldNotBe` Nothing
-      -}
+
     {-
     it "should not crash when king move enabled" $ do
       let coord1 = Coord 6 4

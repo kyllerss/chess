@@ -115,11 +115,11 @@ TODO: Add player turn validation
 -}
 applyMove :: PieceId -> Coord -> GameState -> Maybe GameState
 applyMove pId coord gs@GameState {playerTurn = cpl, players = pls, board = b}
-  | newBoard == Nothing = traceShow ("applyMove -> invalid move " ++ show pId ++ " -- " ++ show coord) Nothing
-  | otherwise = traceShow ("applyMove -> valid move" ++ generateDebugInfo (fetchPieceById pId b)) $ Just gs{board = DM.fromJust newBoard, playerTurn = nextPlayer, moves = newBoardMoves}
+  | newBoard == Nothing = Nothing
+  | otherwise = Just gs{board = DM.fromJust newBoard, playerTurn = nextPlayer, moves = newBoardMoves}
   where
     newBoard :: Maybe Board
-    newBoard = traceShow ("newBoard (applyMove): [" ++ (show pId) ++ "], [" ++ (show coord) ++ "]") $ move pId coord (board gs)
+    newBoard = move pId coord (board gs)
 
     newBoardMoves :: [Move]
     newBoardMoves = [] --allValidMoves newBoard nextPlayer
