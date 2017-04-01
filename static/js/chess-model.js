@@ -60,6 +60,9 @@ var ChessModel = function () {
                 context: moveState
             });
         })
+        .fail(function( jqXHR, textStatus, errorThrown ) {
+            alert(jqXHR.responseJSON.error);
+        })
         .always(function(data) {
 
             // TODO: clear modal

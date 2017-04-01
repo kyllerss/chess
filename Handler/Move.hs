@@ -31,7 +31,7 @@ postMoveR gId = do
   
   -- fetch/validate game
   game <- liftIO $ fetchGame $ GameId gId
-  when (isNothing game) (sendResponse $ unknownGame $ GameId gId)
+  when (isNothing game) (sendResponseStatus status403 $ unknownGame (GameId gId))
 
   -- fetch/validate parameters
   pIdS <- runInputPost $ ireq textField "pieceId" --runlookupPostParam "pieceId"
@@ -39,10 +39,10 @@ postMoveR gId = do
   -- when (isNothing pIdS) (sendResponse $ missingValidInput)
   -- when (isNothing coordS) (sendResponse $ missingValidInput)
   let maybePId = (A.decode $ C.convertString pIdS) -- Just $ PieceId 1 -- (A.decode $ decodeUtf8 pIdS) -- :: Maybe PieceId
-  when (isNothing maybePId) (sendResponse $ missingValidInput)
+  when (isNothing maybePId) (sendResponseStatus status403 missingValidInput)
 
   let maybeCoord = (A.decode $ C.convertString coordS) -- :: Maybe Coord
-  when (isNothing maybeCoord) (sendResponse $ missingValidInput)
+  when (isNothing maybeCoord) (sendResponseStatus status403 missingValidInput)
 
   let pId = DM.fromJust maybePId
       coord = DM.fromJust maybeCoord
@@ -50,7 +50,7 @@ postMoveR gId = do
   -- validate move
   liftIO $ print $ "Applying move " ++ show pId ++ " -> " ++ show coord ++ " to game " ++ (show gId)
   let updatedGameState = applyMove pId coord (DM.fromJust game)
-  when (isNothing $ updatedGameState) (sendResponse $ invalidMove pId coord)
+  when (isNothing $ updatedGameState) (sendResponseStatus status403 $ invalidMove pId coord)
   
   -- apply/store move
   liftIO $ print $ "Applied move " ++ show pId ++ " -> " ++ show coord ++ " to game " ++ (show $ gameId $ DM.fromJust updatedGameState)
