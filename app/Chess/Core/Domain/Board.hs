@@ -75,6 +75,16 @@ buildBoard :: Int -> Int -> [Space] -> Board
 buildBoard _ _ sps = Board { spacesMap = buildSpaceMap sps
                            , boardMoves = []}
 
+updateBoardSpaceSideEffect :: Coord -> SpaceSideEffectType -> Board -> Maybe Board
+updateBoardSpaceSideEffect c se b@Board{spacesMap = sps} = updateBoard (fetchSpace c b)
+  where
+    updateBoard :: Maybe Space -> Maybe Board
+    updateBoard Nothing = Nothing
+    updateBoard (Just space) = Just b{spacesMap = Map.insert c updatedSpace sps}
+      where 
+        updatedSpace :: Space
+        updatedSpace = space{spaceSideEffectType = Just se}
+
 {- Record history of board moves.  -}
 recordBoardMove :: PieceId -> Coord  -> Board -> Maybe Board
 recordBoardMove pId coord b = Just b { boardMoves = (pId, coord) : boardMoves b } 
@@ -127,8 +137,24 @@ fetchPieceSpace p Board {spacesMap = spsMap} =
 initStandardBoard :: Player -> Player -> Board
 initStandardBoard player1 player2 = DM.fromJust board
   where 
-      emptyBoard = initBoard 8 8 defaultSpaceBuilder
-      
+      emptyBoard = Just (initBoard 8 8 defaultSpaceBuilder) >>=
+                   updateBoardSpaceSideEffect (Coord 0 0) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 0 1) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 0 2) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 0 3) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 0 4) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 0 5) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 0 6) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 0 7) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 7 0) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 7 1) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 7 2) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 7 3) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 7 4) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 7 5) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 7 6) PawnPromotion >>=
+                   updateBoardSpaceSideEffect (Coord 7 7) PawnPromotion 
+                         
       pawnA1 = buildPiece (buildPieceId (Coord 1 0)) Pawn Black player2 (Just (Coord 1 0))
       pawnA2 = buildPiece (buildPieceId (Coord 1 1)) Pawn Black player2 (Just (Coord 1 1))
       pawnA3 = buildPiece (buildPieceId (Coord 1 2)) Pawn Black player2 (Just (Coord 1 2))
@@ -164,7 +190,7 @@ initStandardBoard player1 player2 = DM.fromJust board
       kingB = buildPiece (buildPieceId (Coord 7 4)) King White player1 (Just (Coord 7 4))
 
       board :: Maybe Board
-      board = Just emptyBoard >>=
+      board = emptyBoard >>=
               addPieceToBoard pawnA1 (Coord 1 0) >>=
               addPieceToBoard pawnA2 (Coord 1 1) >>=
               addPieceToBoard pawnA3 (Coord 1 2) >>=

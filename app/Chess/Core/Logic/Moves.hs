@@ -39,7 +39,7 @@ moveInner :: Maybe Piece -> Coord -> Board -> Maybe Board
 moveInner Nothing _ _ = Nothing
 moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
     | resultsInCheck = Nothing
-    | targetCoordStandard originSpace = movedBoard
+    | targetCoordStandard originSpace = movedBoard >>= applyCollateralPieces
     | targetCoordSpecial originSpace = movedBoard >>= applyCollateralMoves
     | otherwise = Nothing
 
@@ -64,7 +64,18 @@ moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
                   transfer (fromJust accB) collateralPiece collateralOriginSpace collateralDestSpace
             )
             (Just newB)
-            (moveSideEffects targetSpecialMove)
+            [ m | SideEffectMove{sideEffectMove = m} <- moveSideEffects targetSpecialMove]
+
+    applyCollateralPieces :: Board -> Maybe Board
+    applyCollateralPieces newB =
+      DL.foldl (\accB mp ->
+                 let s' = sideEffectSpace mp
+                     p' = sideEffectPiece mp
+                 in addPieceToBoard p' (spaceCoord s') (fromJust accB))
+               (Just newB)
+               ([sp | sp@SideEffectPiece{} <- if (isJust targetSideEffectPieceMove)
+                                              then moveSideEffects $ fromJust targetSideEffectPieceMove
+                                              else []]) -- TODO
 
     {- Returns true if target coordinate implies a standard move (ie. no side-effects) -}
     targetCoordStandard :: Maybe Space -> Bool
@@ -91,6 +102,17 @@ moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
 
     targetSpecialMove :: Move
     targetSpecialMove = fromJust $ DL.find (\m -> Just (moveSpace m) == destSpace) specialMoves
+
+    {- Spaces with side effects -}
+    --sideEffectPieceSpaces :: [Space]
+    --sideEffectPieceSpaces = M.foldl' (\acc s -> if isJust $ spaceSideEffectType s then s : acc else acc) [] (spacesMap b) 
+    targetSideEffectPieceMove :: Maybe Move
+    targetSideEffectPieceMove
+      | maybeSideEffect == Nothing = Nothing
+      | otherwise = buildMove p b destCoord False [fromJust maybeSideEffect]
+      where
+        maybeSideEffect :: Maybe BoardSideEffect
+        maybeSideEffect = applySideEffectMove p (fromJust destSpace)
 
 {- Moves piece without any validation. -}
 transfer :: Board -> Piece -> Maybe Space -> Maybe Space -> Maybe Board
@@ -338,7 +360,7 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
       where
 
         kingMove, rookMove :: Maybe Move
-        kingMove = buildMove p b kingDestCoord False (maybeToList rookMove)
+        kingMove = buildMove p b kingDestCoord False (maybeToList $ buildSideEffectMove <$> rookMove)
         rookMove = buildMove (fromJust $ fetchPiece rookCoord b) b rookDestCoord False []
         
         rookMoved :: Maybe Bool
@@ -507,3 +529,8 @@ isOverlapSpace c sps = c `DL.elem` (DL.map (\s -> spaceCoord s) sps)
 {- Determines if space exists on board. -}
 isValid :: Board -> Coord -> Bool
 isValid Board{spacesMap = spsMap} c = M.member c spsMap
+
+{- Determines side-effects based on piece and space. -}
+applySideEffectMove :: Piece -> Space -> Maybe BoardSideEffect
+applySideEffectMove p@Piece{pieceType = Pawn} s@Space{spaceSideEffectType = Just PawnPromotion} = Just $ buildSideEffectPiece p{pieceType = Queen} s 
+applySideEffectMove _ _ = Nothing

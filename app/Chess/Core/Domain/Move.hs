@@ -7,10 +7,15 @@ import Chess.Core.Domain.Piece
 import Chess.Core.Domain.Space
 import qualified Data.Maybe as DM
 
+data BoardSideEffect = SideEffectMove { sideEffectMove :: Move }
+                       | SideEffectPiece { sideEffectPiece :: Piece
+                                         , sideEffectSpace :: Space }
+     deriving (Show, Read, Eq, Generic, NFData)
+
 data Move = Move { movePieceId        :: PieceId
                  , moveSpace          :: Space
                  , moveIsConsumable   :: Bool
-                 , moveSideEffects    :: [Move]
+                 , moveSideEffects    :: [BoardSideEffect]
                  }
     deriving (Show, Read, Eq, Generic, NFData)
 
@@ -19,7 +24,7 @@ instance ToJSON Move where
     toJSON (Move{moveSpace = Void (Coord x y)}) = toJSON $ [ x, y ]
 
 {- Convenience builder for Move -}
-buildMove :: Piece -> Board -> Coord -> Bool -> [Move] -> Maybe Move
+buildMove :: Piece -> Board -> Coord -> Bool -> [BoardSideEffect] -> Maybe Move
 buildMove p b c offensive sideEffects
   | fetchSpace c b == Nothing = Nothing
   | otherwise = Just Move { movePieceId = pieceId p
@@ -27,3 +32,9 @@ buildMove p b c offensive sideEffects
                           , moveIsConsumable = offensive
                           , moveSideEffects = sideEffects
                           }
+
+buildSideEffectMove :: Move -> BoardSideEffect
+buildSideEffectMove move = SideEffectMove move
+
+buildSideEffectPiece :: Piece -> Space -> BoardSideEffect
+buildSideEffectPiece p s = SideEffectPiece{sideEffectPiece = p, sideEffectSpace = s}

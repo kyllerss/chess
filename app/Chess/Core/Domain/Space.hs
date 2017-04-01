@@ -7,12 +7,18 @@ import Chess.Core.Domain.Piece
 import qualified Data.List as DL
 import qualified Data.Map as Map
 
+data SpaceSideEffectType = PawnPromotion
+  deriving (Show, Read, Generic, Eq, NFData)
+
 data Space = Space { spacePiece :: Maybe Piece
                    , spaceColor :: Color
                    , spaceCoord :: Coord
+                   , spaceSideEffectType :: Maybe SpaceSideEffectType
                    }
            | Void Coord
     deriving (Show, Read, Generic, Eq, NFData)
+
+instance ToJSON SpaceSideEffectType
 
 instance ToJSON Space
 
@@ -28,7 +34,7 @@ buildSpaceMap sps = DL.foldl (\m s -> Map.insert (spaceCoord s) s m) Map.empty s
 
 {- default space builder -}
 defaultSpaceBuilder :: Coord -> Space
-defaultSpaceBuilder = \c@(Coord x y) -> buildSpace x y $ calcSpaceColor $ c
+defaultSpaceBuilder = \c@(Coord x y) -> buildSpace x y (calcSpaceColor c) Nothing
 
 {- alternates piece color -}
 calcSpaceColor :: Coord -> Color
@@ -36,11 +42,12 @@ calcSpaceColor (Coord x y) =
     if (even (x + y)) then White else Black
 
 {- space builder -}
-buildSpace :: Int -> Int -> Color -> Space
-buildSpace x y c = Space { spacePiece = Nothing
-                         , spaceColor = c
-                         , spaceCoord = Coord x y
-                         }
+buildSpace :: Int -> Int -> Color -> Maybe SpaceSideEffectType -> Space
+buildSpace x y c se = Space { spacePiece = Nothing
+                            , spaceColor = c
+                            , spaceCoord = Coord x y
+                            , spaceSideEffectType = se
+                            }
 
 {- Remove a piece from a given space.  -}
 removePiece :: Space -> Space
