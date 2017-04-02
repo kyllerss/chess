@@ -163,6 +163,18 @@ spec = describe "Game" $ do
 
       newGame `shouldNotBe` Nothing
 
+    it "should allow pawn to be promoted to Queen" $ do
+      let n = Nothing :: Maybe Int
+      n `shouldNotBe` Nothing
+
+    it "should only offer valid moves when King is in check" $ do
+      let n = Nothing :: Maybe Int
+      n `shouldNotBe` Nothing
+
+    it "pawn should consume 'en-passant' when opportunity presented" $ do
+      let n = Nothing :: Maybe Int
+      n `shouldNotBe` Nothing
+
     {-
     it "should not crash when king move enabled" $ do
       let coord1 = Coord 6 4

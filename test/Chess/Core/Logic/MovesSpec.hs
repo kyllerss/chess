@@ -40,6 +40,10 @@ spec = describe "Pieces" $ do
         elem (Coord 1 1) coords `shouldBe` True
         elem (Coord 2 1) coords `shouldBe` True
 
+    it "valid moves consists of single forward spot if 2nd spot obstructed" $ do
+      let n = Nothing :: Maybe Int
+      n `shouldNotBe` Nothing
+
     it "no valid moves when facing edge of board" $ do
 
         -- initial board setup
