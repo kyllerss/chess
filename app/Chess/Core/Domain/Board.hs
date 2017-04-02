@@ -97,6 +97,21 @@ fetchSpace c Board{spacesMap = m} = Map.lookup c m
 fetchPiece :: Coord -> Board -> Maybe Piece
 fetchPiece c b = maybe Nothing (\s -> spacePiece s) $ fetchSpace c b
 
+{- Returns all pieces of a given type for the specified player. -}
+fetchPiecesByType :: Player -> PieceType -> Board -> [Piece]
+fetchPiecesByType pl pt b = DL.filter (\Piece{pieceType = pt'} -> pt == pt') $ fetchPiecesByPlayer pl b 
+
+{- Returns all pieces by a player. -}
+fetchPiecesByPlayer :: Player -> Board -> [Piece]
+fetchPiecesByPlayer pl Board{spacesMap = spsMap} = Map.foldl' (\acc s -> (accumulate s) ++ acc) [] spsMap
+  where
+    accumulate :: Space -> [Piece]
+    accumulate (Void _) = []
+    accumulate Space{spacePiece = Nothing} = []
+    accumulate Space{spacePiece = Just p@Piece{piecePlayer = pl'}}
+      | pl' == pl = [p]
+      | otherwise = [] 
+  
 {- fetch piece by given pieceId -}
 fetchPieceById :: PieceId -> Board -> Maybe Piece
 fetchPieceById pId Board {spacesMap = spsMap} =

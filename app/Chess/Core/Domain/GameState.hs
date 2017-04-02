@@ -1,7 +1,6 @@
 module Chess.Core.Domain.GameState where
 
 import Import
-import Chess.Core.Domain.Base
 import Chess.Core.Domain.Board
 import Chess.Core.Domain.Coord
 import Chess.Core.Domain.Move
@@ -13,7 +12,7 @@ import qualified Data.Maybe as DM
 import qualified Data.Map as Map
 import Data.List ((!!), elemIndex)
 import qualified Data.List as DL 
-import Chess.Core.DebugUtils
+--import Chess.Core.DebugUtils
 
 data GameState = GameState { board      :: Board
                            , moves      :: [Move]
@@ -25,11 +24,12 @@ data GameState = GameState { board      :: Board
     deriving (Show, Read, Eq, Generic, NFData)
 
 instance ToJSON GameState where
-    toJSON GameState{board = b, playerTurn = pl, gameId = gId} =
+    toJSON GameState{board = b, playerTurn = pl, gameId = gId, moves = ms} =
         object [ "board" .= b
                , "pieces" .= (renderPieces b)
-               , "moves" .= (renderMoves b)
-               , "gameId" .= (renderGameId gId) ]
+               , "moves" .= (renderMoves ms)
+               , "gameId" .= (renderGameId gId)
+               , "playerTurn" .= (playerId pl)]
       where
         
         renderKeyValueMap :: Board -> (Space -> Maybe (Text, Value)) -> Map Text Value
@@ -59,18 +59,12 @@ instance ToJSON GameState where
                                  , "xy" .= c
                                  ]
 
-        renderMoves :: Board -> Map Text Value
-        renderMoves b' = renderKeyValueMap b' appendMove
-
-        appendMove :: Space -> Maybe (Text, Value)
-        appendMove (Void _) = Nothing
-        appendMove Space{spacePiece = Nothing} = Nothing
-        appendMove Space{spaceCoord = c, spacePiece = Just p@Piece{pieceId = pId, piecePlayer = ppl}}
-          | ppl /= pl = Nothing
-          | otherwise =
-              let pMoves = validMoves b pId c
-              in Just (pack $ show $ pieceIdValue $ pieceId p, toJSON pMoves)
-
+        renderMoves :: [Move] -> Map Text [Value]
+        renderMoves mvs = DL.foldl' (\acc (k,v) -> Map.insertWith (++) k v acc) Map.empty assocList
+          where
+            assocList :: [(Text, [Value])]
+            assocList = DL.map (\m -> (pack $ show $ pieceIdValue $ movePieceId m, [toJSON m])) mvs 
+            
         renderGameId :: GameId -> Value
         renderGameId (GameId gid) = toJSON gid
 
@@ -87,7 +81,7 @@ initGame Standard pls =
              , gameId = GameId "12345ABCDE"}
     where
       board = initStandardBoard player1 player2
-      allMoves = []
+      allMoves = allValidMoves (Just board) player1
       player1 = pls !! 0
       player2 = pls !! 1
 
@@ -119,10 +113,10 @@ applyMove pId coord gs@GameState {playerTurn = cpl, players = pls, board = b}
   | otherwise = Just gs{board = DM.fromJust newBoard, playerTurn = nextPlayer, moves = newBoardMoves}
   where
     newBoard :: Maybe Board
-    newBoard = move pId coord (board gs)
+    newBoard = move pId coord b
 
     newBoardMoves :: [Move]
-    newBoardMoves = [] --allValidMoves newBoard nextPlayer
+    newBoardMoves = allValidMoves newBoard nextPlayer
 
     currentPlayerIndex :: Int
     currentPlayerIndex = DM.fromJust $ elemIndex cpl pls 

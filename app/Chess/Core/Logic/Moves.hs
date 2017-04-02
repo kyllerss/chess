@@ -129,8 +129,31 @@ transfer !b@Board {spacesMap = spsMap} p (Just os) (Just ds) =
 {- Returns all valid moves for each piece of a given player in a given board -}
 allValidMoves :: Maybe Board -> Player -> [Move]
 allValidMoves Nothing _ = []
-allValidMoves (Just b@Board{spacesMap = spsMap}) pl =
-  M.foldl' accumulator [] spsMap
+allValidMoves jb@(Just b) pl
+  | playerInCheck jb pl = validCheckMoves
+  | otherwise = expectedMoves
+  where
+    expectedMoves :: [Move]
+    expectedMoves = allValidMovesInner jb pl  
+    
+    validCheckMoves :: [Move]
+    validCheckMoves = DL.filter
+                      (\m -> traceShow (generateDebugInfo (fetchPieceById (movePieceId m) b)
+                                ++ (show m) ++ " -> "
+                                ++ (show $ fixesCheck m)) 
+                             fixesCheck m)
+                      expectedMoves
+
+    fixesCheck :: Move -> Bool
+    fixesCheck Move{moveSpace = Void _} = False
+    fixesCheck Move{movePieceId = mpId, moveSpace = mvs@Space{spaceCoord = sCoord}} = playerInCheck newBoard pl == False
+      where
+        newBoard :: Maybe Board
+        newBoard =  transfer b (fromJust $ fetchPieceById mpId b) (fetchSpace sCoord b) (Just mvs)
+
+allValidMovesInner :: Maybe Board -> Player -> [Move]
+allValidMovesInner Nothing _ = []
+allValidMovesInner (Just b@Board{spacesMap = spsMap}) pl = M.foldl' accumulator [] spsMap
   where
     accumulator :: [Move] -> Space -> [Move]
     accumulator acc Space{spacePiece = Nothing} = acc
