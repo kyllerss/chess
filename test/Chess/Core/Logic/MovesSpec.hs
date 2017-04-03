@@ -41,8 +41,25 @@ spec = describe "Pieces" $ do
         elem (Coord 2 1) coords `shouldBe` True
 
     it "valid moves consists of single forward spot if 2nd spot obstructed" $ do
-      let n = Nothing :: Maybe Int
-      n `shouldNotBe` Nothing
+
+      let emptyBoard = initBoard 1 3 defaultSpaceBuilder
+          originCoord = Coord 2 0
+          pawn = buildTestPiece 1 Pawn 1 North
+          obstCoord = Coord 0 0
+          pawnObst = buildTestPiece 2 Pawn 2 South
+      
+          board :: Maybe Board
+          board = Just emptyBoard >>=
+                  addPieceToBoard pawn originCoord >>=
+                  addPieceToBoard pawnObst obstCoord
+
+      board `shouldNotBe` Nothing
+
+      let ms :: [Move]
+          ms = validMoves (fromJust board) (pieceId pawn) originCoord
+
+      length ms `shouldBe` 1
+      (spaceCoord . moveSpace) (ms !! 0) `shouldBe` (Coord 1 0)
 
     it "no valid moves when facing edge of board" $ do
 

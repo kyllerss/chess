@@ -171,7 +171,8 @@ validMoves !b pId c = validMovesInner b p c Nothing
   
 validMovesInner :: Board -> Maybe Piece -> Coord -> Maybe Piece -> [Move]
 validMovesInner _ Nothing _ _ = []
-validMovesInner b (Just p) originCoord instigatorPiece = (validStandardMoves b p originCoord instigatorPiece) DL.++ (validSpecialMoves b p originCoord instigatorPiece) 
+validMovesInner b (Just p) originCoord instigatorPiece =
+  (validStandardMoves b p originCoord instigatorPiece) DL.++ (validSpecialMoves b p originCoord instigatorPiece) 
   
 validStandardMoves :: Board -> Piece -> Coord -> Maybe Piece -> [Move]
 validStandardMoves b p originCoord instigatorPiece =
@@ -225,18 +226,19 @@ candidateMoves p@Piece{ pieceType = Pawn
                _
     | d /= pd = []
     | pieceMoved p == True = forwardOne DL.++ diagonals -- piece moved
-    | pieceMoved p == False = forwardTwo DL.++ diagonals -- piece not moved
+    | pieceMoved p == False = forwardOne DL.++ forwardTwo DL.++ diagonals -- piece not moved
     | otherwise = []
   where
     forwardOne :: [Move]
     forwardOne
-      | isEmptySpace $ M.lookup (moveD c d 1) spsMap = (pawnForwardMove $ M.lookup (moveD c d 1) spsMap)
+      | isEmptySpace $ M.lookup (moveD c d 1) spsMap = pawnForwardMove $ M.lookup (moveD c d 1) spsMap
       | otherwise = []
 
     forwardTwo :: [Move]
     forwardTwo
-      | forwardOne == [] = []
-      | otherwise = forwardOne DL.++ (pawnForwardMove $ M.lookup (moveD c d 2) spsMap)
+      | forwardOne == [] = [] -- first pawn space obstructed
+      | isEmptySpace $ M.lookup (moveD c d 2) spsMap = pawnForwardMove $ M.lookup (moveD c d 2) spsMap
+      | otherwise = []
 
     diagonals :: [Move]
     diagonals = (pawnDiagonalMove $ M.lookup (moveD c (rotateLeft d) 1) spsMap)
