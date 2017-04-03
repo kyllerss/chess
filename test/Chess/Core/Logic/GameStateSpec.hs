@@ -55,7 +55,7 @@ spec = describe "Game" $ do
       players gameState `shouldBe` [player1, player2]
 
     it "doesn't have any recorded moves" $ do
-      moves gameState `shouldBe` []
+     (boardMoves . board) gameState `shouldBe` []
 
     it "player turn should be first player" $ do
       playerTurn gameState `shouldBe` player1
