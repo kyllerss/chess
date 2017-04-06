@@ -126,5 +126,12 @@ applyMove pId coord gs@GameState {playerTurn = cpl, players = pls, board = b}
       | currentPlayerIndex == (length pls - 1) = DL.head pls
       | otherwise = pls !! (currentPlayerIndex + 1)
     
-    
+updateGameSpaceSideEffect :: Coord -> SpaceSideEffectType -> GameState -> Maybe GameState
+--updateGameSpaceSideEffect _ _ Nothing = Nothing
+updateGameSpaceSideEffect c se gs@GameState{board = b}
+  | newBoard == Nothing = Nothing
+  | otherwise = Just gs{board = DM.fromJust newBoard}
+  where
+    newBoard :: Maybe Board
+    newBoard = updateBoardSpaceSideEffect c se b
     

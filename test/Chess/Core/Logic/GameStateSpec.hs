@@ -164,9 +164,35 @@ spec = describe "Game" $ do
       newGame `shouldNotBe` Nothing
 
     it "should allow pawn to be promoted to Queen" $ do
-      let n = Nothing :: Maybe Int
-      n `shouldNotBe` Nothing
 
+      let emptyGame = initGameEmpty 2 3 [player1, player2] player1
+          pawnA1 = buildTestPiece 1 Pawn 1 North
+          pawnB1 = buildTestPiece 11 Pawn 2 South
+
+      
+          initialGame :: Maybe GameState
+          initialGame = Just emptyGame >>=
+                        addPiece pawnA1 (Coord 2 0) >>=
+                        addPiece pawnB1 (Coord 0 1) >>=
+                        updateGameSpaceSideEffect (Coord 0 0) S.PawnPromotion >>=
+                        updateGameSpaceSideEffect (Coord 0 1) S.PawnPromotion >>=
+                        updateGameSpaceSideEffect (Coord 2 0) S.PawnPromotion >>=
+                        updateGameSpaceSideEffect (Coord 2 1) S.PawnPromotion
+
+      initialGame `shouldNotBe` Nothing
+
+      let updatedGame = initialGame >>=
+                        applyMove (pieceId pawnA1) (Coord 0 0)
+
+      (traceShow ("Updated game: " ++ show updatedGame) updatedGame) `shouldNotBe` Nothing
+
+      let spaceQ :: S.Space
+          spaceQ = fromJust $ (fetchSpace (Coord 0 0) (board $ fromJust updatedGame))
+          spaceP = fromJust $ (fetchSpace (Coord 0 1) (board $ fromJust updatedGame))
+          
+      pieceType <$> S.spacePiece spaceQ `shouldBe` Just Queen
+      pieceType <$> S.spacePiece spaceP `shouldBe` Just Pawn
+      
     it "should only offer valid moves when King is in check" $ do
       let n = Nothing :: Maybe Int
       n `shouldNotBe` Nothing

@@ -75,7 +75,7 @@ moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
                (Just newB)
                ([sp | sp@SideEffectPiece{} <- if (isJust targetSideEffectPieceMove)
                                               then moveSideEffects $ fromJust targetSideEffectPieceMove
-                                              else []]) -- TODO
+                                              else []])
 
     {- Returns true if target coordinate implies a standard move (ie. no side-effects) -}
     targetCoordStandard :: Maybe Space -> Bool
