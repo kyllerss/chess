@@ -198,10 +198,11 @@ spec = describe "Game" $ do
         ...k      ...k     xx.k
         r...  ->  r...  -> xxxr 
         ..q.      ...q     xxxq
+        ....      ....     ....
     -}
     it "should only offer valid moves when King is in check" $ do
       
-      let emptyGame = initGameEmpty 4 3 [player1, player2] player2 -- queen starts
+      let emptyGame = initGameEmpty 4 4 [player1, player2] player2 -- queen starts
           kingA = buildTestPiece 1 King 1 North
           rookA = buildTestPiece 2 Rook 1 North 
           queenB = buildTestPiece 11 Queen 2 South
@@ -231,10 +232,24 @@ spec = describe "Game" $ do
       (elem (pieceId rookA, Coord 1 3) mvts) `shouldBe` True
       (elem (pieceId kingA, Coord 0 2) mvts) `shouldBe` True
 
-    it "should not allow piece to move if pegged (move would result in check)" $ do
-      let n = Nothing :: Maybe Int
-      n `shouldNotBe` Nothing
-      
+      -- Rook should not be able to move away!
+      let queenMovedState' :: Maybe GameState
+          queenMovedState' = queenMovedState >>=
+                             applyMove (pieceId rookA) (Coord 1 3) >>= -- block check
+                             applyMove (pieceId queenB) (Coord 3 3)    -- move back one square
+
+      queenMovedState' `shouldNotBe` Nothing
+      playerTurn <$> queenMovedState' `shouldBe` Just player1
+
+      let mvs' :: [Move]
+          mvs' = moves $ fromJust queenMovedState'
+
+      length mvs' `shouldBe` 1
+
+      let mv :: Move
+          mv = mvs' DL.!! 0
+          
+      (pieceType <$> (S.spacePiece . moveSpace) mv) `shouldBe` Just King      
       
     it "pawn should consume 'en-passant' when opportunity presented" $ do
       let n = Nothing :: Maybe Int
