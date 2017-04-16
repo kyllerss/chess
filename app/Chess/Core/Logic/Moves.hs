@@ -19,13 +19,24 @@ import           Chess.Core.Domain.Space
 import qualified Data.Map          as M
 import qualified Data.List         as DL
 import           Data.Maybe
-import           Chess.Core.DebugUtils
+--import           Chess.Core.DebugUtils
 
 {- Determines if player is currently in check. -}
 playerInCheck :: Maybe Board -> Player -> Bool
 playerInCheck Nothing _ = False
-playerInCheck b pp = DL.any (\s -> ((piecePlayer <$> (spacePiece s)) == Just pp)
-                                   && ((pieceType <$> (spacePiece s)) == Just King)) $ threatenedSpaces b pp
+playerInCheck b pp = isPlayerInCheck
+
+  where isPlayerInCheck :: Bool
+        isPlayerInCheck = DL.any isPlayerKingSpace allSpacesThreatened
+
+        isPlayerKingSpace :: Space -> Bool
+        isPlayerKingSpace s = matchesPlayer && matchesKing
+          where matchesPlayer, matchesKing :: Bool
+                matchesPlayer = (piecePlayer <$> (spacePiece s)) == Just pp
+                matchesKing = (pieceType <$> (spacePiece s)) == Just King
+
+        allSpacesThreatened :: [Space]
+        allSpacesThreatened = threatenedSpaces b pp
 
 {- Moves piece from one space to the next. If requested move is invalid, returns nothing.  -}
 move :: PieceId -> Coord -> Board -> Maybe Board
@@ -118,13 +129,13 @@ moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
 transfer :: Board -> Piece -> Maybe Space -> Maybe Space -> Maybe Board
 transfer _ _ Nothing _ = Nothing
 transfer _ _ _ Nothing = Nothing
-transfer !b@Board {spacesMap = spsMap} p (Just os) (Just ds) =
-        Just $ b { spacesMap = updatedMap }
+transfer !b@Board {spacesMap = spsMap} p (Just os) (Just ds) = Just $ b { spacesMap = updatedMap }
       where
         updatedMap :: M.Map Coord Space
-        updatedMap = M.insert (spaceCoord ds)
-                              (addPiece ds p{pieceMoved = True}) $
-            M.insert (spaceCoord os) (removePiece os) spsMap
+        updatedMap = M.insert (spaceCoord ds) (addPiece ds p{pieceMoved = True}) removedPieceBoard
+
+        removedPieceBoard :: M.Map Coord Space
+        removedPieceBoard = M.insert (spaceCoord os) (removePiece os) spsMap
 
 {- Returns all valid moves for each piece of a given player in a given board -}
 allValidMoves :: Maybe Board -> Player -> [Move]
@@ -133,23 +144,25 @@ allValidMoves jb@(Just b) pl
   | playerInCheck jb pl = validCheckMoves
   | otherwise = expectedMoves
   where
+    validCheckMoves :: [Move]
+    validCheckMoves = DL.filter (\m -> fixesCheck m) expectedMoves
+
     expectedMoves :: [Move]
     expectedMoves = allValidMovesInner jb pl  
     
-    validCheckMoves :: [Move]
-    validCheckMoves = DL.filter
-                      (\m -> traceShow (generateDebugInfo (fetchPieceById (movePieceId m) b)
-                                ++ (show m) ++ " -> "
-                                ++ (show $ fixesCheck m)) 
-                             fixesCheck m)
-                      expectedMoves
-
     fixesCheck :: Move -> Bool
     fixesCheck Move{moveSpace = Void _} = False
-    fixesCheck Move{movePieceId = mpId, moveSpace = mvs@Space{spaceCoord = sCoord}} = playerInCheck newBoard pl == False
+    fixesCheck Move{movePieceId = mpId, moveSpace = mvs} = playerInCheck newBoard pl == False
       where
         newBoard :: Maybe Board
-        newBoard =  transfer b (fromJust $ fetchPieceById mpId b) (fetchSpace sCoord b) (Just mvs)
+        newBoard = transfer b targetPiece originSpace (Just mvs)
+
+        originSpace :: Maybe Space
+        originSpace = fetchPieceSpace (fromJust $ fetchPieceById mpId b) b
+
+        targetPiece :: Piece
+        targetPiece = fromJust $ fetchPieceById mpId b
+            
 
 allValidMovesInner :: Maybe Board -> Player -> [Move]
 allValidMovesInner Nothing _ = []

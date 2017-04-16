@@ -7,6 +7,7 @@ import           Chess.Core.Domain.Base
 import           Chess.Core.Domain.Board
 import           Chess.Core.Domain.Coord
 import           Chess.Core.Domain.GameState
+import           Chess.Core.Domain.Move
 import           Chess.Core.Domain.Piece
 import           Chess.Core.Domain.Player
 import qualified Chess.Core.Domain.Space as S
@@ -184,7 +185,7 @@ spec = describe "Game" $ do
       let updatedGame = initialGame >>=
                         applyMove (pieceId pawnA1) (Coord 0 0)
 
-      (traceShow ("Updated game: " ++ show updatedGame) updatedGame) `shouldNotBe` Nothing
+      updatedGame `shouldNotBe` Nothing
 
       let spaceQ :: S.Space
           spaceQ = fromJust $ (fetchSpace (Coord 0 0) (board $ fromJust updatedGame))
@@ -192,11 +193,44 @@ spec = describe "Game" $ do
           
       pieceType <$> S.spacePiece spaceQ `shouldBe` Just Queen
       pieceType <$> S.spacePiece spaceP `shouldBe` Just Pawn
-      
-    it "should only offer valid moves when King is in check" $ do
-      let n = Nothing :: Maybe Int
-      n `shouldNotBe` Nothing
 
+    {-
+        ...k      ...k     xx.k
+        r...  ->  r...  -> xxxr 
+        ..q.      ...q     xxxq
+    -}
+    it "should only offer valid moves when King is in check" $ do
+      
+      let emptyGame = initGameEmpty 4 3 [player1, player2] player2 -- queen starts
+          kingA = buildTestPiece 1 King 1 North
+          rookA = buildTestPiece 2 Rook 1 North 
+          queenB = buildTestPiece 11 Queen 2 South
+
+          initialGame :: Maybe GameState
+          initialGame = Just emptyGame >>=
+                        addPiece kingA (Coord 0 3) >>=
+                        addPiece rookA (Coord 1 0) >>=
+                        addPiece queenB (Coord 2 2)
+
+      initialGame `shouldNotBe` Nothing
+
+      let queenMovedState :: Maybe GameState
+          queenMovedState = initialGame >>= applyMove (pieceId queenB) (Coord 2 3)
+
+      queenMovedState `shouldNotBe` Nothing
+      playerTurn <$> queenMovedState `shouldBe` Just player1
+
+      let mvs :: [Move]
+          mvs = moves $ fromJust queenMovedState
+
+      length mvs `shouldBe` 2
+
+      let mvts :: [(PieceId, Coord)]
+          mvts = foldl' (\acc m -> (movePieceId m, S.spaceCoord $ moveSpace m) : acc) [] mvs
+
+      (elem (pieceId rookA, Coord 1 3) mvts) `shouldBe` True
+      (elem (pieceId kingA, Coord 0 2) mvts) `shouldBe` True
+      
     it "pawn should consume 'en-passant' when opportunity presented" $ do
       let n = Nothing :: Maybe Int
       n `shouldNotBe` Nothing

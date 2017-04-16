@@ -11,10 +11,13 @@ data Player = Player { playerName      :: Text
                      , playerType      :: PlayerType
                      , playerDirection :: Direction
                      }
-    deriving (Show, Read, Eq, Generic, NFData)
+    deriving (Show, Read, Generic, NFData)
 
 instance Ord Player where
   Player{playerId = pId1} `compare` Player{playerId = pId2} = pId1 `compare` pId2
+
+instance Eq Player where
+  (==) p1 p2 = playerId p1 == playerId p2
 
 instance ToJSON Player where
     toJSON (Player{playerName = pName,playerId = pId}) =
