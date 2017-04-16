@@ -230,6 +230,11 @@ spec = describe "Game" $ do
 
       (elem (pieceId rookA, Coord 1 3) mvts) `shouldBe` True
       (elem (pieceId kingA, Coord 0 2) mvts) `shouldBe` True
+
+    it "should not allow piece to move if pegged (move would result in check)" $ do
+      let n = Nothing :: Maybe Int
+      n `shouldNotBe` Nothing
+      
       
     it "pawn should consume 'en-passant' when opportunity presented" $ do
       let n = Nothing :: Maybe Int
