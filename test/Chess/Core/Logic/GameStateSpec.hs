@@ -258,6 +258,10 @@ spec = describe "Game" $ do
       let n = Nothing :: Maybe Int
       n `shouldNotBe` Nothing
 
+    it "should allow player two to castle" $ do
+      let n = Nothing :: Maybe Int
+      n `shouldNotBe` Nothing
+
     {-
     it "should not crash when king move enabled" $ do
       let coord1 = Coord 6 4
