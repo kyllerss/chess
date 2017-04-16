@@ -140,12 +140,10 @@ transfer !b@Board {spacesMap = spsMap} p (Just os) (Just ds) = Just $ b { spaces
 {- Returns all valid moves for each piece of a given player in a given board -}
 allValidMoves :: Maybe Board -> Player -> [Move]
 allValidMoves Nothing _ = []
-allValidMoves jb@(Just b) pl
-  | playerInCheck jb pl = validCheckMoves
-  | otherwise = expectedMoves
+allValidMoves jb@(Just b) pl = validNonCheckMoves
   where
-    validCheckMoves :: [Move]
-    validCheckMoves = DL.filter (\m -> fixesCheck m) expectedMoves
+    validNonCheckMoves :: [Move]
+    validNonCheckMoves = DL.filter (\m -> fixesCheck m) expectedMoves
 
     expectedMoves :: [Move]
     expectedMoves = allValidMovesInner jb pl  

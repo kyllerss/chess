@@ -195,10 +195,10 @@ spec = describe "Game" $ do
       pieceType <$> S.spacePiece spaceP `shouldBe` Just Pawn
 
     {-
-        ...k      ...k     xx.k
-        r...  ->  r...  -> xxxr 
-        ..q.      ...q     xxxq
-        ....      ....     ....
+        ...k      ...k      xx.k      xx.k
+        r...  ->  r...  ->  xxxr  ->  xx.r 
+        ..q.      ...q      xxxq      xxx.
+        ....      ....      ....      xxxq
     -}
     it "should only offer valid moves when King is in check" $ do
       
@@ -232,7 +232,7 @@ spec = describe "Game" $ do
       (elem (pieceId rookA, Coord 1 3) mvts) `shouldBe` True
       (elem (pieceId kingA, Coord 0 2) mvts) `shouldBe` True
 
-      -- Rook should not be able to move away!
+      -- Rook should be pinned!
       let queenMovedState' :: Maybe GameState
           queenMovedState' = queenMovedState >>=
                              applyMove (pieceId rookA) (Coord 1 3) >>= -- block check
@@ -244,12 +244,15 @@ spec = describe "Game" $ do
       let mvs' :: [Move]
           mvs' = moves $ fromJust queenMovedState'
 
-      length mvs' `shouldBe` 1
+      length mvs' `shouldBe` 4
 
-      let mv :: Move
-          mv = mvs' DL.!! 0
-          
-      (pieceType <$> (S.spacePiece . moveSpace) mv) `shouldBe` Just King      
+      let mvts' :: [(PieceId, Coord)]
+          mvts' = foldl' (\acc m -> (movePieceId m, S.spaceCoord $ moveSpace m) : acc) [] mvs'
+
+      (elem (pieceId kingA, Coord 0 2) mvts') `shouldBe` True
+      (elem (pieceId kingA, Coord 1 2) mvts') `shouldBe` True
+      (elem (pieceId rookA, Coord 2 3) mvts') `shouldBe` True
+      (elem (pieceId rookA, Coord 3 3) mvts') `shouldBe` True
       
     it "pawn should consume 'en-passant' when opportunity presented" $ do
       let n = Nothing :: Maybe Int
