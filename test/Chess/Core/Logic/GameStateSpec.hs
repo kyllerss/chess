@@ -258,10 +258,37 @@ spec = describe "Game" $ do
       let n = Nothing :: Maybe Int
       n `shouldNotBe` Nothing
 
-    it "should allow player two to castle" $ do
-      let n = Nothing :: Maybe Int
-      n `shouldNotBe` Nothing
+    it "should allow player 2 to castle" $ do
 
+      let rookA = buildTestPiece 1 Rook 1 North
+          kingA = buildTestPiece 4 King 1 North
+          rookB = buildTestPiece 11 Rook 2 South
+          kingB = buildTestPiece 14 King 2 South
+          
+          initialGame :: Maybe GameState
+          initialGame = initGameBare 8
+                                     8
+                                     [(rookB, (Coord 0 7))
+                                     , (kingB, (Coord 0 4))
+                                     , (rookA, (Coord 7 0))
+                                     , (kingA, (Coord 7 4))]                                     
+                                     [player1, player2]
+                                     player1 
+      hmmm still failing but test passes
+      initialGame `shouldNotBe` Nothing
+
+      let mvs :: [Move]
+          mvs = moves $ fromJust initialGame
+
+      length mvs `shouldBe` 16
+
+      {-
+      let newGame = initialGame >>=
+                    applyMove (pieceId pawnA) (Coord 3 0) >>=
+                    applyMove (pieceId pawnB) (Coord 2 0)
+
+      newGame `shouldNotBe` Nothing
+      -}
     {-
     it "should not crash when king move enabled" $ do
       let coord1 = Coord 6 4

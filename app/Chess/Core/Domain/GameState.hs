@@ -64,7 +64,7 @@ instance ToJSON GameState where
           where
             assocList :: [(Text, [Value])]
             assocList = DL.map (\m -> (pack $ show $ pieceIdValue $ movePieceId m, [toJSON m])) mvs 
-            
+
         renderGameId :: GameId -> Value
         renderGameId (GameId gid) = toJSON gid
 
@@ -85,15 +85,33 @@ initGame Standard pls =
       player1 = pls !! 0
       player2 = pls !! 1
 
-{- Create a new board.  -}
 initGameEmpty :: Int -> Int -> [Player] -> Player -> GameState
-initGameEmpty width height pls plTurn = GameState { board = initBoard width height defaultSpaceBuilder
-                                       , moves = []
-                                       , players = pls
-                                       , playerTurn = plTurn
-                                       , token = pack "abc"
-                                       , gameId = GameId "ABCDE12345"
-                                       }
+initGameEmpty width height pls plTurn = DM.fromJust $ initGameBare width height [] pls plTurn 
+
+{- Create a new board.  -}
+initGameBare :: Int -> Int -> [(Piece, Coord)] -> [Player] -> Player -> Maybe GameState
+initGameBare width height pcs pls plTurn = generateGameState maybeBoard
+  where
+    board = initBoard width height defaultSpaceBuilder
+    maybeBoard = foldl' (\mb (p, c) -> appendPiece p c mb) (Just board) pcs  
+
+    moves = allValidMoves maybeBoard plTurn
+
+    appendPiece :: Piece -> Coord -> Maybe Board -> Maybe Board
+    appendPiece _ _ Nothing = Nothing
+    appendPiece p c (Just b) = addPieceToBoard p c b
+
+    generateGameState :: Maybe Board -> Maybe GameState
+    generateGameState Nothing = Nothing
+    generateGameState (Just b) =  Just GameState { board = b
+                                                 , moves = moves
+                                                 , players = pls
+                                                 , playerTurn = plTurn
+                                                 , token = pack "abc"
+                                                 , gameId = GameId "ABCDE12345"
+                                                 }
+
+    
   
 addPiece :: Piece -> Coord -> GameState -> Maybe GameState
 addPiece p c g@GameState{board = currentBoard}
