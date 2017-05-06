@@ -359,18 +359,14 @@ specialCandidateMoves Piece{pieceType = Queen} _ _ _ _ = []
 {- King castling moves. -}
 specialCandidateMoves Piece{pieceType = King, pieceMoved = True} _ _ _ _ = []
 specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDirection = pd}} c b d instigatorPiece
-  | d == cLeftDir = castleDir [moveD c cLeftDir 1
-                              , moveD c cLeftDir 2
-                              , moveD c cLeftDir 3]
-                              [moveD c cLeftDir 1
-                              , moveD c cLeftDir 2]
+  {- FIXME: Make detection of obstructions AND target landing spaces for castling dynamic and not hardcoded. -}
+  | d == cLeftDir = castleDir [moveD c cLeftDir 1, moveD c cLeftDir 2, moveD c cLeftDir 3]
+                              [moveD c cLeftDir 1, moveD c cLeftDir 2]
                               (moveD c cLeftDir 4)
                               (moveD c cLeftDir 2)
                               (moveD c cLeftDir 1)
-  | d == cRightDir = castleDir [moveD c cRightDir 1
-                               , moveD c cRightDir 2]
-                               [moveD c cRightDir 1
-                               , moveD c cRightDir 2]
+  | d == cRightDir = castleDir [moveD c cRightDir 1, moveD c cRightDir 2]
+                               [moveD c cRightDir 1, moveD c cRightDir 2]
                                (moveD c cRightDir 3)
                                (moveD c cRightDir 2)
                                (moveD c cRightDir 1)
@@ -384,10 +380,13 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
     cRightDir :: Direction
     cRightDir = rotateRight . rotateRight $ pd
 
-    castleDir :: [Coord] -> [Coord] -> Coord -> Coord -> Coord -> [Move]
-    castleDir betweenCoords kingMoveCoords rookCoord kingDestCoord rookDestCoord =
-      if (isJust rookMoved)
-         && not (fromJust rookMoved)
+    
+
+    castleDir :: [Coord] -> [Coord] -> Maybe Coord -> Coord -> Coord -> [Move]
+    castleDir _ _ Nothing _ _ = []
+    castleDir betweenCoords kingMoveCoords (Just rookCoord) kingDestCoord rookDestCoord =
+      if (traceShow (show rookPresent ++ " -> " ++ show rookCoord ++ " -> " ++ show d ++ "/" ++ show cLeftDir ++ "/" ++ show cRightDir ++ " by " ++ show pp) rookPresent)
+         && not rookMoved
          && spacesPassable 
          && not (spacesThreatened kingMoveCoords)
       then maybeToList kingMove
@@ -398,9 +397,15 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
         kingMove, rookMove :: Maybe Move
         kingMove = buildMove p b kingDestCoord False (maybeToList $ buildSideEffectMove <$> rookMove)
         rookMove = buildMove (fromJust $ fetchPiece rookCoord b) b rookDestCoord False []
+
+        rookSpace :: Maybe Space
+        rookSpace = fetchSpace rookCoord b
+  
+        rookPresent :: Bool
+        rookPresent = spaceContainsRook rookSpace
         
-        rookMoved :: Maybe Bool
-        rookMoved = pieceTypeMoved b rookCoord Rook
+        rookMoved :: Bool
+        rookMoved = pieceMoved $ fromJust $ spacePiece $ fromJust $ rookSpace 
 
         spacesPassable :: Bool
         spacesPassable =
@@ -420,24 +425,12 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
             testPiece :: Player -> Coord -> Piece
             testPiece pp' coord = buildPiece (PieceId (-1)) Pawn White pp' (Just coord) 
 
-        {-
-           TODO: Is there a better way? Too many contexts within contexts!
-         -}
-        pieceTypeMoved :: Board -> Coord -> PieceType -> Maybe Bool
-        pieceTypeMoved brd pCoord pType =
-          if isNothing (matchesPiece $ fetchSpace pCoord brd)
-          then Nothing
-          else movedPiece <$> fetchSpace pCoord brd
-              where
-                matchesPiece :: Maybe Space -> Maybe Bool
-                matchesPiece Nothing = Nothing
-                matchesPiece (Just (Void(_))) = Nothing
-                matchesPiece (Just Space{spacePiece = Nothing}) = Nothing
-                matchesPiece (Just Space{spacePiece = Just Piece{pieceType = pt}}) = Just (pt == pType)
-
-                movedPiece :: Space -> Bool
-                movedPiece sp = pieceMoved $ fromJust $ spacePiece sp 
-
+        spaceContainsRook :: Maybe Space -> Bool
+        spaceContainsRook Nothing = False
+        spaceContainsRook (Just (Void _)) = False
+        spaceContainsRook (Just Space{spacePiece = Nothing}) = False
+        spaceContainsRook (Just Space{spacePiece = Just Piece{pieceType = pt}}) = pt == Rook
+                                                                                     
 specialCandidateMoves p@Piece{pieceType = Pawn, piecePlayer = Player{playerId = plId, playerDirection = pd}} c b d _
   | d /= pd = []
   | bothQualify = leftEnPassant DL.++ rightEnPassant

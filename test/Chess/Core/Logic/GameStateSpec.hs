@@ -274,14 +274,29 @@ spec = describe "Game" $ do
                                      , (kingA, (Coord 7 4))]                                     
                                      [player1, player2]
                                      player1 
-      hmmm still failing but test passes
+
       initialGame `shouldNotBe` Nothing
 
       let mvs :: [Move]
           mvs = moves $ fromJust initialGame
+          castlingMove1 :: Maybe Move
+          castlingMove1 = find (\m -> not . null $ moveSideEffects m) mvs
 
-      length mvs `shouldBe` 16
+      castlingMove1 `shouldNotBe` Nothing
 
+      let game :: Maybe GameState
+          game = initialGame >>=
+                 applyMove (pieceId rookA) (Coord 7 1)
+
+      game `shouldNotBe` Nothing
+
+      let mvs' :: [Move]
+          mvs' = moves $ fromJust game
+          castlingMove2 :: Maybe Move
+          castlingMove2 = find (\m -> not . null $ moveSideEffects m) mvs'
+
+      castlingMove2 `shouldNotBe` Nothing
+      
       {-
       let newGame = initialGame >>=
                     applyMove (pieceId pawnA) (Coord 3 0) >>=

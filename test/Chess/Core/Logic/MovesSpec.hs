@@ -1437,7 +1437,7 @@ spec = describe "Pieces" $ do
 
         boardR `shouldBe` Nothing
      
-    it "cannot castle when pieces previously moved" $ do
+    it "cannot castle when rooks previously moved" $ do
 
         let emptyBoard = initBoard 8 8 defaultSpaceBuilder
             originCoord = Coord 7 4
@@ -1485,6 +1485,52 @@ spec = describe "Pieces" $ do
 
         boardR `shouldBe` Nothing
       
+    it "cannot castle when king previously moved" $ do
+
+        let emptyBoard = initBoard 8 8 defaultSpaceBuilder
+            originCoord = Coord 7 4
+            king = buildTestPiece 1 King 1 North
+            rook1 = buildTestPiece 2 Rook 1 North
+            rook2 = buildTestPiece 3 Rook 1 North
+        
+            board = Just emptyBoard >>=
+                    addPieceToBoard king originCoord >>= 
+                    addPieceToBoard rook1 (Coord 7 0) >>= 
+                    addPieceToBoard rook2 (Coord 7 7) >>=
+                    move (pieceId king) (Coord 6 4) >>=
+                    move (pieceId king) originCoord
+
+        board `shouldNotBe` Nothing
+        
+        -- fetch moves
+        let ms :: [Move]
+            ms = validMoves (fromJust board) (pieceId king) originCoord
+
+        length ms `shouldBe` 5
+
+        let coords :: [Coord]
+            coords = map (\m -> spaceCoord $ moveSpace m) ms
+
+        elem (Coord 7 2) coords `shouldBe` False
+        elem (Coord 7 3) coords `shouldBe` True
+        elem (Coord 6 3) coords `shouldBe` True
+        elem (Coord 6 4) coords `shouldBe` True
+        elem (Coord 6 5) coords `shouldBe` True
+        elem (Coord 7 5) coords `shouldBe` True
+        elem (Coord 7 6) coords `shouldBe` False
+
+        -- verify move doesn't work (castle left)
+        let boardL :: Maybe Board
+            boardL = move (pieceId king) (Coord 7 2) (fromJust board) 
+
+        boardL `shouldBe` Nothing
+
+        -- verify move doesn't work (castle right)
+        let boardR :: Maybe Board
+            boardR = move (pieceId king) (Coord 7 6) (fromJust board) 
+
+        boardR `shouldBe` Nothing
+
     it "cannot have another piece move (pinned) if results in check" $ do
 
         let emptyBoard = initBoard 3 4 defaultSpaceBuilder
