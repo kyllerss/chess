@@ -359,17 +359,8 @@ specialCandidateMoves Piece{pieceType = Queen} _ _ _ _ = []
 {- King castling moves. -}
 specialCandidateMoves Piece{pieceType = King, pieceMoved = True} _ _ _ _ = []
 specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDirection = pd}} c b d instigatorPiece
-  {- FIXME: Make detection of obstructions AND target landing spaces for castling dynamic and not hardcoded. -}
-  | d == cLeftDir = castleDir [moveD c cLeftDir 1, moveD c cLeftDir 2, moveD c cLeftDir 3]
-                              [moveD c cLeftDir 1, moveD c cLeftDir 2]
-                              (moveD c cLeftDir 4)
-                              (moveD c cLeftDir 2)
-                              (moveD c cLeftDir 1)
-  | d == cRightDir = castleDir [moveD c cRightDir 1, moveD c cRightDir 2]
-                               [moveD c cRightDir 1, moveD c cRightDir 2]
-                               (moveD c cRightDir 3)
-                               (moveD c cRightDir 2)
-                               (moveD c cRightDir 1)
+  | d == cLeftDir = castleDir lRookCoord          
+  | d == cRightDir = castleDir rRookCoord
   | otherwise = []
 
   where
@@ -380,20 +371,41 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
     cRightDir :: Direction
     cRightDir = rotateRight . rotateRight $ pd
 
-    
+    oppCastlingDir :: Direction
+    oppCastlingDir = rotateRight . rotateRight . rotateRight . rotateRight $ d
 
-    castleDir :: [Coord] -> [Coord] -> Maybe Coord -> Coord -> Coord -> [Move]
-    castleDir _ _ Nothing _ _ = []
-    castleDir betweenCoords kingMoveCoords (Just rookCoord) kingDestCoord rookDestCoord =
-      if (traceShow (show rookPresent ++ " -> " ++ show rookCoord ++ " -> " ++ show d ++ "/" ++ show cLeftDir ++ "/" ++ show cRightDir ++ " by " ++ show pp) rookPresent)
-         && not rookMoved
-         && spacesPassable 
-         && not (spacesThreatened kingMoveCoords)
-      then maybeToList kingMove
-      else []
+    lRookCoord, rRookCoord :: Maybe Coord
+    lRookCoord = fetchRookCoord cLeftDir
+    rRookCoord = fetchRookCoord cRightDir
+
+    fetchRookCoord :: Direction -> Maybe Coord
+    fetchRookCoord rookDir
+      | threePiece == Just Rook = Just threeCoord
+      | fourPiece == Just Rook = Just fourCoord
+      | otherwise = Nothing
+      where
+        fourCoord, threeCoord :: Coord
+        fourCoord = (moveD c rookDir 4)
+        threeCoord = (moveD c rookDir 3)
+        fourPiece, threePiece :: Maybe PieceType
+        fourPiece = pieceType <$> join (spacePiece <$> fetchSpace fourCoord b)
+        threePiece = pieceType <$> join (spacePiece <$> fetchSpace threeCoord b)
+        
+    castleDir :: Maybe Coord -> [Move]
+    castleDir Nothing = []
+    castleDir (Just rookCoord) 
+      | not rookMoved && spacesPassable && not spacesThreatened = maybeToList kingMove
+      | otherwise = []
 
       where
 
+        betweenCoords :: [Coord]
+        betweenCoords = fetchBetweenCoords c rookCoord
+        
+        kingDestCoord, rookDestCoord :: Coord
+        kingDestCoord = moveD c d 2
+        rookDestCoord = moveD kingDestCoord oppCastlingDir 1
+        
         kingMove, rookMove :: Maybe Move
         kingMove = buildMove p b kingDestCoord False (maybeToList $ buildSideEffectMove <$> rookMove)
         rookMove = buildMove (fromJust $ fetchPiece rookCoord b) b rookDestCoord False []
@@ -401,9 +413,6 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
         rookSpace :: Maybe Space
         rookSpace = fetchSpace rookCoord b
   
-        rookPresent :: Bool
-        rookPresent = spaceContainsRook rookSpace
-        
         rookMoved :: Bool
         rookMoved = pieceMoved $ fromJust $ spacePiece $ fromJust $ rookSpace 
 
@@ -414,22 +423,19 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
         isObstructed :: Coord -> Bool
         isObstructed coord = maybe False (\s -> isJust $ spacePiece s) $ fetchSpace coord b
 
-        spacesThreatened :: [Coord] -> Bool
-        spacesThreatened kingMCoords
+        kingTraverseCoords :: [Coord]
+        kingTraverseCoords = kingDestCoord : (fetchBetweenCoords c kingDestCoord)
+
+        spacesThreatened :: Bool
+        spacesThreatened
           | isJust instigatorPiece && fromJust instigatorPiece == p = False
-          | otherwise = DL.any (\crd -> isOverlapSpace crd (threatenedSpacesInner (virtBoard b pp crd) pp instigatorPiece)) kingMCoords
+          | otherwise = DL.any (\crd -> isOverlapSpace crd (threatenedSpacesInner (virtBoard b pp crd) pp instigatorPiece)) kingTraverseCoords
           where
             virtBoard :: Board -> Player -> Coord -> Maybe Board
             virtBoard brd pp' coord = addPieceToBoard (testPiece pp' coord) coord brd
 
             testPiece :: Player -> Coord -> Piece
             testPiece pp' coord = buildPiece (PieceId (-1)) Pawn White pp' (Just coord) 
-
-        spaceContainsRook :: Maybe Space -> Bool
-        spaceContainsRook Nothing = False
-        spaceContainsRook (Just (Void _)) = False
-        spaceContainsRook (Just Space{spacePiece = Nothing}) = False
-        spaceContainsRook (Just Space{spacePiece = Just Piece{pieceType = pt}}) = pt == Rook
                                                                                      
 specialCandidateMoves p@Piece{pieceType = Pawn, piecePlayer = Player{playerId = plId, playerDirection = pd}} c b d _
   | d /= pd = []
