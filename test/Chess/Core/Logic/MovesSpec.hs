@@ -249,8 +249,6 @@ spec = describe "Pieces" $ do
         elem (Coord 1 0) coords `shouldBe` True
         elem (Coord 1 1) coords `shouldBe` True
 
-        -- TODO: Actually do the move and verify other pawn taken.
-
     it "can do right 'en passant'" $ do
 
         -- initial board setup

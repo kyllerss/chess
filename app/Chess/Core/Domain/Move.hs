@@ -10,6 +10,7 @@ import qualified Data.Maybe as DM
 data BoardSideEffect = SideEffectMove { sideEffectMove :: Move }
                        | SideEffectPiece { sideEffectPiece :: Piece
                                          , sideEffectSpace :: Space }
+                       | SideEffectCapture { sideEffectCoord :: Coord }
      deriving (Show, Read, Eq, Generic, NFData)
 
 data Move = Move { movePieceId        :: PieceId
@@ -38,3 +39,6 @@ buildSideEffectMove move = SideEffectMove move
 
 buildSideEffectPiece :: Piece -> Space -> BoardSideEffect
 buildSideEffectPiece p s = SideEffectPiece{sideEffectPiece = p, sideEffectSpace = s}
+
+buildSideEffectCapture :: Coord -> BoardSideEffect
+buildSideEffectCapture c = SideEffectCapture{sideEffectCoord = c}

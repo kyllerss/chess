@@ -50,8 +50,8 @@ moveInner :: Maybe Piece -> Coord -> Board -> Maybe Board
 moveInner Nothing _ _ = Nothing
 moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
     | resultsInCheck = Nothing
-    | targetCoordStandard originSpace = movedBoard >>= applyCollateralPieces
-    | targetCoordSpecial originSpace = movedBoard >>= applyCollateralMoves
+    | targetCoordStandard originSpace = movedBoard >>= applyCollateralPieces 
+    | targetCoordSpecial originSpace = movedBoard >>= applyCollateralMoves >>= applyCollateralCaptures
     | otherwise = Nothing
 
   where
@@ -87,6 +87,12 @@ moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
                ([sp | sp@SideEffectPiece{} <- if (isJust targetSideEffectPieceMove)
                                               then moveSideEffects $ fromJust targetSideEffectPieceMove
                                               else []])
+
+    applyCollateralCaptures :: Board -> Maybe Board
+    applyCollateralCaptures newB =
+      DL.foldl (\accB c -> removePieceFromBoard c (fromJust accB))
+               (Just newB) 
+               [ c | SideEffectCapture{sideEffectCoord = c} <- moveSideEffects targetSpecialMove]
 
     {- Returns true if target coordinate implies a standard move (ie. no side-effects) -}
     targetCoordStandard :: Maybe Space -> Bool
@@ -129,13 +135,13 @@ moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
 transfer :: Board -> Piece -> Maybe Space -> Maybe Space -> Maybe Board
 transfer _ _ Nothing _ = Nothing
 transfer _ _ _ Nothing = Nothing
-transfer !b@Board {spacesMap = spsMap} p (Just os) (Just ds) = Just $ b { spacesMap = updatedMap }
-      where
-        updatedMap :: M.Map Coord Space
-        updatedMap = M.insert (spaceCoord ds) (addPiece ds p{pieceMoved = True}) removedPieceBoard
-
-        removedPieceBoard :: M.Map Coord Space
-        removedPieceBoard = M.insert (spaceCoord os) (removePiece os) spsMap
+transfer b p (Just os) (Just ds) = Just b >>=
+                                   replaceSpace newOriginSpace >>=
+                                   replaceSpace newDestinationSpace
+    where
+        newOriginSpace, newDestinationSpace :: Space
+        newOriginSpace = removePiece os
+        newDestinationSpace = addPiece ds p{pieceMoved = True}
 
 {- Returns all valid moves for each piece of a given player in a given board -}
 allValidMoves :: Maybe Board -> Player -> [Move]
@@ -494,8 +500,8 @@ specialCandidateMoves p@Piece{pieceType = Pawn, piecePlayer = Player{playerId = 
       rightEnPassantCoord = moveD rightCoord pd 1
       
       leftEnPassant, rightEnPassant :: [Move]
-      leftEnPassant = maybeToList $ buildMove p b leftEnPassantCoord True []
-      rightEnPassant = maybeToList $ buildMove p b rightEnPassantCoord True []
+      leftEnPassant = maybeToList $ buildMove p b leftEnPassantCoord True [buildSideEffectCapture leftCoord]
+      rightEnPassant = maybeToList $ buildMove p b rightEnPassantCoord True [buildSideEffectCapture rightCoord]
 
 {- Pieces that move directionally, returns candidate coordinates  -}
 directionalCandidateMoves' :: [Direction] -> Piece -> Coord -> Board -> Direction -> Maybe Piece -> [Move]

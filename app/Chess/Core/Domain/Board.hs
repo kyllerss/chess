@@ -75,6 +75,13 @@ buildBoard :: Int -> Int -> [Space] -> Board
 buildBoard _ _ sps = Board { spacesMap = buildSpaceMap sps
                            , boardMoves = []}
 
+{- Replaces the existing space in the board. -}
+replaceSpace :: Space -> Board -> Maybe Board
+replaceSpace s b@Board{spacesMap = spsMap}
+  | Map.member coord spsMap = Just b{spacesMap = Map.insert coord s spsMap}
+  | otherwise = Nothing
+    where coord = spaceCoord s
+
 updateBoardSpaceSideEffect :: Coord -> SpaceSideEffectType -> Board -> Maybe Board
 updateBoardSpaceSideEffect c se b@Board{spacesMap = sps} = updateBoard (fetchSpace c b)
   where
@@ -131,7 +138,22 @@ addPieceToBoard p c b@Board{spacesMap = spsMap} =
     addPiece' (Just s) = Just $
         b { spacesMap = Map.insert c spaceWPiece spsMap }
             where spaceWPiece :: Space
-                  spaceWPiece = addPiece s p{pieceOrigin = Just c, pieceMoved = False}
+                  spaceWPiece = addPiece s p{pieceOrigin = Just c}
+
+{- Removes a piece at a given coordinate from specified board. -}
+removePieceFromBoard :: Coord -> Board -> Maybe Board
+removePieceFromBoard c b@Board{spacesMap = spsMap}
+  | space /= Nothing = Just b{spacesMap = updatedMap}
+  | otherwise = Nothing
+
+  where
+    space :: Maybe Space
+    space = fetchSpace c b
+    
+    updatedMap :: Map.Map Coord Space
+    updatedMap
+      | space /= Nothing = Map.insert (spaceCoord $ DM.fromJust space) (removePiece $ DM.fromJust space) spsMap
+      | otherwise = spsMap
 
 {- Fetches space containing specified piece. -}
 fetchPieceSpace :: Piece -> Board -> Maybe Space
