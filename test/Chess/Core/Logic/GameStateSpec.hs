@@ -254,10 +254,35 @@ spec = describe "Game" $ do
       (elem (pieceId rookA, Coord 2 3) mvts') `shouldBe` True
       (elem (pieceId rookA, Coord 3 3) mvts') `shouldBe` True
       
-    it "pawn should consume 'en-passant' when opportunity presented" $ do
-      let n = Nothing :: Maybe Int
-      n `shouldNotBe` Nothing
+    it "pawn can consume 'en-passant'" $ do
 
+      let pawnA = buildTestPiece 4 Pawn 1 North
+          pawnV = buildTestPiece 14 Pawn 2 South
+          
+          initialGame :: Maybe GameState
+          initialGame = initGameBare 2
+                                     4
+                                     [(pawnA, (Coord 3 1))
+                                     , (pawnV, (Coord 0 0))]                                     
+                                     [player1, player2]
+                                     player1 
+
+      initialGame `shouldNotBe` Nothing
+
+      let movedGame :: Maybe GameState
+          movedGame = initialGame >>=
+                      applyMove (pieceId pawnA) (Coord 2 1) >>=
+                      applyMove (pieceId pawnV) (Coord 2 0) >>=
+                      applyMove (pieceId pawnA) (Coord 1 0)
+
+      movedGame `shouldNotBe` Nothing
+
+      let consumedPiece = fetchPiece (Coord 2 0) (board $ fromJust movedGame)
+          remainingPiece = fetchPiece (Coord 1 0) (board $ fromJust movedGame)
+
+      consumedPiece `shouldBe` Nothing
+      (pieceId <$> remainingPiece) `shouldBe` Just (pieceId pawnA)
+            
     it "should allow player 2 to castle" $ do
 
       let rookA = buildTestPiece 1 Rook 1 North
