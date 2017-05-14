@@ -227,7 +227,7 @@ var ChessModel = function () {
 
         var state = null;
         $.ajax({
-            url: "/game/new",
+            url: "/game/Standard/new",
             dataType: "json",
             method: "GET"
         })

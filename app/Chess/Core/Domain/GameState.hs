@@ -68,8 +68,6 @@ instance ToJSON GameState where
         renderGameId :: GameId -> Value
         renderGameId (GameId gid) = toJSON gid
 
-data GameType = Standard
-
 {- Builds a new game state.  -}
 initGame :: GameType -> [Player] -> GameState
 initGame Standard pls =

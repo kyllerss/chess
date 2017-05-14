@@ -1,9 +1,10 @@
-/static StaticR Static appStatic
+/static               StaticR Static appStatic
 
-/favicon.ico FaviconR GET
-/robots.txt RobotsR GET
+/favicon.ico          FaviconR GET
+/robots.txt           RobotsR GET
 
-/ HomeR GET
+/                     HomeR GET
 
-/game/new NewGameR GET
-/game/#String/move MoveR POST
+/game/#GameType/new   NewGameR GET
+/game/#GameId         ViewGameR GET
+/game/#GameId/move    MoveR POST

@@ -21,8 +21,9 @@ library
                      Settings.StaticFiles
                      Handler.Common
                      Handler.Home
-                     Handler.NewGame
+                     Handler.Game
                      Handler.Move
+                     Chess.Core.Domain.Foundation
                      Chess.Core.Domain.Base
                      Chess.Core.Domain.Board
                      Chess.Core.Domain.Coord

@@ -24,14 +24,14 @@ invalidMove pieceId coord = jsonError $ "Move is invalid: " ++ show pieceId ++ "
 unableToPersistState :: Value
 unableToPersistState = jsonError $ "Unable to persist state."
 
-postMoveR :: String -> Handler Value
+postMoveR :: GameId -> Handler Value
 postMoveR gId = do
 
   liftIO $ print $ "Handling move request for game " ++ show gId
   
-  -- fetch/validate game
-  game <- liftIO $ fetchGame $ GameId gId
-  when (isNothing game) (sendResponseStatus status403 $ unknownGame (GameId gId))
+  -- fetch/validate game (GameId gId)
+  game <- liftIO $ fetchGame gId
+  when (isNothing game) (sendResponseStatus status403 $ unknownGame gId)
 
   -- fetch/validate parameters
   pIdS <- runInputPost $ ireq textField "pieceId" --runlookupPostParam "pieceId"

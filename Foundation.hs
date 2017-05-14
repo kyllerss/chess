@@ -1,5 +1,6 @@
 module Foundation where
 
+import Chess.Core.Domain.Foundation
 import Import.NoFoundation
 import Text.Hamlet                 (hamletFile)
 import Text.Jasmine                (minifym)
@@ -30,12 +31,14 @@ data MenuTypes
     = NavbarLeft MenuItem
     | NavbarRight MenuItem
 
-data GameId = GameId String
-  deriving (Show, Read, Eq, Generic, NFData)
-
+-- Custom type converters for get/post parameters.
 instance PathPiece GameId where
-    toPathPiece = tshow
-    fromPathPiece = readMay
+  toPathPiece (GameId gId)= pack $ id gId
+  fromPathPiece gId = Just $ GameId $ unpack gId
+
+instance PathPiece GameType where
+  toPathPiece = tshow 
+  fromPathPiece = readMay 
 
 -- This is where we define all of the routes in our application. For a full
 -- explanation of the syntax, please see:
