@@ -7,6 +7,8 @@ var ChessModel = function () {
     var _moveablePieces = {};
     var _pieceMapping = {p: "Pawn", r: "Rook", n: "Knight", b: "Bishop", q: "Queen", k: "King"};
     var _colorMapping = {w: "White", b: "Black"};
+    var _VIEWURL = null;
+    var _MOVEURL = null;
 
     function _move(pId, newCoord) {
 
@@ -36,14 +38,13 @@ var ChessModel = function () {
         // TODO: show modal
 
         // Fetch server state and refresh
-        var moveUrl = "/game/" + _gameId + "/move";
         var moveData = {
             pieceId: pId,
             coord: "[" + newCoord[0] + "," + newCoord[1] + "]"
         };
 
         $.ajax({
-            url: moveUrl,
+            url: _MOVEURL,
             dataType: "json",
             method: "POST",
             data: moveData,
@@ -223,11 +224,13 @@ var ChessModel = function () {
          */
     }
     
-    function _initState(onDoneCallback) {
+    function _initState(onDoneCallback, viewGameUrl, moveUrl) {
 
+        _VIEWURL = viewGameUrl;
+        _MOVEURL = moveUrl;
         var state = null;
         $.ajax({
-            url: "/game/Standard/new",
+            url: _VIEWURL,
             dataType: "json",
             method: "GET"
         })

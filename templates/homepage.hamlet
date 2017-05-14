@@ -1,1 +1,4 @@
-<div #c-main-board>
+<h1>Choose your game:
+<ul>
+  $forall gameType <- allGameTypes
+      <li><a href=@{NewGameR gameType}>#{show gameType}
