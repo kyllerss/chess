@@ -33,7 +33,7 @@ let c = encode $ Coord 1 2
 (decode c) :: Maybe Coord
 -}
 
-data Piece = Piece { pieceColor   :: Color
+data Piece = Piece { pieceColor   :: Color 
                    , pieceType    :: PieceType
                    , piecePlayer  :: Player
                    , pieceId      :: PieceId

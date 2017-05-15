@@ -64,6 +64,10 @@ instance ToJSON Board where
                     | a1 == a2 -> if (b1 > b2) then GT else LT
                     | otherwise -> EQ
 
+{- Represents empty board. -}
+nullBoard :: Board
+nullBoard = Board{ spacesMap = Map.empty, boardMoves = [] }
+
 {- Generate a new board.  -}
 initBoard :: Int -> Int -> (Coord -> Space) -> Board
 initBoard width height spaceBuilder =

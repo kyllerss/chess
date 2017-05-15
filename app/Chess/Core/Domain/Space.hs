@@ -29,6 +29,13 @@ instance Ord Space where
     (Void c1) `compare` (Space{spaceCoord = c2}) = c1 `compare` c2
     (Void c1) `compare` (Void c2) = c1 `compare` c2
 
+{- Bare-minimum builder. -}
+nullSpace :: Coord -> Space
+nullSpace coord = Space { spacePiece = Nothing
+                        , spaceColor = Black
+                        , spaceCoord = coord
+                        , spaceSideEffectType = Nothing}
+
 buildSpaceMap :: [Space] -> Map Coord Space
 buildSpaceMap sps = DL.foldl (\m s -> Map.insert (spaceCoord s) s m) Map.empty sps
 
@@ -56,4 +63,3 @@ removePiece srem = srem { spacePiece = Nothing }
 {- Add a piece to a given space.  -}
 addPiece :: Space -> Piece -> Space
 addPiece sadd padd = sadd { spacePiece = Just padd }
-

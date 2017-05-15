@@ -34,6 +34,7 @@ library
                      Chess.Core.Domain.Space
                      Chess.Core.Logic.GameStatePersistence
                      Chess.Core.Logic.Moves
+                     Chess.Core.Logic.BoardBuilder
                      Chess.TestUtils
                      Chess.Core.DebugUtils
 
@@ -146,6 +147,7 @@ test-suite test
                        Chess.Core.Domain.DomainSpec
                        Chess.Core.Logic.MovesSpec
                        Chess.Core.Logic.GameStateSpec
+                       Chess.Core.Logic.BoardBuilderSpec
     hs-source-dirs:    test
     ghc-options:       -Wall -threaded -rtsopts -with-rtsopts=-N
 

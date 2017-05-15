@@ -22,3 +22,6 @@ instance Eq Player where
 instance ToJSON Player where
     toJSON (Player{playerName = pName,playerId = pId}) =
         object [ "name" .= pName, "id" .= pId ]
+
+assignPlayerColor :: Player -> Color
+assignPlayerColor Player{playerId = pId} = toEnum (pId `mod` (fromEnum (maxBound :: Color)))
