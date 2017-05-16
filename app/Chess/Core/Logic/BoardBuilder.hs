@@ -93,6 +93,7 @@ decodeSpaceType sp c char
   | otherwise = sp
 
 decodeSpaceProps :: Space -> Char -> Space
+decodeSpaceProps sp@(Void _) _ = sp
 decodeSpaceProps sp c
   | c == 'p' = sp{spaceSideEffectType = Just PawnPromotion}
   | otherwise = sp
