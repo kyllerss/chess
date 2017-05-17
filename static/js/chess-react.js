@@ -169,36 +169,64 @@ var Piece = React.createClass({
         var pId = this.props.pieceId;
 
         var piece;
-        if (pType === "Pawn" && pColor === "White") {
-            piece = '&#9817;';
-        } else if (pType === "Pawn" && pColor === "Black") {
-            piece = '&#9823;';
-        } else if (pType === "Rook" && pColor === "White") {
-            piece = '&#9814;';
-        } else if (pType === "Rook" && pColor === "Black") {
-            piece = '&#9820;';
-        } else if (pType === "Knight" && pColor === "White") {
-            piece = '&#9816;';
-        } else if (pType === "Knight" && pColor === "Black") {
-            piece = '&#9822;';
-        } else if (pType === "Bishop" && pColor === "White") {
-            piece = '&#9815;';
-        } else if (pType === "Bishop" && pColor === "Black") {
-            piece = '&#9821;';
-        } else if (pType === "Queen" && pColor === "White") {
-            piece = '&#9813;';
-        } else if (pType === "Queen" && pColor === "Black") {
-            piece = '&#9819;';
-        } else if (pType === "King" && pColor === "White") {
-            piece = '&#9812;';
-        } else if (pType === "King" && pColor === "Black") {
-            piece = '&#9818;';
+        if (pColor == "White") {
+            
+            if (pType === "Pawn") {
+                piece = '&#9817;';
+            } else if (pType === "Rook") {
+                piece = '&#9814;';
+            } else if (pType === "Knight") {
+                piece = '&#9816;';
+            } else if (pType === "Bishop") {
+                piece = '&#9815;';
+            } else if (pType === "Queen") {
+                piece = '&#9813;';
+            } else if (pType === "King") {
+                piece = '&#9812;';
+            } else {
+                piece = "";
+            }
+
         } else {
-            piece = "";
+            
+            if (pType === "Pawn") {
+                piece = '&#9823;';
+            } else if (pType === "Rook") {
+                piece = '&#9820;';
+            } else if (pType === "Knight") {
+                piece = '&#9822;';
+            } else if (pType === "Bishop") {
+                piece = '&#9821;';
+            } else if (pType === "Queen") {
+                piece = '&#9819;';
+            } else if (pType === "King") {
+                piece = '&#9818;';
+            } else {
+                piece = "";
+            }
+        }
+
+        var colorClass;
+        if (pColor === "Black") {
+            colorClass = "c-black";
+        } else if (pColor === "Green") {
+            colorClass = "c-green";
+        } else if (pColor === "Blue") {
+            colorClass = "c-blue";
+        } else if (pColor === "Purple") {
+            colorClass = "c-purple";
+        } else if (pColor === "Orange") {
+            colorClass = "c-orange";
+        } else if (pColor === "Yellow") {
+            colorClass = "c-yellow";
+        } else if (pColor === "Red") {
+            colorClass = "c-red";
+        } else {
+            colorClass = "";
         }
 
         var draggable = ChessModel.isMoveablePiece(pId);
-        var properties = {className: "c-piece",
+        var properties = {className: "c-piece" + " " + colorClass,
                           dangerouslySetInnerHTML: {__html: piece},
                           draggable: draggable,
                           onDragStart: this._startDrag};

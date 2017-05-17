@@ -6,7 +6,14 @@ var ChessModel = function () {
     var _validMoves = {};
     var _moveablePieces = {};
     var _pieceMapping = {p: "Pawn", r: "Rook", n: "Knight", b: "Bishop", q: "Queen", k: "King"};
-    var _colorMapping = {w: "White", b: "Black"};
+    var _colorMapping = { w: "White"
+                        , b: "Black"
+                        , g: "Green"
+                        , c: "Blue"
+                        , p: "Purple"
+                        , o: "Orange"
+                        , y: "Yellow"
+                        , r: "Red"};
     var _VIEWURL = null;
     var _MOVEURL = null;
 

@@ -2,7 +2,7 @@ module Chess.Core.Domain.Foundation where
 
 import Import.NoFoundation
 
-data GameType = Standard
+data GameType = Standard | Dunsany
   deriving (Show, Read, Eq, Generic, Ord, Enum, Bounded, NFData)
 
 allGameTypes :: [GameType]

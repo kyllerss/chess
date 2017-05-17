@@ -2,7 +2,7 @@ module Chess.Core.Domain.Base where
 
 import Import
 
-data Color = Black | White | Green | Blue | Orange | Yellow | Red | Purple
+data Color =  White | Black | Green | Blue | Orange | Yellow | Red | Purple
     deriving (Show, Eq, Read, Bounded, Enum, Generic, NFData)
 
 instance ToJSON Color where

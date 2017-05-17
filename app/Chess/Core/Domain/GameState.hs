@@ -7,6 +7,7 @@ import Chess.Core.Domain.Move
 import Chess.Core.Domain.Piece
 import Chess.Core.Domain.Player
 import Chess.Core.Domain.Space
+import Chess.Core.Logic.BoardBuilder
 import Chess.Core.Logic.Moves
 import qualified Data.Maybe as DM
 import qualified Data.Map as Map
@@ -71,18 +72,112 @@ instance ToJSON GameState where
 {- Builds a new game state.  -}
 initGame :: GameType -> [Player] -> GameState
 initGame Standard pls =
-    GameState{ board = board
+    GameState{ board = DM.fromJust board
              , moves = allMoves
              , players = [player1, player2]
              , playerTurn = player1
              , token = ""
              , gameId = GameId "12345ABCDE"}
     where
-      board = initStandardBoard player1 player2
-      allMoves = allValidMoves (Just board) player1
+      spaceMatrix = [ ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b']
+                    , ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']
+                    , ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b']
+                    , ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']
+                    , ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b']
+                    , ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']
+                    , ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b']
+                    , ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']
+                    ]
+                    
+      propsMatrix = [ ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p']
+                    , ['.', '.', '.', '.', '.', '.', '.', '.']
+                    , ['.', '.', '.', '.', '.', '.', '.', '.']
+                    , ['.', '.', '.', '.', '.', '.', '.', '.']
+                    , ['.', '.', '.', '.', '.', '.', '.', '.']
+                    , ['.', '.', '.', '.', '.', '.', '.', '.']
+                    , ['.', '.', '.', '.', '.', '.', '.', '.']
+                    , ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p']
+                    ]
+                    
+      player1Matrix = [ ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p']
+                      , ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r']
+                      ]
+                    
+      player2Matrix = [ ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r']
+                      , ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      ]
+
+      playerPieceMatrix = [(player1, player1Matrix), (player2, player2Matrix)]
+      board = constituteBoard 8 8 spaceMatrix propsMatrix playerPieceMatrix 
+      allMoves = allValidMoves board player1
       player1 = pls !! 0
       player2 = pls !! 1
 
+initGame Dunsany pls =
+    GameState{ board = DM.fromJust board
+             , moves = allMoves
+             , players = [player1, player2]
+             , playerTurn = player2
+             , token = ""
+             , gameId = GameId "12345ABCDE"}
+    where
+      spaceMatrix = [ ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b']
+                    , ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']
+                    , ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b']
+                    , ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']
+                    , ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b']
+                    , ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']
+                    , ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b']
+                    , ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']
+                    ]
+      propsMatrix = [ ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p']
+                    , ['.', '.', '.', '.', '.', '.', '.', '.']
+                    , ['.', '.', '.', '.', '.', '.', '.', '.']
+                    , ['.', '.', '.', '.', '.', '.', '.', '.']
+                    , ['.', '.', '.', '.', '.', '.', '.', '.']
+                    , ['.', '.', '.', '.', '.', '.', '.', '.']
+                    , ['.', '.', '.', '.', '.', '.', '.', '.']
+                    , ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p']
+                    ]
+                    
+      player1Matrix = [ ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p']
+                      , ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p']
+                      , ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p']
+                      , ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p']
+                      ]
+                    
+      player2Matrix = [ ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r']
+                      , ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.', '.']
+                      ]
+
+      playerPieceMatrix = [(player1, player1Matrix), (player2, player2Matrix)]
+      board = constituteBoard 8 8 spaceMatrix propsMatrix playerPieceMatrix 
+      allMoves = allValidMoves board player2
+      player1 = pls !! 0
+      player2 = pls !! 1
+      
 initGameEmpty :: Int -> Int -> [Player] -> Player -> GameState
 initGameEmpty width height pls plTurn = DM.fromJust $ initGameBare width height [] pls plTurn 
 
