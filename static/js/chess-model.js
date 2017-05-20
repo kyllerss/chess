@@ -16,6 +16,7 @@ var ChessModel = function () {
                         , r: "Red"};
     var _VIEWURL = null;
     var _MOVEURL = null;
+    var _playerTurn = null;
 
     function _move(pId, newCoord) {
 
@@ -116,6 +117,7 @@ var ChessModel = function () {
         console.log("Received from server new state: " + newState);
             
         _gameId = newState.gameId;
+        _playerTurn = newState.playerTurn;
         _rawState = newState;
 
         // layout initial board
@@ -281,6 +283,10 @@ var ChessModel = function () {
         });
     };
 
+    function _fetchPlayerTurn() {
+        return _playerTurn;
+    };
+
     return {
         registerBoardListener: _registerBoardListener,
         initBoard: _initState,
@@ -288,7 +294,9 @@ var ChessModel = function () {
         fetchSpace: _fetchSpace,
         isValidMove: _isValidMove,
         isMoveablePiece: _isMoveablePiece,
-        move: _move
+        calculateColor: _calculateColor,
+        move: _move,
+        fetchPlayerTurn: _fetchPlayerTurn
     };
 }();
 

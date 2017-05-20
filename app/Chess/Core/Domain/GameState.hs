@@ -30,7 +30,7 @@ instance ToJSON GameState where
                , "pieces" .= (renderPieces b)
                , "moves" .= (renderMoves ms)
                , "gameId" .= (renderGameId gId)
-               , "playerTurn" .= (playerId pl)]
+               , "playerTurn" .= pl]
       where
         
         renderKeyValueMap :: Board -> (Space -> Maybe (Text, Value)) -> Map Text Value

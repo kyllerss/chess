@@ -1,6 +1,6 @@
 var renderCallback = function() {
     ReactDOM.render(
-      React.createElement(Board),
+      React.createElement(Game),
       document.getElementById("c-main-board")
     );
 };

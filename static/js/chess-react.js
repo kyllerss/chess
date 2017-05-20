@@ -1,3 +1,47 @@
+var Game = React.createClass({
+
+    /*
+    getInitialState: function() {
+
+        var grid = ChessModel.fetchBoard();
+        return {board: grid};
+    },
+    */
+    render: function() {
+
+        var playerMarker = React.createElement(PlayerMarker);
+        var separator = React.DOM.div({className: "clear-float"});
+        var board = React.createElement(Board);
+
+        return React.DOM.div({className: "c-game"}, [playerMarker, separator, board]);
+    }
+});
+
+var PlayerMarker = React.createClass({
+
+    getInitialState: function() {
+
+        ChessModel.registerBoardListener(this._gameUpdate);
+
+        var playerTurn = ChessModel.fetchPlayerTurn();
+        return {playerTurn: playerTurn};
+    },
+
+    _gameUpdate: function(state) {
+
+        var playerTurn = ChessModel.fetchPlayerTurn();
+        this.setState({playerTurn: playerTurn});
+    },
+
+    render: function() {
+
+        var player = ChessModel.calculateColor(this.state.playerTurn.color);
+        console.log("Updated player turn: " + player);
+
+        return React.DOM.div({className: "c-playerMarker"}, "Player " + player);
+    }
+});
+
 var Board = React.createClass({
 
     getInitialState: function() {

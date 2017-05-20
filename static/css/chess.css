@@ -41,7 +41,8 @@
     /*
     height: 60px;
     width: 60px;
-    */
+   */
+    margin: auto;
     text-align: center;
     display: table; /* FIXME: Why does this fix the layout shift? */
 }
@@ -75,4 +76,12 @@
 .c-yellow {color:yellow;}
 .c-red {color:red;}
 
-footer {clear:both;}
+.c-playerMarker {
+    background-color: #C2C2C2;
+    color: black;
+    font-size: 20px;
+    padding: 20px;
+    margin: 20px 50%;
+}
+
+.clear-float, footer {clear:both;}
