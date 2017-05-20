@@ -55,7 +55,7 @@ postMoveR gId = do
   -- apply/store move
   liftIO $ print $ "Applied move " ++ show pId ++ " -> " ++ show coord ++ " to game " ++ (show $ gameId $ DM.fromJust updatedGameState)
   liftIO $ print $ "New player turn: " ++ (show $ playerTurn $ DM.fromJust updatedGameState)
-  liftIO $ print $ "Moves: " ++ (show $ moves $ DM.fromJust updatedGameState)
+  -- liftIO $ print $ "Moves: " ++ (show $ moves $ DM.fromJust updatedGameState)
   response <- liftIO $ updateGame (DM.fromJust updatedGameState)
   liftIO $ print $ "Response: " ++ (show response)
   --FIXME: when (E.isLeft <$> response) (sendResponse $ unableToPersistState)

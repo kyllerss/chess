@@ -10,7 +10,8 @@
     */
     font-family: 'Arial Unicode MS, Tahoma';
     /*margin: 100px auto;*/
-    border: 1px solid black;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
     float: left;
 }
 
@@ -19,11 +20,12 @@
 }
 
 .c-space {
-    width: 58px;
-    height: 58px;
+    width: 59px;
+    height: 59px;
     display: inline-block;
     font-size: 3.5em;
-    border: 1px solid black;
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
 }
 
 .c-space.black {
@@ -35,8 +37,11 @@
 }
 
 .c-space .c-piece {
+
+    /*
     height: 60px;
     width: 60px;
+    */
     text-align: center;
     display: table; /* FIXME: Why does this fix the layout shift? */
 }
