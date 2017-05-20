@@ -1,18 +1,29 @@
 .c-board {
+    /*
     width: 480px;
     height: 480px;
     border: 1px solid black;
-    display: flex; /* inline-block elements respect whitespace EOL characters */
+    */
+    /*display: flex;*/ /* inline-block elements respect whitespace EOL characters */
+    /*
     flex-wrap: wrap;
+    */
     font-family: 'Arial Unicode MS, Tahoma';
-    margin: 100px auto;
+    /*margin: 100px auto;*/
+    border: 1px solid black;
+    float: left;
+}
+
+.c-row {
+    block-size: 60px;
 }
 
 .c-space {
-    width: 60px;
-    height: 60px;
+    width: 58px;
+    height: 58px;
     display: inline-block;
     font-size: 3.5em;
+    border: 1px solid black;
 }
 
 .c-space.black {
@@ -27,6 +38,7 @@
     height: 60px;
     width: 60px;
     text-align: center;
+    display: table; /* FIXME: Why does this fix the layout shift? */
 }
 
 .c-space .c-piece[draggable="true"] {
@@ -36,9 +48,11 @@
 .c-space.highlighted-move-target {
     background-color: blue !important;
     opacity: 0.5;
+    /*
     border: 1px solid black;
     width: 58px;
     height: 58px;
+    */
 }
 
 .c-space.non-highlighted-move-target {
@@ -55,3 +69,5 @@
 .c-orange {color:orange;}
 .c-yellow {color:yellow;}
 .c-red {color:red;}
+
+footer {clear:both;}

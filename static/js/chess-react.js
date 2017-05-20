@@ -10,23 +10,26 @@ var Board = React.createClass({
 
         var grid = this.state.board;
 
-        var spaces = [];
+        var rowElements = [];
         for (var i = 0; i < grid.length; i++) {
 
-            var row = grid[i];
-            for (var j = 0; j < row.length; j++) {
+            var colElements = [];
+            var cols = grid[i];
+            for (var j = 0; j < cols.length; j++) {
 
-                var props = row[j];
+                var props = cols[j];
                 var key = "space-" + i + "-" + j;
                 props['key'] = key;
                 props['row'] = i;
                 props['column'] = j;
 
-                spaces.push(React.createElement(Space, props));
+                colElements.push(React.createElement(Space, props));
             }
+
+            rowElements.push(React.DOM.div({className: "c-row"}, colElements));
         }
 
-        return React.DOM.div({className: "c-board"}, spaces);
+        return React.DOM.div({className: "c-board"}, rowElements);
     }
 });
 

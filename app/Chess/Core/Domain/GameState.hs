@@ -243,8 +243,8 @@ initGame Chad pls =
                     ]
 
       playerPieceMatrix = [(player1, plyr1Matrix), (player2, plyr2Matrix)]
-      board = constituteBoard 8 8 spaceMatrix propsMatrix playerPieceMatrix 
-      allMoves = allValidMoves board player2
+      board = constituteBoard 12 12 spaceMatrix propsMatrix playerPieceMatrix 
+      allMoves = allValidMoves board player1
       player1 = pls !! 0
       player2 = pls !! 1
 
