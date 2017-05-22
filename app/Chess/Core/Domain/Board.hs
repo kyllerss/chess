@@ -35,8 +35,11 @@ instance ToJSON Board where
         encode sp = multimap (\x -> toJSON x) sp
 
         toColor :: [[Space]] -> [[Color]]
-        toColor sp = multimap (\s -> spaceColor (s :: Space)) sp
-
+        toColor sp = multimap func sp
+          where func :: Space -> Color
+                func (Void _) = None
+                func s = spaceColor s
+                
         sortSpaces :: [Space] -> [Space]
         sortSpaces sp = DL.sortBy orderByColumnAndRow sp
 
@@ -106,7 +109,11 @@ fetchSpace c Board{spacesMap = m} = Map.lookup c m
 
 {- fetch piece at given coordinate -}
 fetchPiece :: Coord -> Board -> Maybe Piece
-fetchPiece c b = maybe Nothing (\s -> spacePiece s) $ fetchSpace c b
+fetchPiece c b = func $ fetchSpace c b 
+  where func :: Maybe Space -> Maybe Piece
+        func Nothing = Nothing
+        func (Just (Void _)) = Nothing
+        func (Just Space{spacePiece = sp}) = sp
 
 {- Returns all pieces of a given type for the specified player. -}
 fetchPiecesByType :: Player -> PieceType -> Board -> [Piece]
@@ -126,12 +133,12 @@ fetchPiecesByPlayer pl Board{spacesMap = spsMap} = Map.foldl' (\acc s -> (accumu
 {- fetch piece by given pieceId -}
 fetchPieceById :: PieceId -> Board -> Maybe Piece
 fetchPieceById pId Board {spacesMap = spsMap} =
-  Map.foldr' (\v a -> let opId = pieceId <$> (spacePiece v)
+  Map.foldr' acc Nothing spsMap 
+      where acc :: Space -> Maybe Piece -> Maybe Piece
+            acc (Void _) _ = Nothing
+            acc v a = let opId = pieceId <$> (spacePiece v)
                       in if (Just pId) == opId then spacePiece v else a
-             )
-             Nothing
-             spsMap 
-
+        
 {- Add a piece to board -}
 addPieceToBoard :: Piece -> Coord -> Board -> Maybe Board
 addPieceToBoard p c b@Board{spacesMap = spsMap} =
@@ -163,8 +170,12 @@ removePieceFromBoard c b@Board{spacesMap = spsMap}
 fetchPieceSpace :: Piece -> Board -> Maybe Space
 fetchPieceSpace p Board {spacesMap = spsMap} =
   fetchSpace' $
-        Map.toList $ Map.filter (\s -> evalPiece $ spacePiece s) spsMap
+        Map.toList $ Map.filter spacePred spsMap
       where
+        spacePred :: Space -> Bool
+        spacePred (Void _) = False 
+        spacePred s = evalPiece $ spacePiece s
+        
         fetchSpace' :: [(Coord, Space)] -> Maybe Space
         fetchSpace' [] = Nothing
         fetchSpace' [ (_, spc) ] = Just spc

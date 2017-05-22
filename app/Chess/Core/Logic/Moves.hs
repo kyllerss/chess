@@ -30,6 +30,7 @@ playerInCheck b pp = isPlayerInCheck
         isPlayerInCheck = DL.any isPlayerKingSpace allSpacesThreatened
 
         isPlayerKingSpace :: Space -> Bool
+        isPlayerKingSpace (Void _) = False
         isPlayerKingSpace s = matchesPlayer && matchesKing
           where matchesPlayer, matchesKing :: Bool
                 matchesPlayer = (piecePlayer <$> (spacePiece s)) == Just pp
@@ -219,11 +220,12 @@ threatenedSpacesInner b player instigator = DL.map (\mv -> moveSpace mv) $ -- ex
     oppCoords :: Maybe Board -> [(Piece, Coord)]
     oppCoords Nothing = []
     oppCoords (Just Board{spacesMap = spsMap'}) =
-      foldr (\spc acc -> if isOpponent spc
-                         then (fromJust (spacePiece spc), spaceCoord spc) : acc
-                         else acc)
-                      []
-                      spsMap'
+      foldr func [] spsMap'
+          where func :: Space -> [(Piece, Coord)] -> [(Piece, Coord)]
+                func (Void _) acc = acc
+                func spc acc = if isOpponent spc
+                               then (fromJust (spacePiece spc), spaceCoord spc) : acc
+                               else acc
 
     isOpponent :: Space -> Bool
     isOpponent s = (isJust $ spacePiece s)
@@ -394,8 +396,14 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
         fourCoord = (moveD c rookDir 4)
         threeCoord = (moveD c rookDir 3)
         fourPiece, threePiece :: Maybe PieceType
-        fourPiece = pieceType <$> join (spacePiece <$> fetchSpace fourCoord b)
-        threePiece = pieceType <$> join (spacePiece <$> fetchSpace threeCoord b)
+        fourPiece = func $ fetchSpace fourCoord b
+        threePiece = func $ fetchSpace threeCoord b
+        
+        func :: Maybe Space -> Maybe PieceType
+        func Nothing = Nothing
+        func (Just (Void _)) = Nothing
+        func (Just Space{spacePiece = Nothing}) = Nothing
+        func (Just Space{spacePiece = Just Piece{pieceType = pt}}) = Just pt
         
     castleDir :: Maybe Coord -> [Move]
     castleDir Nothing = []
@@ -420,14 +428,23 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
         rookSpace = fetchSpace rookCoord b
   
         rookMoved :: Bool
-        rookMoved = pieceMoved $ fromJust $ spacePiece $ fromJust $ rookSpace 
+        rookMoved = func rookSpace 
+          where func :: Maybe Space -> Bool
+                func Nothing = False
+                func (Just (Void _)) = False
+                func (Just Space{spacePiece = Nothing}) = False
+                func (Just Space{spacePiece = Just pc}) = pieceMoved pc
 
         spacesPassable :: Bool
         spacesPassable =
           DL.all (\coord -> (isValid b coord) && (not $ isObstructed coord)) betweenCoords
 
         isObstructed :: Coord -> Bool
-        isObstructed coord = maybe False (\s -> isJust $ spacePiece s) $ fetchSpace coord b
+        isObstructed coord = sPiece $ fetchSpace coord b
+          where sPiece :: Maybe Space -> Bool
+                sPiece Nothing = False
+                sPiece (Just (Void _)) = False
+                sPiece (Just s) = isJust $ spacePiece s
 
         kingTraverseCoords :: [Coord]
         kingTraverseCoords = kingDestCoord : (fetchBetweenCoords c kingDestCoord)

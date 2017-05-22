@@ -15,7 +15,7 @@ data Space = Space { spacePiece :: Maybe Piece
                    , spaceCoord :: Coord
                    , spaceSideEffectType :: Maybe SpaceSideEffectType
                    }
-           | Void Coord
+           | Void { spaceCoord :: Coord }
     deriving (Show, Read, Generic, Eq, NFData)
 
 instance ToJSON SpaceSideEffectType
@@ -58,8 +58,10 @@ buildSpace x y c se = Space { spacePiece = Nothing
 
 {- Remove a piece from a given space.  -}
 removePiece :: Space -> Space
+removePiece sp@(Void _) = sp
 removePiece srem = srem { spacePiece = Nothing }
 
 {- Add a piece to a given space.  -}
 addPiece :: Space -> Piece -> Space
+addPiece sp@(Void _) _ = sp
 addPiece sadd padd = sadd { spacePiece = Just padd }

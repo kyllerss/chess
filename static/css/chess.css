@@ -36,6 +36,10 @@
     background-color: white;
 }
 
+.c-space.none {
+    background-color: black;
+}
+
 .c-space .c-piece {
 
     /*

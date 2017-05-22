@@ -13,7 +13,8 @@ var ChessModel = function () {
                         , p: "Purple"
                         , o: "Orange"
                         , y: "Yellow"
-                        , r: "Red"};
+                        , r: "Red"
+                        , n: "None"};
     var _VIEWURL = null;
     var _MOVEURL = null;
     var _playerTurn = null;

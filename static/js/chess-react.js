@@ -186,10 +186,20 @@ var Space = React.createClass({
             piece = React.createElement(Piece, pProps);
         }
 
-        var sColor = this.props.color === "White" ? "white" : "black";
+        var sColorClass;
+        var calcColor = this.props.color;
+        if (calcColor === "White") {
+            sColorClass = "white";
+        } else if (calcColor === "Black") {
+            sColorClass = "black";
+        } else if (calcColor === "None") {
+            sColorClass = "none";
+        } else {
+            sColorClass = "";
+        }
         var highlighted = this.state.highlightedMoveTarget ? "highlighted-move-target" : "";
         var nonHighlighted = this.state.highlightedMoveTarget == false ? "non-highlighted-move-target" : "";
-        var className = "c-space " + sColor + " " + highlighted + " " + nonHighlighted;
+        var className = "c-space " + sColorClass + " " + highlighted + " " + nonHighlighted;
 
         var props = {className: className,
                      'data-row': row,

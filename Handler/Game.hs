@@ -25,8 +25,18 @@ getNewGameR gameType = do
                      , playerType = Human
                      , playerDirection = South
                      }
+    player3 = Player { playerName = pack "Player 3"
+                     , playerId = 3
+                     , playerType = Human
+                     , playerDirection = East
+                     }
+    player4 = Player { playerName = pack "Player 4"
+                     , playerId = 4
+                     , playerType = Human
+                     , playerDirection = West
+                     }
     gameState :: GameState
-    gameState = initGame gameType [player1, player2] 
+    gameState = initGame gameType [player1, player2, player3, player4] 
 
 getViewGameR :: GameId -> Handler TypedContent
 getViewGameR gId = do

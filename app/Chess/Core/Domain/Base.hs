@@ -2,7 +2,7 @@ module Chess.Core.Domain.Base where
 
 import Import
 
-data Color =  White | Black | Green | Blue | Orange | Yellow | Red | Purple
+data Color =  White | Black | Green | Blue | Orange | Yellow | Red | Purple | None
     deriving (Show, Eq, Read, Bounded, Enum, Generic, NFData)
 
 instance ToJSON Color where
@@ -14,6 +14,7 @@ instance ToJSON Color where
     toJSON Orange = toJSON ("o" :: Text)
     toJSON Yellow = toJSON ("y" :: Text)
     toJSON Red =    toJSON ("r" :: Text)
+    toJSON None =   toJSON ("n" :: Text)
 
 data Direction = North
                | NorthEast
