@@ -309,9 +309,12 @@ candidateMoves p@Piece{pieceType = King,piecePlayer = pp} c b@Board{spacesMap = 
 -- knight
 candidateMoves p@Piece{pieceType = Knight,piecePlayer = pp} (Coord row col) b@Board{spacesMap = spsMap} d _
     | d `DL.notElem` [ North, East, South, West ] = []
-    | otherwise = DL.filter (\Move {moveSpace = Space{spaceCoord = crd}} ->
-                               canOccupy pp $ M.lookup crd spsMap) $ fetchDirMoves d
+    | otherwise = DL.filter func $ fetchDirMoves d
   where
+    func :: Move -> Bool
+    func Move{moveSpace = (Void _)} = False
+    func Move{moveSpace = Space{spaceCoord = crd}} = canOccupy pp $ M.lookup crd spsMap
+    
     fetchDirMoves :: Direction -> [Move]
     fetchDirMoves North = (maybeToList $ buildMove p b (Coord (row - 2) (col + 1)) True [])
                           ++

@@ -135,7 +135,7 @@ fetchPieceById :: PieceId -> Board -> Maybe Piece
 fetchPieceById pId Board {spacesMap = spsMap} =
   Map.foldr' acc Nothing spsMap 
       where acc :: Space -> Maybe Piece -> Maybe Piece
-            acc (Void _) _ = Nothing
+            acc (Void _) a = a
             acc v a = let opId = pieceId <$> (spacePiece v)
                       in if (Just pId) == opId then spacePiece v else a
         
