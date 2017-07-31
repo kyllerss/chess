@@ -11,6 +11,8 @@ import           Chess.Core.Domain.Move
 import           Chess.Core.Domain.Piece
 import           Chess.Core.Domain.Player
 import qualified Chess.Core.Domain.Space as S
+import           Chess.Core.Logic.BoardBuilder
+import           Chess.Core.Logic.Moves
 import Data.Maybe (fromJust)
 import qualified Data.List as DL
 import qualified Data.Map as Map
@@ -21,7 +23,7 @@ hasStandardPieces (Just profile) = hasRooks && hasKnights && hasBishops && hasQu
   where
     validMakeup :: PieceType -> Int -> Bool
     validMakeup pt cnt = maybe False (\m -> DL.length m == cnt) $ Map.lookup pt profile
-    
+
     hasRooks, hasKnights, hasBishops, hasQueen, hasKing, hasPawns :: Bool
     hasRooks = validMakeup Rook 2
     hasKnights = validMakeup Knight 2
@@ -29,18 +31,20 @@ hasStandardPieces (Just profile) = hasRooks && hasKnights && hasBishops && hasQu
     hasQueen = validMakeup Queen 1
     hasKing = validMakeup King 1
     hasPawns = validMakeup Pawn 8
-    
+
 spec :: Spec
 spec = describe "Game" $ do
+  let player1 :: Player
+      player1 = Player { playerName = pack "Player 1"
+                       , playerId = 1
+                       , playerType = Human
+                       , playerDirection = North
+                       }
+                  
   describe "standard board" $ do
 
     -- initial board setup
-    let player1, player2 :: Player
-        player1 = Player { playerName = pack "Player 1"
-                         , playerId = 1
-                         , playerType = Human
-                         , playerDirection = North
-                         }
+    let player2 :: Player
         player2 = Player { playerName = pack "Player 2"
                          , playerId = 2
                          , playerType = Human
@@ -164,6 +168,37 @@ spec = describe "Game" $ do
 
       newGame `shouldNotBe` Nothing
 
+    it "should not crash when three players move exposing king" $ do
+    
+      let emptyGame = initGameEmpty 3 6 [player1, player2] player1
+          pawnA1 = buildTestPiece 1 Pawn 1 North
+          pawnA2 = buildTestPiece 2 Pawn 1 North
+          pawnA3 = buildTestPiece 3 Pawn 1 North
+          kingA = buildTestPiece 4 King 1 North
+          pawnB1 = buildTestPiece 11 Pawn 2 South
+          pawnB2 = buildTestPiece 12 Pawn 2 South
+          pawnB3 = buildTestPiece 13 Pawn 2 South
+          kingB = buildTestPiece 14 King 2 South
+          
+          initialGame :: Maybe GameState
+          initialGame = Just emptyGame >>=
+                      addPiece kingB (Coord 0 1) >>=
+                      addPiece pawnB1 (Coord 1 0) >>=
+                      addPiece pawnB2 (Coord 1 1) >>=
+                      addPiece pawnB3 (Coord 1 2) >>=
+                      addPiece kingA (Coord 5 1) >>=
+                      addPiece pawnA1 (Coord 4 0) >>=
+                      addPiece pawnA2 (Coord 4 1) >>=
+                      addPiece pawnA3 (Coord 4 2)
+
+      initialGame `shouldNotBe` Nothing
+
+      let newGame = initialGame >>=
+                    applyMove (pieceId pawnA2) (Coord 3 1) >>=
+                    applyMove (pieceId pawnB2) (Coord 2 1)
+
+      newGame `shouldNotBe` Nothing
+      
     it "should allow pawn to be promoted to Queen" $ do
 
       let emptyGame = initGameEmpty 2 3 [player1, player2] player1
@@ -321,6 +356,113 @@ spec = describe "Game" $ do
           castlingMove2 = find (\m -> not . null $ moveSideEffects m) mvs'
 
       castlingMove2 `shouldNotBe` Nothing
+
+  describe "four-player board" $ do
+
+    let player2, player3, player4 :: Player
+        player2 = Player { playerName = pack "Player 2"
+                         , playerId = 2
+                         , playerType = Human
+                         , playerDirection = East
+                         }
+        player3 = Player { playerName = pack "Player 3"
+                         , playerId = 3
+                         , playerType = Human
+                         , playerDirection = South
+                         }
+        player4 = Player { playerName = pack "Player 4"
+                         , playerId = 4
+                         , playerType = Human
+                         , playerDirection = West
+                         }
+
+        propsMatrix = [ ['.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.']
+                      , ['.', '.', '.', '.', '.', '.', '.'] ] :: [[Char]]
+
+        spaceMatrix = [ ['w', 'b', 'w', 'b', 'w', 'b', 'w']
+                      , ['b', 'w', 'b', 'w', 'b', 'w', 'b']
+                      , ['w', 'b', 'w', 'b', 'w', 'b', 'w']
+                      , ['b', 'w', 'b', 'w', 'b', 'w', 'b']
+                      , ['w', 'b', 'w', 'b', 'w', 'b', 'w']
+                      , ['b', 'w', 'b', 'w', 'b', 'w', 'b']
+                      , ['w', 'b', 'w', 'b', 'w', 'b', 'w'] ] :: [[Char]]
+
+        player1Matrix = [ ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', 'p', 'p', 'p', '.', '.']
+                        , ['.', '.', 'r', 'k', 'r', '.', '.'] ] :: [[Char]]
+
+        player2Matrix = [ ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.']
+                        , ['r', 'p', '.', '.', '.', '.', '.']
+                        , ['k', 'p', '.', '.', '.', '.', '.']
+                        , ['r', 'p', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.'] ] :: [[Char]]
+                                                                
+        player3Matrix = [ ['.', '.', 'r', 'k', 'r', '.', '.']
+                        , ['.', '.', 'p', 'p', 'p', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.'] ] :: [[Char]]
+
+        player4Matrix = [ ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', 'p', 'r']
+                        , ['.', '.', '.', '.', '.', 'p', 'k']
+                        , ['.', '.', '.', '.', '.', 'p', 'r']
+                        , ['.', '.', '.', '.', '.', '.', '.']
+                        , ['.', '.', '.', '.', '.', '.', '.'] ] :: [[Char]]
+
+        playerPieceMatrix = [ (player1, player1Matrix)
+                            , (player2, player2Matrix)
+                            , (player3, player3Matrix)
+                            , (player4, player4Matrix)
+                            ]
+
+        baseBoard = constituteBoard 7 7 spaceMatrix propsMatrix playerPieceMatrix
+        allMoves = allValidMoves baseBoard player1
+
+        initialGame = Just GameState{ board = fromJust baseBoard
+                                    , moves = allMoves
+                                    , players = [player1, player2, player3, player4]
+                                    , playerTurn = player1
+                                    , token = ""
+                                    , gameId = GameId "12345ABCDE"}
+
+    {-
+
+        [ ['.', '.', 'r', 'k', 'r', '.', '.']
+        , ['.', '.', 'p', 'p', 'p', '.', '.']
+        , ['r', 'p', '.', '.', '.', 'p', 'r']
+        , ['k', 'p', '.', '.', '.', 'p', 'k']
+        , ['r', 'p', '.', '.', '.', 'p', 'r']
+        , ['.', '.', 'p', 'p', 'p', '.', '.']
+        , ['.', '.', 'r', 'k', 'r', '.', '.'] ]
+    -}
+    it "should not infinite loop on king move" $ do
+
+      let pawnA = fromJust $ fetchPiece (Coord 5 3) (board $ fromJust initialGame)
+          pawnB = fromJust $ fetchPiece (Coord 3 1) (board $ fromJust initialGame)
+          pawnC = fromJust $ fetchPiece (Coord 1 3) (board $ fromJust initialGame)
+          pawnD = fromJust $ fetchPiece (Coord 3 6) (board $ fromJust initialGame)      
+          newGame = initialGame >>=
+                    applyMove (pieceId pawnA) (Coord 3 3) >>=
+                    applyMove (pieceId pawnB) (Coord 3 2) >>=
+                    applyMove (pieceId pawnC) (Coord 2 3) >>=
+                    applyMove (pieceId pawnD) (Coord 3 5) 
+
+      newGame `shouldNotBe` Nothing
       
       {-
       let newGame = initialGame >>=
