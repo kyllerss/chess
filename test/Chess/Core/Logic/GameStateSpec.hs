@@ -449,18 +449,29 @@ spec = describe "Game" $ do
         , ['r', 'p', '.', '.', '.', 'p', 'r']
         , ['.', '.', 'p', 'p', 'p', '.', '.']
         , ['.', '.', 'r', 'k', 'r', '.', '.'] ]
+
+                      VVV
+
+        [ ['.', '.', 'r', 'k', 'r', '.', '.']
+        , ['.', '.', 'p', '.', 'p', '.', '.']
+        , ['r', 'p', '.', 'p', '.', 'p', 'r']
+        , ['k', '.', 'p', 'p', 'p', '.', 'k']
+        , ['r', 'p', '.', '.', '.', 'p', 'r']
+        , ['.', '.', 'p', '.', 'p', '.', '.']
+        , ['.', '.', 'r', 'k', 'r', '.', '.'] ]
+
     -}
     it "should not infinite loop on king move" $ do
 
       let pawnA = fromJust $ fetchPiece (Coord 5 3) (board $ fromJust initialGame)
           pawnB = fromJust $ fetchPiece (Coord 3 1) (board $ fromJust initialGame)
           pawnC = fromJust $ fetchPiece (Coord 1 3) (board $ fromJust initialGame)
-          pawnD = fromJust $ fetchPiece (Coord 3 6) (board $ fromJust initialGame)      
+          pawnD = fromJust $ fetchPiece (Coord 3 5) (board $ fromJust initialGame)      
           newGame = initialGame >>=
                     applyMove (pieceId pawnA) (Coord 3 3) >>=
                     applyMove (pieceId pawnB) (Coord 3 2) >>=
                     applyMove (pieceId pawnC) (Coord 2 3) >>=
-                    applyMove (pieceId pawnD) (Coord 3 5) 
+                    applyMove (pieceId pawnD) (Coord 3 4) 
 
       newGame `shouldNotBe` Nothing
       
