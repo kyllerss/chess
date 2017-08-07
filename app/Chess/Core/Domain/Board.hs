@@ -16,32 +16,32 @@ data Board = Board { spacesMap  :: Map.Map Coord Space
     deriving (Show, Generic, Eq, Read, NFData)
 
 instance ToJSON Board where
-    toJSON (Board{spacesMap = spMap}) =
+    toJSON Board{spacesMap = spMap} =
         toJSON $ encode . toColor . shape . sortSpaces $ foldr (:) [] spMap
       where
         multimap :: (a -> b) -> [[a]] -> [[b]]
-        multimap f ss = map (\xs -> map f xs) ss
+        multimap f = map (map f)
 
         -- group by row
         shape :: [Space] -> [[Space]]
-        shape vs = DL.groupBy (\a -> (\b -> (extractRow a) == (extractRow b)))
-                              vs
+        shape = DL.groupBy (\ a b -> extractRow a == extractRow b)
+                              
           where
             extractRow :: Space -> Int
-            extractRow (Void (Coord row _)) = row 
-            extractRow (Space{spaceCoord = Coord row _}) = row
+            extractRow (Void (Coord row _)) = row
+            extractRow Space{spaceCoord = Coord row _} = row
 
         encode :: [[Color]] -> [[Value]]
-        encode sp = multimap (\x -> toJSON x) sp
+        encode = multimap toJSON
 
         toColor :: [[Space]] -> [[Color]]
-        toColor sp = multimap func sp
+        toColor = multimap func
           where func :: Space -> Color
                 func (Void _) = None
                 func s = spaceColor s
-                
+
         sortSpaces :: [Space] -> [Space]
-        sortSpaces sp = DL.sortBy orderByColumnAndRow sp
+        sortSpaces = DL.sortBy orderByColumnAndRow
 
         orderByColumnAndRow :: Space -> Space -> Ordering
         orderByColumnAndRow a b =
@@ -49,22 +49,22 @@ instance ToJSON Board where
                 (Void (Coord a1 b1), Void (Coord a2 b2))
                     | a1 > a2 -> GT
                     | a2 > a1 -> LT
-                    | a1 == a2 -> if (b1 > b2) then GT else LT
+                    | a1 == a2 -> if b1 > b2 then GT else LT
                     | otherwise -> EQ
                 (Void (Coord a1 b1), Space{spaceCoord = (Coord a2 b2)})
                     | a1 > a2 -> GT
                     | a2 > a1 -> LT
-                    | a1 == a2 -> if (b1 > b2) then GT else LT
+                    | a1 == a2 -> if b1 > b2 then GT else LT
                     | otherwise -> EQ
                 (Space{spaceCoord = (Coord a1 b1)}, Void (Coord a2 b2))
                     | a1 > a2 -> GT
                     | a2 > a1 -> LT
-                    | a1 == a2 -> if (b1 > b2) then GT else LT
+                    | a1 == a2 -> if b1 > b2 then GT else LT
                     | otherwise -> EQ
                 (Space{spaceCoord = (Coord a1 b1)}, Space{spaceCoord = (Coord a2 b2)})
                     | a1 > a2 -> GT
                     | a2 > a1 -> LT
-                    | a1 == a2 -> if (b1 > b2) then GT else LT
+                    | a1 == a2 -> if b1 > b2 then GT else LT
                     | otherwise -> EQ
 
 {- Represents empty board. -}
@@ -95,13 +95,13 @@ updateBoardSpaceSideEffect c se b@Board{spacesMap = sps} = updateBoard (fetchSpa
     updateBoard :: Maybe Space -> Maybe Board
     updateBoard Nothing = Nothing
     updateBoard (Just space) = Just b{spacesMap = Map.insert c updatedSpace sps}
-      where 
+      where
         updatedSpace :: Space
         updatedSpace = space{spaceSideEffectType = Just se}
 
 {- Record history of board moves.  -}
 recordBoardMove :: PieceId -> Coord  -> Board -> Maybe Board
-recordBoardMove pId coord b = Just b { boardMoves = (pId, coord) : boardMoves b } 
+recordBoardMove pId coord b = Just b { boardMoves = (pId, coord) : boardMoves b }
 
 {- fetch space with given coordinatesx -}
 fetchSpace :: Coord -> Board -> Maybe Space
@@ -109,7 +109,7 @@ fetchSpace c Board{spacesMap = m} = Map.lookup c m
 
 {- fetch piece at given coordinate -}
 fetchPiece :: Coord -> Board -> Maybe Piece
-fetchPiece c b = func $ fetchSpace c b 
+fetchPiece c b = func $ fetchSpace c b
   where func :: Maybe Space -> Maybe Piece
         func Nothing = Nothing
         func (Just (Void _)) = Nothing
@@ -117,28 +117,28 @@ fetchPiece c b = func $ fetchSpace c b
 
 {- Returns all pieces of a given type for the specified player. -}
 fetchPiecesByType :: Player -> PieceType -> Board -> [Piece]
-fetchPiecesByType pl pt b = DL.filter (\Piece{pieceType = pt'} -> pt == pt') $ fetchPiecesByPlayer pl b 
+fetchPiecesByType pl pt b = DL.filter (\Piece{pieceType = pt'} -> pt == pt') $ fetchPiecesByPlayer pl b
 
 {- Returns all pieces by a player. -}
 fetchPiecesByPlayer :: Player -> Board -> [Piece]
-fetchPiecesByPlayer pl Board{spacesMap = spsMap} = Map.foldl' (\acc s -> (accumulate s) ++ acc) [] spsMap
+fetchPiecesByPlayer pl Board{spacesMap = spsMap} = Map.foldl' (\acc s -> accumulate s ++ acc) [] spsMap
   where
     accumulate :: Space -> [Piece]
     accumulate (Void _) = []
     accumulate Space{spacePiece = Nothing} = []
     accumulate Space{spacePiece = Just p@Piece{piecePlayer = pl'}}
       | pl' == pl = [p]
-      | otherwise = [] 
-  
+      | otherwise = []
+
 {- fetch piece by given pieceId -}
 fetchPieceById :: PieceId -> Board -> Maybe Piece
 fetchPieceById pId Board {spacesMap = spsMap} =
-  Map.foldr' acc Nothing spsMap 
+  Map.foldr' acc Nothing spsMap
       where acc :: Space -> Maybe Piece -> Maybe Piece
             acc (Void _) a = a
-            acc v a = let opId = pieceId <$> (spacePiece v)
-                      in if (Just pId) == opId then spacePiece v else a
-        
+            acc v a = let opId = pieceId <$> spacePiece v
+                      in if Just pId == opId then spacePiece v else a
+
 {- Add a piece to board -}
 addPieceToBoard :: Piece -> Coord -> Board -> Maybe Board
 addPieceToBoard p c b@Board{spacesMap = spsMap} =
@@ -154,16 +154,16 @@ addPieceToBoard p c b@Board{spacesMap = spsMap} =
 {- Removes a piece at a given coordinate from specified board. -}
 removePieceFromBoard :: Coord -> Board -> Maybe Board
 removePieceFromBoard c b@Board{spacesMap = spsMap}
-  | space /= Nothing = Just b{spacesMap = updatedMap}
+  | DM.isJust space = Just b{spacesMap = updatedMap}
   | otherwise = Nothing
 
   where
     space :: Maybe Space
     space = fetchSpace c b
-    
+
     updatedMap :: Map.Map Coord Space
     updatedMap
-      | space /= Nothing = Map.insert (spaceCoord $ DM.fromJust space) (removePiece $ DM.fromJust space) spsMap
+      | DM.isJust space = Map.insert (spaceCoord $ DM.fromJust space) (removePiece $ DM.fromJust space) spsMap
       | otherwise = spsMap
 
 {- Fetches space containing specified piece. -}
@@ -173,9 +173,9 @@ fetchPieceSpace p Board {spacesMap = spsMap} =
         Map.toList $ Map.filter spacePred spsMap
       where
         spacePred :: Space -> Bool
-        spacePred (Void _) = False 
+        spacePred (Void _) = False
         spacePred s = evalPiece $ spacePiece s
-        
+
         fetchSpace' :: [(Coord, Space)] -> Maybe Space
         fetchSpace' [] = Nothing
         fetchSpace' [ (_, spc) ] = Just spc
@@ -188,7 +188,7 @@ fetchPieceSpace p Board {spacesMap = spsMap} =
 {- Builds standard board. -}
 initStandardBoard :: Player -> Player -> Board
 initStandardBoard player1 player2 = DM.fromJust board
-  where 
+  where
       emptyBoard = Just (initBoard 8 8 defaultSpaceBuilder) >>=
                    updateBoardSpaceSideEffect (Coord 0 0) PawnPromotion >>=
                    updateBoardSpaceSideEffect (Coord 0 1) PawnPromotion >>=
@@ -205,8 +205,8 @@ initStandardBoard player1 player2 = DM.fromJust board
                    updateBoardSpaceSideEffect (Coord 7 4) PawnPromotion >>=
                    updateBoardSpaceSideEffect (Coord 7 5) PawnPromotion >>=
                    updateBoardSpaceSideEffect (Coord 7 6) PawnPromotion >>=
-                   updateBoardSpaceSideEffect (Coord 7 7) PawnPromotion 
-                         
+                   updateBoardSpaceSideEffect (Coord 7 7) PawnPromotion
+
       pawnA1 = buildPiece (buildPieceId (Coord 1 0)) Pawn Black player2 (Just (Coord 1 0))
       pawnA2 = buildPiece (buildPieceId (Coord 1 1)) Pawn Black player2 (Just (Coord 1 1))
       pawnA3 = buildPiece (buildPieceId (Coord 1 2)) Pawn Black player2 (Just (Coord 1 2))
@@ -223,7 +223,7 @@ initStandardBoard player1 player2 = DM.fromJust board
       bishopA2 = buildPiece (buildPieceId (Coord 0 5)) Bishop Black player2 (Just (Coord 0 5))
       queenA = buildPiece (buildPieceId (Coord 0 3)) Queen Black player2 (Just (Coord 0 3))
       kingA = buildPiece (buildPieceId (Coord 0 4)) King Black player2 (Just (Coord 0 4))
-      
+
       pawnB1 = buildPiece (buildPieceId (Coord 6 0)) Pawn White player1 (Just (Coord 6 0))
       pawnB2 = buildPiece (buildPieceId (Coord 6 1)) Pawn White player1 (Just (Coord 6 1))
       pawnB3 = buildPiece (buildPieceId (Coord 6 2)) Pawn White player1 (Just (Coord 6 2))
