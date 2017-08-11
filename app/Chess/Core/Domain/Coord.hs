@@ -8,7 +8,7 @@ data Coord = Coord Int Int
     deriving (Show, Read, Generic, Eq, NFData)
 
 instance ToJSON Coord where
-    toJSON (Coord row col) = toJSON $ [ row, col ]
+    toJSON (Coord row col) = toJSON [ row, col ]
 
 instance FromJSON Coord where
   parseJSON value = do
@@ -50,16 +50,16 @@ fetchBetweenCoords startCoord@(Coord r1 c1) endCoord@(Coord r2 c2) = approachCoo
       | c1 == c2 && r2 > r1 = Just South
       | abs(r1 - r2) /= abs(c1 - c2) = Nothing   -- safety: don't allow non-direct line of sight inputs
       | c1 > c2 && r1 > r2 = Just NorthWest
-      | c1 > c2 && r2 > r1 = Just SouthWest 
+      | c1 > c2 && r2 > r1 = Just SouthWest
       | c2 > c1 && r1 > r2 = Just NorthEast
       | c2 > c1 && r2 > r1 = Just SouthEast
-      | otherwise = Nothing 
+      | otherwise = Nothing
 
     nextStartCoord :: Coord
     nextStartCoord = moveD startCoord (DM.fromJust direction) 1
-    
+
     approachCoords :: Coord -> Coord -> [Coord]
     approachCoords sc ec
-      | direction == Nothing = []
+      | isNothing direction = []
       | sc == ec = []
       | otherwise = sc : approachCoords (moveD sc (DM.fromJust direction) 1) ec
