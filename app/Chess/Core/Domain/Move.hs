@@ -21,13 +21,13 @@ data Move = Move { movePieceId        :: PieceId
     deriving (Show, Read, Eq, Generic, NFData)
 
 instance ToJSON Move where
-    toJSON (Move{moveSpace = Space{spaceCoord = Coord x y}}) = toJSON $ [ x, y ]
-    toJSON (Move{moveSpace = Void (Coord x y)}) = toJSON $ [ x, y ]
+    toJSON Move{moveSpace = Space{spaceCoord = Coord x y}} = toJSON [ x, y ]
+    toJSON Move{moveSpace = Void (Coord x y)} = toJSON [ x, y ]
 
 {- Convenience builder for Move -}
 buildMove :: Piece -> Board -> Coord -> Bool -> [BoardSideEffect] -> Maybe Move
 buildMove p b c offensive sideEffects
-  | fetchSpace c b == Nothing = Nothing
+  | isNothing (fetchSpace c b) = Nothing
   | otherwise = Just Move { movePieceId = pieceId p
                           , moveSpace = DM.fromJust $ fetchSpace c b
                           , moveIsConsumable = offensive
@@ -35,7 +35,7 @@ buildMove p b c offensive sideEffects
                           }
 
 buildSideEffectMove :: Move -> BoardSideEffect
-buildSideEffectMove move = SideEffectMove move
+buildSideEffectMove = SideEffectMove
 
 buildSideEffectPiece :: Piece -> Space -> BoardSideEffect
 buildSideEffectPiece p s = SideEffectPiece{sideEffectPiece = p, sideEffectSpace = s}

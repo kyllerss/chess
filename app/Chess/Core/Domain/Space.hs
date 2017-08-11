@@ -23,10 +23,10 @@ instance ToJSON SpaceSideEffectType
 instance ToJSON Space
 
 instance Ord Space where
-    (Space{spaceCoord = c1}) `compare` (Space{spaceCoord = c2}) =
+    Space{spaceCoord = c1} `compare` Space{spaceCoord = c2} =
         c1 `compare` c2
-    (Space{spaceCoord = c1}) `compare` (Void c2) = c1 `compare` c2
-    (Void c1) `compare` (Space{spaceCoord = c2}) = c1 `compare` c2
+    Space{spaceCoord = c1} `compare` (Void c2) = c1 `compare` c2
+    (Void c1) `compare` Space{spaceCoord = c2} = c1 `compare` c2
     (Void c1) `compare` (Void c2) = c1 `compare` c2
 
 {- Bare-minimum builder. -}
@@ -37,16 +37,16 @@ nullSpace coord = Space { spacePiece = Nothing
                         , spaceSideEffectType = Nothing}
 
 buildSpaceMap :: [Space] -> Map Coord Space
-buildSpaceMap sps = DL.foldl (\m s -> Map.insert (spaceCoord s) s m) Map.empty sps
+buildSpaceMap = DL.foldl (\m s -> Map.insert (spaceCoord s) s m) Map.empty
 
 {- default space builder -}
 defaultSpaceBuilder :: Coord -> Space
-defaultSpaceBuilder = \c@(Coord x y) -> buildSpace x y (calcSpaceColor c) Nothing
+defaultSpaceBuilder c@(Coord x y) = buildSpace x y (calcSpaceColor c) Nothing
 
 {- alternates piece color -}
 calcSpaceColor :: Coord -> Color
 calcSpaceColor (Coord x y) =
-    if (even (x + y)) then White else Black
+    if even (x + y) then White else Black
 
 {- space builder -}
 buildSpace :: Int -> Int -> Color -> Maybe SpaceSideEffectType -> Space
