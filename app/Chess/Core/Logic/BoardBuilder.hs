@@ -11,6 +11,8 @@ import qualified Data.Map as Map
 import qualified Data.Maybe as DM
 import Data.List ((!!))
 
+{-# ANN module ("HLint: ignore Use String" :: String) #-}
+
 {-
 Matrixes take the form of representational two dimensional arrays. '.' represents empty space:
 [  ['.', '.', '.']
