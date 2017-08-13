@@ -33,8 +33,8 @@ playerInCheck b pp = isPlayerInCheck
         isPlayerKingSpace (Void _) = False
         isPlayerKingSpace s = matchesPlayer && matchesKing
           where matchesPlayer, matchesKing :: Bool
-                matchesPlayer = (piecePlayer <$> (spacePiece s)) == Just pp
-                matchesKing = (pieceType <$> (spacePiece s)) == Just King
+                matchesPlayer = (piecePlayer <$> spacePiece s) == Just pp
+                matchesKing = (pieceType <$> spacePiece s) == Just King
 
         allSpacesThreatened :: [Space]
         allSpacesThreatened = threatenedSpaces b pp
@@ -85,10 +85,8 @@ moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
                      p' = sideEffectPiece mp
                  in addPieceToBoard p' (spaceCoord s') (fromJust accB))
                (Just newB)
-               ([sp | sp@SideEffectPiece{} <- if (isJust targetSideEffectPieceMove)
-                                              then moveSideEffects $ fromJust targetSideEffectPieceMove
-                                              else []])
-
+               [sp | sp@SideEffectPiece{} <- maybe [] moveSideEffects targetSideEffectPieceMove]
+      
     applyCollateralCaptures :: Board -> Maybe Board
     applyCollateralCaptures newB =
       DL.foldl (\accB c -> removePieceFromBoard c (fromJust accB))
@@ -111,7 +109,7 @@ moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
 
     movesChecker :: Space -> Coord -> [Move] -> Bool
     movesChecker _ dc moves = -- TODO: Space not needed, remove from callers
-      dc `DL.elem` (DL.map (\m -> spaceCoord . moveSpace $ m) moves)
+      dc `DL.elem` DL.map (spaceCoord . moveSpace) moves
     
     originSpace :: Maybe Space
     originSpace = fetchPieceSpace p b
@@ -126,7 +124,7 @@ moveInner (Just p@Piece{pieceId = pId, piecePlayer = pp}) destCoord b
     --sideEffectPieceSpaces = M.foldl' (\acc s -> if isJust $ spaceSideEffectType s then s : acc else acc) [] (spacesMap b) 
     targetSideEffectPieceMove :: Maybe Move
     targetSideEffectPieceMove
-      | maybeSideEffect == Nothing = Nothing
+      | isNothing maybeSideEffect = Nothing
       | otherwise = buildMove p b destCoord False [fromJust maybeSideEffect]
       where
         maybeSideEffect :: Maybe BoardSideEffect
@@ -150,14 +148,14 @@ allValidMoves Nothing _ = []
 allValidMoves jb@(Just b) pl = validNonCheckMoves
   where
     validNonCheckMoves :: [Move]
-    validNonCheckMoves = DL.filter (\m -> fixesCheck m) expectedMoves
+    validNonCheckMoves = DL.filter fixesCheck expectedMoves
 
     expectedMoves :: [Move]
     expectedMoves = allValidMovesInner jb pl  
     
     fixesCheck :: Move -> Bool
     fixesCheck Move{moveSpace = Void _} = False
-    fixesCheck Move{movePieceId = mpId, moveSpace = mvs} = playerInCheck newBoard pl == False
+    fixesCheck Move{movePieceId = mpId, moveSpace = mvs} = not $ playerInCheck newBoard pl
       where
         newBoard :: Maybe Board
         newBoard = transfer b targetPiece originSpace (Just mvs)
@@ -177,7 +175,7 @@ allValidMovesInner (Just b@Board{spacesMap = spsMap}) pl = M.foldl' accumulator 
     accumulator acc Space{spacePiece = Nothing} = acc
     accumulator acc (Void _) = acc
     accumulator acc Space{spaceCoord = sCoord, spacePiece = Just Piece{pieceId = pId, piecePlayer = ppl}}
-      | ppl == pl = (validMoves b pId sCoord) ++ acc
+      | ppl == pl = validMoves b pId sCoord ++ acc
       | otherwise = acc
 
 {- Returns all valid moves for a given piece. -}
@@ -190,15 +188,15 @@ validMoves !b pId c = validMovesInner b p c []
 validMovesInner :: Board -> Maybe Piece -> Coord -> [Piece] -> [Move]
 validMovesInner _ Nothing _ _ = []
 validMovesInner b (Just p) originCoord instigatorPieces =
-  (validStandardMoves b p originCoord instigatorPieces) DL.++ (validSpecialMoves b p originCoord instigatorPieces) 
+  validStandardMoves b p originCoord instigatorPieces DL.++ validSpecialMoves b p originCoord instigatorPieces 
   
 validStandardMoves :: Board -> Piece -> Coord -> [Piece] -> [Move]
 validStandardMoves b p originCoord instigatorPieces =
-  (DL.foldl' (DL.++) [] $ DL.map (\d -> candidateMoves p originCoord b d instigatorPieces) [minBound .. maxBound])
+  DL.foldl' (DL.++) [] $ DL.map (\d -> candidateMoves p originCoord b d instigatorPieces) [minBound .. maxBound]
 
 validSpecialMoves :: Board -> Piece -> Coord -> [Piece] -> [Move]
 validSpecialMoves b p originCoord instigatorPieces =
-  (DL.foldl' (DL.++) [] $ DL.map (\d -> specialCandidateMoves p originCoord b d instigatorPieces) [minBound .. maxBound])
+  DL.foldl' (DL.++) [] $ DL.map (\d -> specialCandidateMoves p originCoord b d instigatorPieces) [minBound .. maxBound]
     
 {-
      Returns list of spaces that threaten provided player
@@ -211,8 +209,8 @@ threatenedSpaces b player = threatenedSpacesInner b player []
 
 threatenedSpacesInner :: Maybe Board -> Player -> [Piece] -> [Space]
 threatenedSpacesInner Nothing _ _ = [] 
-threatenedSpacesInner b player instigator = DL.map (\mv -> moveSpace mv) $ -- extract spaces
-                                            filter (\mv -> moveIsConsumable mv) $ -- keep offensive moves
+threatenedSpacesInner b player instigator = DL.map moveSpace $ -- extract spaces
+                                            filter moveIsConsumable $ -- keep offensive moves
                                             DL.foldl' (DL.++) [] $ -- join list of valid coords
                                             DL.map (\(op, oc) -> validMovesInner (fromJust b) (Just op) oc instigator) $ -- calc opp valid moves
                                             oppCoords b -- fetch opp coords
@@ -228,7 +226,7 @@ threatenedSpacesInner b player instigator = DL.map (\mv -> moveSpace mv) $ -- ex
                                else acc
 
     isOpponent :: Space -> Bool
-    isOpponent s = (isJust $ spacePiece s)
+    isOpponent s = isJust (spacePiece s)
                    && (piecePlayer (fromJust $ spacePiece s) /= player) 
 
 
@@ -244,8 +242,8 @@ candidateMoves p@Piece{ pieceType = Pawn
                d
                _
     | d /= pd = []
-    | pieceMoved p == True = forwardOne DL.++ diagonals -- piece moved
-    | pieceMoved p == False = forwardOne DL.++ forwardTwo DL.++ diagonals -- piece not moved
+    | pieceMoved p = forwardOne DL.++ diagonals -- piece moved
+    | not (pieceMoved p) = forwardOne DL.++ forwardTwo DL.++ diagonals -- piece not moved
     | otherwise = []
   where
     forwardOne :: [Move]
@@ -255,24 +253,24 @@ candidateMoves p@Piece{ pieceType = Pawn
 
     forwardTwo :: [Move]
     forwardTwo
-      | forwardOne == [] = [] -- first pawn space obstructed
+      | null forwardOne = [] -- first pawn space obstructed
       | isEmptySpace $ M.lookup (moveD c d 2) spsMap = pawnForwardMove $ M.lookup (moveD c d 2) spsMap
       | otherwise = []
 
     diagonals :: [Move]
-    diagonals = (pawnDiagonalMove $ M.lookup (moveD c (rotateLeft d) 1) spsMap)
-                DL.++ (pawnDiagonalMove $ M.lookup (moveD c (rotateRight d) 1) spsMap)
+    diagonals = pawnDiagonalMove (M.lookup (moveD c (rotateLeft d) 1) spsMap)
+                DL.++ pawnDiagonalMove (M.lookup (moveD c (rotateRight d) 1) spsMap)
 
     pawnDiagonalMove :: Maybe Space -> [Move]
     pawnDiagonalMove Nothing = []
-    pawnDiagonalMove (Just (Void(_))) = []
+    pawnDiagonalMove (Just (Void _)) = []
     pawnDiagonalMove s@(Just Space{spaceCoord = coord})
         | hasOpponent pp s = maybeToList $ buildMove p b coord True []
         | otherwise = []
 
     pawnForwardMove :: Maybe Space -> [Move]
     pawnForwardMove Nothing = []
-    pawnForwardMove (Just (Void(_))) = []
+    pawnForwardMove (Just (Void _)) = []
     pawnForwardMove s@(Just Space{spaceCoord = coord})
         | canOccupy pp s = maybeToList $ buildMove p b coord False []
         | otherwise = []
@@ -286,8 +284,8 @@ candidateMoves p@Piece{ pieceType = Pawn
 -- candidateMoves p@Piece{pieceType = King} _ _ _ (Just instigatorPiece)
 --  | p == instigatorPiece = []
 candidateMoves p@Piece{pieceType = King,piecePlayer = pp} c b@Board{spacesMap = spsMap} d instigators
-  | (any (\x -> x == p) instigators) = []
-  | canOccupy pp (M.lookup nextCoord spsMap) && (isThreatenedSpace == False) = maybeToList $ buildMove p b nextCoord True []
+  | p `elem` instigators = []
+  | canOccupy pp (M.lookup nextCoord spsMap) && not isThreatenedSpace = maybeToList $ buildMove p b nextCoord True []
   | otherwise = []
   where
     nextCoord :: Coord
@@ -312,18 +310,18 @@ candidateMoves p@Piece{pieceType = Knight,piecePlayer = pp} (Coord row col) b@Bo
     func Move{moveSpace = Space{spaceCoord = crd}} = canOccupy pp $ M.lookup crd spsMap
     
     fetchDirMoves :: Direction -> [Move]
-    fetchDirMoves North = (maybeToList $ buildMove p b (Coord (row - 2) (col + 1)) True [])
+    fetchDirMoves North = maybeToList (buildMove p b (Coord (row - 2) (col + 1)) True [])
                           ++
-                          (maybeToList $ buildMove p b (Coord (row - 2) (col - 1)) True [])
-    fetchDirMoves East = (maybeToList $ buildMove p b (Coord (row - 1) (col + 2)) True [])
+                          maybeToList (buildMove p b (Coord (row - 2) (col - 1)) True [])
+    fetchDirMoves East = maybeToList (buildMove p b (Coord (row - 1) (col + 2)) True [])
                          ++
-                         (maybeToList $ buildMove p b (Coord (row + 1) (col + 2)) True [])
-    fetchDirMoves South = (maybeToList $ buildMove p b (Coord (row + 2) (col - 1)) True [])
+                         maybeToList (buildMove p b (Coord (row + 1) (col + 2)) True [])
+    fetchDirMoves South = maybeToList (buildMove p b (Coord (row + 2) (col - 1)) True [])
                           ++
-                          (maybeToList $ buildMove p b (Coord (row + 2) (col + 1)) True [])
-    fetchDirMoves West = (maybeToList $ buildMove p b (Coord (row - 1) (col - 2)) True [])
+                          maybeToList (buildMove p b (Coord (row + 2) (col + 1)) True [])
+    fetchDirMoves West = maybeToList (buildMove p b (Coord (row - 1) (col - 2)) True [])
                          ++ 
-                         (maybeToList $ buildMove p b (Coord (row + 1) (col - 2)) True [])
+                         maybeToList (buildMove p b (Coord (row + 1) (col - 2)) True [])
     fetchDirMoves _ = []
 
 -- rook
@@ -392,8 +390,8 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
       | otherwise = Nothing
       where
         fourCoord, threeCoord :: Coord
-        fourCoord = (moveD c rookDir 4)
-        threeCoord = (moveD c rookDir 3)
+        fourCoord = moveD c rookDir 4
+        threeCoord = moveD c rookDir 3
         fourPiece, threePiece :: Maybe PieceType
         fourPiece = func $ fetchSpace fourCoord b
         threePiece = func $ fetchSpace threeCoord b
@@ -436,7 +434,7 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
 
         spacesPassable :: Bool
         spacesPassable =
-          DL.all (\coord -> (isValid b coord) && (not $ isObstructed coord)) betweenCoords
+          DL.all (\coord -> isValid b coord && not (isObstructed coord)) betweenCoords
 
         isObstructed :: Coord -> Bool
         isObstructed coord = sPiece $ fetchSpace coord b
@@ -446,11 +444,11 @@ specialCandidateMoves p@Piece{pieceType = King, piecePlayer = pp@Player{playerDi
                 sPiece (Just s) = isJust $ spacePiece s
 
         kingTraverseCoords :: [Coord]
-        kingTraverseCoords = kingDestCoord : (fetchBetweenCoords c kingDestCoord)
+        kingTraverseCoords = kingDestCoord : fetchBetweenCoords c kingDestCoord
 
         spacesThreatened :: Bool
         spacesThreatened
-          | (any (\x -> x == p) instigatorPiece) = False
+          | p `elem` instigatorPiece = False
           | otherwise = DL.any (\crd -> isOverlapSpace crd (threatenedSpacesInner (virtBoard b pp crd) pp instigatorPiece)) kingTraverseCoords
           where
             virtBoard :: Board -> Player -> Coord -> Maybe Board
@@ -473,8 +471,8 @@ specialCandidateMoves p@Piece{pieceType = Pawn, piecePlayer = Player{playerId = 
       rightQualifies = rightIsPawn && rightJumpedOpenning && turnOnRightNotMissed
 
       turnOnLeftNotMissed, turnOnRightNotMissed :: Bool
-      turnOnLeftNotMissed = length (movesSince leftNeighbour) == 0
-      turnOnRightNotMissed = length (movesSince rightNeighbour) == 0
+      turnOnLeftNotMissed = null (movesSince leftNeighbour)
+      turnOnRightNotMissed = null (movesSince rightNeighbour) 
 
       movesSince :: Maybe Piece -> [(PieceId, Coord)]
       movesSince Nothing = []
@@ -486,22 +484,22 @@ specialCandidateMoves p@Piece{pieceType = Pawn, piecePlayer = Player{playerId = 
           notMatchesPiece (mPieceId, _) = mPieceId /= pId
 
           matchesPlayer :: (PieceId, Coord) -> Bool
-          matchesPlayer (mPieceId, _) = (Just plId) == (playerId <$> piecePlayer <$> (fetchPieceById mPieceId b))
+          matchesPlayer (mPieceId, _) = Just plId == (playerId . piecePlayer <$> fetchPieceById mPieceId b)
       
       leftIsPawn, rightIsPawn :: Bool
       leftIsPawn = (pieceType <$> leftNeighbour) == Just Pawn
       rightIsPawn = (pieceType <$> rightNeighbour) == Just Pawn
 
       leftJumpedOpenning, rightJumpedOpenning :: Bool
-      leftJumpedOpenning = isJump (playerDirection <$> piecePlayer <$> leftNeighbour)
+      leftJumpedOpenning = isJump (playerDirection . piecePlayer <$> leftNeighbour)
                                   (join $ pieceOrigin <$> leftNeighbour) leftCoord
-      rightJumpedOpenning = isJump (playerDirection <$> piecePlayer <$> rightNeighbour)
+      rightJumpedOpenning = isJump (playerDirection . piecePlayer <$> rightNeighbour)
                                    (join $ pieceOrigin <$> rightNeighbour) rightCoord
 
       isJump :: Maybe Direction -> Maybe Coord -> Coord -> Bool
       isJump Nothing _ _ = False
       isJump _ Nothing _ = False
-      isJump (Just od) (Just oc) cc = (moveD oc od 2) == cc
+      isJump (Just od) (Just oc) cc = moveD oc od 2 == cc
 
       leftNeighbour, rightNeighbour :: Maybe Piece
       leftNeighbour = fetchPiece leftCoord b
@@ -528,15 +526,10 @@ directionalCandidateMoves' ds p@Piece{piecePlayer = cPlayer} c b@Board{spacesMap
     | otherwise = []
   where
     validSpace :: Bool
-    validSpace = if M.member nextCoord spsMap 
-                 then canOccupy cPlayer $ M.lookup nextCoord spsMap
-                 else False
+    validSpace = M.member nextCoord spsMap && canOccupy cPlayer (M.lookup nextCoord spsMap)
 
     validSpaceWithOpp :: Bool
-    validSpaceWithOpp = if validSpace &&
-                            (hasOpponent cPlayer $ M.lookup nextCoord spsMap)
-                        then True
-                        else False
+    validSpaceWithOpp = validSpace && hasOpponent cPlayer (M.lookup nextCoord spsMap)
 
     cSpace :: Space
     cSpace = fromJust $ M.lookup nextCoord spsMap
@@ -549,7 +542,7 @@ hasOpponent :: Player -> Maybe Space -> Bool
 hasOpponent _ Nothing = False
 hasOpponent _ (Just (Void _)) = False
 hasOpponent _ (Just Space{spacePiece = Nothing}) = False
-hasOpponent cPlayer (Just (Space{spacePiece = Just (Piece{piecePlayer = pp})})) =
+hasOpponent cPlayer (Just Space{spacePiece = Just Piece{piecePlayer = pp}}) =
     cPlayer /= pp
 
 {- Returns true if space has a teammate. -}
@@ -557,7 +550,7 @@ hasTeammate :: Player -> Maybe Space -> Bool
 hasTeammate _ Nothing = False
 hasTeammate _ (Just (Void _)) = False
 hasTeammate _ (Just Space{spacePiece = Nothing}) = True
-hasTeammate cPlayer (Just (Space{spacePiece = Just (Piece{piecePlayer = pp})})) =
+hasTeammate cPlayer (Just Space{spacePiece = Just Piece{piecePlayer = pp}}) =
     cPlayer == pp
 
 {- Returns true if space has no opponent and no teammate. -}
@@ -581,7 +574,7 @@ canOccupy p s
 {- Determines if coord within spaces. -}
 isOverlapSpace :: Coord -> [Space] -> Bool
 isOverlapSpace _ [] = False
-isOverlapSpace c sps = c `DL.elem` (DL.map (\s -> spaceCoord s) sps)
+isOverlapSpace c sps = c `DL.elem` DL.map spaceCoord sps
 
 {- Determines if space exists on board. -}
 isValid :: Board -> Coord -> Bool
