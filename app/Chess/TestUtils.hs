@@ -15,11 +15,11 @@ buildTestPiece pId pType playerId playerDir =
   buildPiece (PieceId pId)
              pType
              White
-             (Player { playerName = "dummy"
-                     , playerType = Human
-                     , playerId = playerId
-                     , playerDirection = playerDir
-                     })
+             Player { playerName = "dummy"
+                    , playerType = Human
+                    , playerId = playerId
+                    , playerDirection = playerDir
+                    }
              Nothing
 
 type PlayerBoardProfile = Map.Map PieceType [Piece]
@@ -31,8 +31,8 @@ buildBoardProfileMap GameState{board = Board{spacesMap = spsMap}} =
   where
     collect :: BoardProfile -> Space -> BoardProfile
     collect acc (Void _) = acc
-    collect acc (Space{spacePiece = Nothing}) = acc
-    collect acc (Space{spacePiece = Just p@Piece{piecePlayer = ppl, pieceType = pt}}) =
+    collect acc Space{spacePiece = Nothing} = acc
+    collect acc Space{spacePiece = Just p@Piece{piecePlayer = ppl, pieceType = pt}} =
       Map.insert ppl updatedPlayerMap acc
       where
         currentPlayerMap :: PlayerBoardProfile
