@@ -23,7 +23,9 @@ let c = encode $ Coord 1 2
 
 instance Ord Coord where
     (Coord row1 col1) `compare` (Coord row2 col2) =
-        (show row1 ++ " -- " ++ show col1) `compare` (show row2 ++ " -- " ++ show col2)
+      let frst = row1 `compare` row2
+          scnd = col1 `compare` col2
+      in if frst == EQ then scnd else frst 
 
 {- Utility function for incrementing space based on direction. -}
 moveD :: Coord -> Direction -> Int -> Coord
