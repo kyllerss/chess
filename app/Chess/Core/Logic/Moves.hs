@@ -192,11 +192,11 @@ validMovesInner b (Just p) originCoord instigatorPieces =
   
 validStandardMoves :: Board -> Piece -> Coord -> [Piece] -> [Move]
 validStandardMoves b p originCoord instigatorPieces =
-  DL.foldl' (DL.++) [] $ DL.map (\d -> candidateMoves p originCoord b d instigatorPieces) [minBound .. maxBound]
+  concatMap (\d -> candidateMoves p originCoord b d instigatorPieces) [minBound .. maxBound]
 
 validSpecialMoves :: Board -> Piece -> Coord -> [Piece] -> [Move]
 validSpecialMoves b p originCoord instigatorPieces =
-  DL.foldl' (DL.++) [] $ DL.map (\d -> specialCandidateMoves p originCoord b d instigatorPieces) [minBound .. maxBound]
+  concatMap (\d -> specialCandidateMoves p originCoord b d instigatorPieces) [minBound .. maxBound]
     
 {-
      Returns list of spaces that threaten provided player

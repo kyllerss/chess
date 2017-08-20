@@ -148,6 +148,7 @@ test-suite test
                        Chess.Core.Logic.MovesSpec
                        Chess.Core.Logic.GameStateSpec
                        Chess.Core.Logic.BoardBuilderSpec
+                       Performance.BaseSpec
     hs-source-dirs:    test
     ghc-options:       -Wall -threaded -rtsopts -with-rtsopts=-N
 

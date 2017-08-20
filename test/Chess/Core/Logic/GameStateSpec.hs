@@ -474,7 +474,7 @@ spec = describe "Game" $ do
                     applyMove (pieceId pawnD) (Coord 3 4) 
 
       newGame `shouldNotBe` Nothing
-      
+
       {-
       let newGame = initialGame >>=
                     applyMove (pieceId pawnA) (Coord 3 0) >>=

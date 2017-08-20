@@ -325,6 +325,9 @@ spec = describe "Pieces" $ do
             coords' = map (\m -> spaceCoord $ moveSpace m) ms'
 
         elem (Coord 1 3) coords' `shouldBe` True
+
+    --it "on a 4 player game, player 4 doesn't treat en passant on itself" $ do
+      
         
   describe "Rook" $ do
 
