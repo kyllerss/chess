@@ -34,7 +34,9 @@ hasStandardPieces (Just profile) = hasRooks && hasKnights && hasBishops && hasQu
 
 spec :: Spec
 spec = describe "Game" $ do
-  let player1 :: Player
+  let gId :: GameId
+      gId = GameId "ABC123"
+      player1 :: Player
       player1 = Player { playerName = pack "Player 1"
                        , playerId = 1
                        , playerType = Human
@@ -51,7 +53,7 @@ spec = describe "Game" $ do
                          , playerDirection = South
                          }
         gameState :: GameState
-        gameState = initGame Standard [player1, player2] 
+        gameState = initGame gId Standard [player1, player2] 
 
         boardProfile :: BoardProfile
         boardProfile = buildBoardProfileMap gameState
@@ -295,7 +297,8 @@ spec = describe "Game" $ do
           pawnV = buildTestPiece 14 Pawn 2 South
           
           initialGame :: Maybe GameState
-          initialGame = initGameBare 2
+          initialGame = initGameBare gId
+                                     2
                                      4
                                      [(pawnA, (Coord 3 1))
                                      , (pawnV, (Coord 0 0))]                                     
@@ -326,7 +329,8 @@ spec = describe "Game" $ do
           kingB = buildTestPiece 14 King 2 South
           
           initialGame :: Maybe GameState
-          initialGame = initGameBare 8
+          initialGame = initGameBare gId
+                                     8
                                      8
                                      [(rookB, (Coord 0 7))
                                      , (kingB, (Coord 0 4))

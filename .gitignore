@@ -3,3 +3,8 @@
 TAGS
 static/tmp/*
 yesod-devel/
+.vscode/
+GPATH
+GRTAGS
+GTAGS
+

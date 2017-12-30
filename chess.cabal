@@ -105,6 +105,7 @@ library
                 , string-conversions
                 , hspec                         >= 2.4.1
                 , deepseq >= 1.4
+                , random
 
 executable         chess
     if flag(library-only)

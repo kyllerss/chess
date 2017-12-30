@@ -1,4 +1,4 @@
-module Handler.Game where
+ module Handler.Game where
 
 import Import
 import           Chess.Core.Domain.Base
@@ -7,12 +7,16 @@ import           Chess.Core.Domain.Player
 import Chess.Core.Logic.GameStatePersistence
 import qualified Data.Maybe as DM
 import Handler.Move()
+import System.Random
 
 getNewGameR :: GameType -> Handler Value
 getNewGameR gameType = do
-  _ <- liftIO $ storeNewGame gameState
-  liftIO $ print $ "Created new game w/ id: " ++ (show $ gameId gameState)
-  redirect (ViewGameR (gameId gameState))
+  gen <- liftIO $ getStdGen
+  let g = take 10 (randoms gen :: [Char])
+      gId = GameId g
+  _ <- liftIO $ storeNewGame $ gameState gId
+  liftIO $ print $ "Created new game w/ id: " ++ (show gId)
+  redirect (ViewGameR gId)
   where 
     player1, player2 :: Player
     player1 = Player { playerName = pack "Player 1"
@@ -35,8 +39,8 @@ getNewGameR gameType = do
                      , playerType = Human
                      , playerDirection = West
                      }
-    gameState :: GameState
-    gameState = initGame gameType [player1, player2, player3, player4] 
+    gameState :: GameId -> GameState
+    gameState gId = initGame gId gameType [player1, player2, player3, player4] 
 
 getViewGameR :: GameId -> Handler TypedContent
 getViewGameR gId = do

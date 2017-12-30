@@ -2,26 +2,27 @@ module Performance.BaseSpec ( spec ) where
 
 import Import
 import           Test.Hspec
-import           Chess.TestUtils
+-- import           Chess.TestUtils
 import           Chess.Core.Domain.Base
 import           Chess.Core.Domain.Board
 import           Chess.Core.Domain.Coord
 import           Chess.Core.Domain.GameState
-import           Chess.Core.Domain.Move
+-- import           Chess.Core.Domain.Move
 import           Chess.Core.Domain.Piece
 import           Chess.Core.Domain.Player
-import qualified Chess.Core.Domain.Space as S
-import           Chess.Core.Logic.BoardBuilder
-import           Chess.Core.Logic.Moves
+-- import qualified Chess.Core.Domain.Space as S
+-- import           Chess.Core.Logic.BoardBuilder
+-- import           Chess.Core.Logic.Moves
 import Data.Maybe (fromJust)
-import qualified Data.List as DL
-import qualified Data.Map as Map
+-- import qualified Data.List as DL
+-- import qualified Data.Map as Map
 
 spec :: Spec
 spec =
   describe "four-player board" $ do
 
-    let player1, player2, player3, player4 :: Player
+    let gId = GameId "ABC123"
+        player1, player2, player3, player4 :: Player
     
         player1 = Player { playerName = pack "Player 1"
                          , playerId = 1
@@ -45,7 +46,7 @@ spec =
                          }
 
         initialGame :: GameState
-        initialGame = initGame FourPerson [player1, player2, player3, player4]
+        initialGame = initGame gId FourPerson [player1, player2, player3, player4]
         
 
     it "should not have terrible performance" $ do

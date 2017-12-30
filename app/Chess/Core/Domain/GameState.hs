@@ -86,14 +86,14 @@ standardBoardPlayer2 =  [ ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r']
                         ]
 
 {- Builds a new game state.  -}
-initGame :: GameType -> [Player] -> GameState
-initGame Standard pls =
+initGame :: GameId -> GameType -> [Player] -> GameState
+initGame gId Standard pls =
     GameState{ board = DM.fromJust board
              , moves = allMoves
              , players = [player1, player2]
              , playerTurn = player1
              , token = ""
-             , gameId = GameId "12345ABCDE"}
+             , gameId = gId}
     where
       spaceMatrix = [ ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b']
                     , ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']
@@ -133,13 +133,13 @@ initGame Standard pls =
       player1 = pls !! 0
       player2 = pls !! 1
 
-initGame Dunsany pls =
+initGame gId Dunsany pls =
     GameState{ board = DM.fromJust board
              , moves = allMoves
              , players = [player1, player2]
              , playerTurn = player2
              , token = ""
-             , gameId = GameId "12345ABCDE"}
+             , gameId = gId}
     where
       spaceMatrix = [ ['w', 'b', 'w', 'b', 'w', 'b', 'w', 'b']
                     , ['b', 'w', 'b', 'w', 'b', 'w', 'b', 'w']
@@ -178,13 +178,13 @@ initGame Dunsany pls =
       player1 = pls !! 0
       player2 = pls !! 1
 
-initGame Chad pls =
+initGame gId Chad pls =
     GameState{ board = DM.fromJust board
              , moves = allMoves
              , players = [player1, player2]
              , playerTurn = player1
              , token = ""
-             , gameId = GameId "12345ABCDE"}
+             , gameId = gId}
     where
       spaceMatrix = [ ['w', 'w', 'w', 'w', 'w', 'w', 'w', 'w', 'w', 'w', 'w', 'w']
                     , ['w', 'w', 'w', 'w', 'w', 'w', 'w', 'b', 'b', 'b', 'w', 'w']
@@ -248,13 +248,13 @@ initGame Chad pls =
       player1 = pls !! 0
       player2 = pls !! 1
 
-initGame FourPerson pls =
+initGame gId FourPerson pls =
     GameState{ board = DM.fromJust board
              , moves = allMoves
              , players = [player1, player2, player3, player4]
              , playerTurn = player1
              , token = ""
-             , gameId = GameId "12345ABCDE"}
+             , gameId = gId}
     where
       spaceMatrix = [ ['v', 'v', 'v', 'w', 'b', 'w', 'b', 'w', 'b', 'w', 'b', 'v', 'v', 'v']
                     , ['v', 'v', 'v', 'b', 'w', 'b', 'w', 'b', 'w', 'b', 'w', 'v', 'v', 'v']
@@ -366,11 +366,11 @@ initGame FourPerson pls =
       player4 = pls !! 3
 
 initGameEmpty :: Int -> Int -> [Player] -> Player -> GameState
-initGameEmpty width height pls plTurn = DM.fromJust $ initGameBare width height [] pls plTurn
+initGameEmpty width height pls plTurn = DM.fromJust $ initGameBare (GameId "") width height [] pls plTurn
 
 {- Create a new board.  -}
-initGameBare :: Int -> Int -> [(Piece, Coord)] -> [Player] -> Player -> Maybe GameState
-initGameBare width height pcs pls plTurn = generateGameState maybeBoard
+initGameBare :: GameId -> Int -> Int -> [(Piece, Coord)] -> [Player] -> Player -> Maybe GameState
+initGameBare gId width height pcs pls plTurn = generateGameState maybeBoard
   where
     board = initBoard width height defaultSpaceBuilder
     maybeBoard = foldl' (\mb (p, c) -> appendPiece p c mb) (Just board) pcs
@@ -388,7 +388,7 @@ initGameBare width height pcs pls plTurn = generateGameState maybeBoard
                                                  , players = pls
                                                  , playerTurn = plTurn
                                                  , token = pack "abc"
-                                                 , gameId = GameId "ABCDE12345"
+                                                 , gameId = gId
                                                  }
 
 
