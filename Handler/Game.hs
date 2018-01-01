@@ -8,13 +8,12 @@ import Chess.Core.Logic.GameStatePersistence
 import qualified Data.Maybe as DM
 import Handler.Move()
 import System.Random
+import Data.Char as Char
+
 
 getNewGameR :: GameType -> Handler Value
 getNewGameR gameType = do
-  gen <- liftIO $ getStdGen
-  let g = take 10 (randoms gen :: [Char])
-      gId = GameId g
-  _ <- liftIO $ storeNewGame $ gameState gId
+  _ <- liftIO $ storeNewGame gameState
   liftIO $ print $ "Created new game w/ id: " ++ (show gId)
   redirect (ViewGameR gId)
   where 
@@ -39,8 +38,11 @@ getNewGameR gameType = do
                      , playerType = Human
                      , playerDirection = West
                      }
-    gameState :: GameId -> GameState
-    gameState gId = initGame gId gameType [player1, player2, player3, player4] 
+    gameState :: GameState
+    gameState = initGame gId gameType [player1, player2, player3, player4]
+
+    gId :: GameId
+    gId = GameId $ take 32 $ randomRs (chr 65, chr 90) (mkStdGen 31)
 
 getViewGameR :: GameId -> Handler TypedContent
 getViewGameR gId = do
