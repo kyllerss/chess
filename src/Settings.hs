@@ -1,4 +1,8 @@
-{-# Language CPP #-}
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 -- | Settings are centralized, as much as possible, into this file. This
 -- includes database connection settings, static file locations, etc.
 -- In addition, you can configure a number of different aspects of Yesod
@@ -56,7 +60,7 @@ data AppSettings = AppSettings
 instance FromJSON AppSettings where
     parseJSON = withObject "AppSettings" $ \o -> do
         let defaultDev =
-#if DEVELOPMENT
+#ifdef DEVELOPMENT
                 True
 #else
                 False
@@ -67,11 +71,13 @@ instance FromJSON AppSettings where
         appPort                   <- o .: "port"
         appIpFromHeader           <- o .: "ip-from-header"
 
-        appDetailedRequestLogging <- o .:? "detailed-logging" .!= defaultDev
-        appShouldLogAll           <- o .:? "should-log-all"   .!= defaultDev
-        appReloadTemplates        <- o .:? "reload-templates" .!= defaultDev
-        appMutableStatic          <- o .:? "mutable-static"   .!= defaultDev
-        appSkipCombining          <- o .:? "skip-combining"   .!= defaultDev
+        dev                       <- o .:? "development"      .!= defaultDev
+
+        appDetailedRequestLogging <- o .:? "detailed-logging" .!= dev
+        appShouldLogAll           <- o .:? "should-log-all"   .!= dev
+        appReloadTemplates        <- o .:? "reload-templates" .!= dev
+        appMutableStatic          <- o .:? "mutable-static"   .!= dev
+        appSkipCombining          <- o .:? "skip-combining"   .!= dev
 
         appCopyright              <- o .: "copyright"
         appAnalytics              <- o .:? "analytics"

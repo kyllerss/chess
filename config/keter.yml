@@ -15,8 +15,8 @@ stanzas:
     #
     # The path given is for Stack projects. If you're still using cabal, change
     # to
-    # exec: ../dist/build/chess-website/chess-website
-    exec: ../dist/bin/chess-website
+    # exec: ../dist/build/chess/chess
+    exec: ../dist/bin/chess
 
     # Command line options passed to your application.
     args: []
@@ -25,7 +25,7 @@ stanzas:
       # You can specify one or more hostnames for your application to respond
       # to. The primary hostname will be used for generating your application
       # root.
-      - www.chess-website.com
+      - www.chess.com
 
     # Enable to force Keter to redirect to https
     # Can be added to any stanza
@@ -34,7 +34,7 @@ stanzas:
   # Static files.
   - type: static-files
     hosts:
-      - static.chess-website.com
+      - static.chess.com
     root: ../static
 
     # Uncomment to turn on directory listings.
@@ -44,9 +44,9 @@ stanzas:
   - type: redirect
 
     hosts:
-      - chess-website.com
+      - chess.com
     actions:
-      - host: www.chess-website.com
+      - host: www.chess.com
         # secure: false
         # port: 80
 
