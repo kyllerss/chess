@@ -94,8 +94,12 @@ library
                      Chess.TestUtils
                      Chess.Core.DebugUtils
   other-modules:
-      Paths_chess_new
+      Paths_chess
   default-language: Haskell2010
+  extensions: 
+      OverloadedStrings
+      NoImplicitPrelude
+      BangPatterns
 
 executable chess
   main-is: main.hs
@@ -143,8 +147,10 @@ executable chess
     buildable: False
   other-modules:
       DevelMain
-      Paths_chess_new
+      Paths_chess
   default-language: Haskell2010
+  extensions: 
+      OverloadedStrings
 
 test-suite chess-test
   type: exitcode-stdio-1.0
@@ -201,5 +207,8 @@ test-suite chess-test
       Chess.Core.Logic.GameStateSpec
       Chess.Core.Logic.BoardBuilderSpec
       Performance.BaseSpec
-      Paths_chess_new
+      Paths_chess
   default-language: Haskell2010
+  extensions: 
+      OverloadedStrings
+      NoImplicitPrelude

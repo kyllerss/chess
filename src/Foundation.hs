@@ -5,6 +5,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Foundation where
 

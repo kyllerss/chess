@@ -1,4 +1,10 @@
- module Handler.Game where
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies #-}
+
+module Handler.Game where
 
 import Import
 import           Chess.Core.Domain.Base
