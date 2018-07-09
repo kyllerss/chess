@@ -69,30 +69,31 @@ library
     cpp-options: -DDEVELOPMENT
   else
     ghc-options: -Wall -fwarn-tabs -O2
-    exposed-modules: Application
-                     Foundation
-                     Import
-                     Import.NoFoundation
-                     Settings
-                     Settings.StaticFiles
-                     Handler.Common
-                     Handler.Home
-                     Handler.Game
-                     Handler.Move
-                     Chess.Core.Domain.Foundation
-                     Chess.Core.Domain.Base
-                     Chess.Core.Domain.Board
-                     Chess.Core.Domain.Coord
-                     Chess.Core.Domain.GameState
-                     Chess.Core.Domain.Move
-                     Chess.Core.Domain.Piece
-                     Chess.Core.Domain.Player
-                     Chess.Core.Domain.Space
-                     Chess.Core.Logic.GameStatePersistence
-                     Chess.Core.Logic.Moves
-                     Chess.Core.Logic.BoardBuilder
-                     Chess.TestUtils
-                     Chess.Core.DebugUtils
+  exposed-modules: 
+      Application
+      Foundation
+      Import
+      Import.NoFoundation
+      Settings
+      Settings.StaticFiles
+      Handler.Common
+      Handler.Home
+      Handler.Game
+      Handler.Move
+      Chess.Core.Domain.Foundation
+      Chess.Core.Domain.Base
+      Chess.Core.Domain.Board
+      Chess.Core.Domain.Coord
+      Chess.Core.Domain.GameState
+      Chess.Core.Domain.Move
+      Chess.Core.Domain.Piece
+      Chess.Core.Domain.Player
+      Chess.Core.Domain.Space
+      Chess.Core.Logic.GameStatePersistence
+      Chess.Core.Logic.Moves
+      Chess.Core.Logic.BoardBuilder
+      Chess.TestUtils
+      Chess.Core.DebugUtils
   other-modules:
       Paths_chess
   default-language: Haskell2010
